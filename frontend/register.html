@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Đăng ký | LC Network</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecda",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102220",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#f0f4f4] dark:border-white/10 px-10 py-3 bg-white dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center gap-4 text-[#111817] dark:text-white">
+            <div class="size-6 text-primary">
+                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"
+                        fill="currentColor" fill-rule="evenodd"></path>
+                </svg>
+            </div>
+            <h2 class="text-[#111817] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">LC Network
+            </h2>
+        </div>
+        <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+                <a class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                    href="index.html">Trang chủ</a>
+                <a class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                    href="#">Giới thiệu</a>
+                <a class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                    href="#">Cộng đồng</a>
+            </div>
+            <a href="login.html"
+                class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-[#111817] text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+                <span>Đăng nhập</span>
+            </a>
+        </div>
+    </header>
+    <main class="flex flex-col items-center justify-center px-4 py-12">
+        <div class="max-w-[960px] w-full flex flex-col md:flex-row gap-12 items-start justify-center">
+            <!-- Left Side: Messaging -->
+            <div class="flex flex-col gap-6 max-w-md">
+                <div class="flex flex-col gap-3">
+                    <p class="text-[#111817] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Tham
+                        gia cộng đồng</p>
+                    <p class="text-[#618986] dark:text-[#a0c4c1] text-lg font-normal leading-normal">Trải nghiệm không
+                        gian mạng xã hội an toàn với giám sát AI, được thiết kế cho những kết nối ý nghĩa.</p>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div
+                        class="flex items-center gap-3 p-4 bg-white dark:bg-white/5 rounded-xl border border-[#f0f4f4] dark:border-white/10">
+                        <span class="material-symbols-outlined text-primary">verified_user</span>
+                        <div>
+                            <p class="font-bold text-[#111817] dark:text-white text-sm">An toàn nhờ AI</p>
+                            <p class="text-[#618986] dark:text-[#a0c4c1] text-xs">Giám sát thời gian thực để có trải
+                                nghiệm lành mạnh.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="flex items-center gap-3 p-4 bg-white dark:bg-white/5 rounded-xl border border-[#f0f4f4] dark:border-white/10">
+                        <span class="material-symbols-outlined text-primary">public</span>
+                        <div>
+                            <p class="font-bold text-[#111817] dark:text-white text-sm">Kết nối toàn cầu</p>
+                            <p class="text-[#618986] dark:text-[#a0c4c1] text-xs">Kết nối với những người cùng chí hướng
+                                trên toàn thế giới.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button
+                        class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#f0f4f4] dark:bg-white/10 text-[#111817] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#e2e8e8] dark:hover:bg-white/20 transition-all">
+                        <span>Tìm hiểu về giám sát AI</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Right Side: Registration Form -->
+            <div
+                class="w-full max-w-[480px] bg-white dark:bg-white/5 p-8 rounded-2xl shadow-sm border border-[#f0f4f4] dark:border-white/10">
+                <h3 class="text-2xl font-bold text-[#111817] dark:text-white mb-6">Tạo tài khoản</h3>
+
+                <!-- Error Message -->
+                <div id="error-message"
+                    class="hidden mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">error</span>
+                        <span id="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <div id="success-message"
+                    class="hidden mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">check_circle</span>
+                        <span id="success-text"></span>
+                    </div>
+                </div>
+
+                <form id="register-form" class="flex flex-col gap-4">
+                    <!-- Full Name -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal pb-2">Họ và tên
+                        </p>
+                        <input id="fullname" name="fullname"
+                            class="form-input flex w-full rounded-lg text-[#111817] dark:text-white focus:ring-2 focus:ring-primary/50 border border-[#dbe6e5] dark:border-white/10 bg-white dark:bg-white/5 h-12 placeholder:text-[#618986]/60 p-4 text-sm font-normal"
+                            placeholder="Nguyễn Văn A" type="text" required />
+                    </label>
+                    <!-- Email -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal pb-2">Địa chỉ
+                            Email</p>
+                        <input id="email" name="email"
+                            class="form-input flex w-full rounded-lg text-[#111817] dark:text-white focus:ring-2 focus:ring-primary/50 border border-[#dbe6e5] dark:border-white/10 bg-white dark:bg-white/5 h-12 placeholder:text-[#618986]/60 p-4 text-sm font-normal"
+                            placeholder="email@example.com" type="email" required />
+                    </label>
+                    <!-- Password -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal pb-2">Mật khẩu
+                        </p>
+                        <div class="relative flex w-full items-stretch rounded-lg">
+                            <input id="password" name="password"
+                                class="form-input flex w-full rounded-lg text-[#111817] dark:text-white focus:ring-2 focus:ring-primary/50 border border-[#dbe6e5] dark:border-white/10 bg-white dark:bg-white/5 h-12 placeholder:text-[#618986]/60 p-4 text-sm font-normal pr-12"
+                                placeholder="Tạo mật khẩu" type="password" required />
+                            <div id="toggle-password"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-[#618986] cursor-pointer hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </div>
+                        </div>
+                    </label>
+                    <!-- Password Strength Meter -->
+                    <div class="flex flex-col gap-1.5 px-1">
+                        <div id="password-strength-bars" class="flex gap-1 h-1">
+                            <div class="flex-1 bg-primary/20 dark:bg-white/10 rounded-full" data-strength="1"></div>
+                            <div class="flex-1 bg-primary/20 dark:bg-white/10 rounded-full" data-strength="2"></div>
+                            <div class="flex-1 bg-primary/20 dark:bg-white/10 rounded-full" data-strength="3"></div>
+                            <div class="flex-1 bg-primary/20 dark:bg-white/10 rounded-full" data-strength="4"></div>
+                        </div>
+                        <p class="text-[10px] text-[#618986] dark:text-[#a0c4c1] flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[12px]">info</span>
+                            Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và ký tự đặc biệt
+                        </p>
+                    </div>
+                    <!-- Confirm Password -->
+                    <label class="flex flex-col w-full">
+                        <p class="text-[#111817] dark:text-white/80 text-sm font-medium leading-normal pb-2">Xác nhận
+                            mật khẩu</p>
+                        <div class="relative flex w-full items-stretch rounded-lg">
+                            <input id="confirm-password" name="confirm-password"
+                                class="form-input flex w-full rounded-lg text-[#111817] dark:text-white focus:ring-2 focus:ring-primary/50 border border-[#dbe6e5] dark:border-white/10 bg-white dark:bg-white/5 h-12 placeholder:text-[#618986]/60 p-4 text-sm font-normal pr-12"
+                                placeholder="Nhập lại mật khẩu" type="password" required />
+                            <div id="toggle-confirm-password"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-[#618986] cursor-pointer hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </div>
+                        </div>
+                    </label>
+                    <!-- Terms Checkbox -->
+                    <div class="flex items-start gap-3 py-2">
+                        <input id="terms" name="terms"
+                            class="mt-1 h-4 w-4 rounded border-[#dbe6e5] dark:border-white/20 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent"
+                            type="checkbox" required />
+                        <p class="text-xs text-[#618986] dark:text-[#a0c4c1] leading-tight">
+                            Tôi đồng ý với <a class="text-primary hover:underline" href="#">Điều khoản dịch vụ</a> và <a
+                                class="text-primary hover:underline" href="#">Nguyên tắc cộng đồng</a>.
+                        </p>
+                    </div>
+                    <!-- Create Account Button -->
+                    <button id="register-btn" type="submit"
+                        class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-primary text-[#111817] text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity mt-2 shadow-lg shadow-primary/20">
+                        <span id="register-btn-text">Đăng ký</span>
+                        <span id="register-btn-loading" class="hidden">
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </span>
+                    </button>
+                    <!-- Verification Message -->
+                    <div
+                        class="bg-[#f0f4f4]/50 dark:bg-white/5 p-3 rounded-lg border border-dashed border-[#dbe6e5] dark:border-white/10 mt-2">
+                        <p class="text-[11px] text-[#618986] dark:text-[#a0c4c1] text-center italic">
+                            Mã OTP sẽ được gửi đến email của bạn sau khi đăng ký.
+                        </p>
+                    </div>
+                    <!-- Divider -->
+                    <div class="relative flex items-center py-4">
+                        <div class="flex-grow border-t border-[#f0f4f4] dark:border-white/10"></div>
+                        <span
+                            class="flex-shrink mx-4 text-xs text-[#618986] dark:text-[#a0c4c1] font-medium uppercase tracking-wider">Hoặc
+                            tiếp tục với</span>
+                        <div class="flex-grow border-t border-[#f0f4f4] dark:border-white/10"></div>
+                    </div>
+                    <!-- Social Login -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button
+                            class="flex items-center justify-center gap-2 h-11 border border-[#dbe6e5] dark:border-white/10 rounded-lg bg-white dark:bg-white/5 hover:bg-[#f6f8f8] dark:hover:bg-white/10 transition-colors"
+                            type="button">
+                            <svg class="w-5 h-5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    fill="#4285F4"></path>
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853"></path>
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                    fill="#FBBC05"></path>
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335"></path>
+                            </svg>
+                            <span class="text-sm font-semibold text-[#111817] dark:text-white">Google</span>
+                        </button>
+                        <button
+                            class="flex items-center justify-center gap-2 h-11 border border-[#dbe6e5] dark:border-white/10 rounded-lg bg-white dark:bg-white/5 hover:bg-[#f6f8f8] dark:hover:bg-white/10 transition-colors"
+                            type="button">
+                            <svg class="w-5 h-5" fill="#1877F2" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z">
+                                </path>
+                            </svg>
+                            <span class="text-sm font-semibold text-[#111817] dark:text-white">Facebook</span>
+                        </button>
+                    </div>
+                    <p class="text-sm text-[#618986] dark:text-[#a0c4c1] text-center mt-4">
+                        Đã có tài khoản? <a class="text-primary font-bold hover:underline" href="login.html">Đăng
+                            nhập</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <!-- OTP Modal -->
+    <div id="otp-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-background-dark rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-primary text-4xl">mail</span>
+                </div>
+                <h3 class="text-2xl font-bold text-[#111817] dark:text-white mb-2">Xác thực OTP</h3>
+                <p class="text-sm text-[#618986] dark:text-[#a0c4c1]">
+                    Chúng tôi đã gửi mã OTP gồm 6 số đến email<br>
+                    <strong id="otp-email" class="text-primary"></strong>
+                </p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="otp-error-message" class="hidden mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">error</span>
+                    <span id="otp-error-text"></span>
+                </div>
+            </div>
+
+            <!-- OTP Input -->
+            <form id="otp-form" class="mb-6">
+                <label class="block text-sm font-medium text-[#111817] dark:text-white mb-2">Nhập mã OTP</label>
+                <div class="flex gap-2 justify-center mb-4">
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                    <input type="text" maxlength="1" class="otp-input w-12 h-14 text-center text-2xl font-bold border-2 border-[#dbe6e5] dark:border-white/20 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/50 bg-white dark:bg-white/5 text-[#111817] dark:text-white" />
+                </div>
+
+                <!-- Timer -->
+                <div class="text-center mb-4">
+                    <p class="text-sm text-[#618986] dark:text-[#a0c4c1]">
+                        Mã OTP sẽ hết hạn sau <span id="otp-timer" class="font-bold text-primary">5:00</span>
+                    </p>
+                </div>
+
+                <!-- Verify Button -->
+                <button type="submit" id="verify-otp-btn" class="w-full flex items-center justify-center rounded-lg h-12 px-4 bg-primary text-[#111817] text-base font-bold hover:opacity-90 transition-opacity mb-4">
+                    <span id="verify-otp-text">Xác thực</span>
+                    <span id="verify-otp-loading" class="hidden">
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                </button>
+
+                <!-- Resend OTP -->
+                <div class="text-center">
+                    <button type="button" id="resend-otp-btn" class="text-sm text-[#618986] dark:text-[#a0c4c1] hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Không nhận được mã? <span class="font-bold">Gửi lại</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="fixed top-0 right-0 -z-10 w-1/3 h-screen opacity-10 pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-l from-primary to-transparent"></div>
+    </div>
+    <div
+        class="fixed bottom-0 left-0 -z-10 w-1/4 h-64 opacity-5 pointer-events-none bg-primary blur-[120px] rounded-full">
+    </div>
+    <script src="js/config.js"></script>
+    <script>
+        // Global variables for OTP
+        let currentUserId = null;
+        let currentUserEmail = null;
+        let otpTimer = null;
+        let timeLeft = 300; // 5 minutes in seconds
+
+        // Password visibility toggle
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const togglePassword = document.getElementById('toggle-password');
+        const toggleConfirmPassword = document.getElementById('toggle-confirm-password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('span').textContent = type === 'password' ? 'visibility' : 'visibility_off';
+        });
+
+        toggleConfirmPassword.addEventListener('click', function () {
+            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordInput.setAttribute('type', type);
+            this.querySelector('span').textContent = type === 'password' ? 'visibility' : 'visibility_off';
+        });
+
+        // Password strength checker
+        passwordInput.addEventListener('input', function () {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            updatePasswordStrengthUI(strength);
+        });
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/) || password.match(/[^a-zA-Z0-9]/)) strength++;
+            return strength;
+        }
+
+        function updatePasswordStrengthUI(strength) {
+            const bars = document.querySelectorAll('#password-strength-bars > div');
+            bars.forEach((bar, index) => {
+                if (index < strength) {
+                    bar.classList.remove('bg-primary/20', 'dark:bg-white/10');
+                    bar.classList.add('bg-primary');
+                } else {
+                    bar.classList.remove('bg-primary');
+                    bar.classList.add('bg-primary/20', 'dark:bg-white/10');
+                }
+            });
+        }
+
+        // Form submission
+        const registerForm = document.getElementById('register-form');
+        const registerBtn = document.getElementById('register-btn');
+        const registerBtnText = document.getElementById('register-btn-text');
+        const registerBtnLoading = document.getElementById('register-btn-loading');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const successMessage = document.getElementById('success-message');
+        const successText = document.getElementById('success-text');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Hide previous messages
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+
+            // Get form values
+            const fullname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const username = email.split('@')[0] + Math.floor(Math.random() * 1000); // Generate username from email
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const termsAccepted = document.getElementById('terms').checked;
+
+            // Validation
+            if (!fullname || !email || !password || !confirmPassword) {
+                showError('Vui lòng điền đầy đủ thông tin');
+                return;
+            }
+
+            if (!termsAccepted) {
+                showError('Vui lòng đồng ý với điều khoản dịch vụ');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Mật khẩu xác nhận không khớp');
+                return;
+            }
+
+            if (password.length < 8) {
+                showError('Mật khẩu phải có ít nhất 8 ký tự');
+                return;
+            }
+
+            if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9!@#$%^&*]/.test(password)) {
+                showError('Mật khẩu phải chứa chữ hoa, chữ thường và ký tự đặc biệt hoặc số');
+                return;
+            }
+
+            // Show loading state
+            registerBtn.disabled = true;
+            registerBtnText.classList.add('hidden');
+            registerBtnLoading.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        full_name: fullname,
+                        email: email,
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store user info for OTP verification
+                    currentUserId = data.user_id;
+                    currentUserEmail = data.email;
+                    
+                    // Show OTP modal
+                    showOTPModal();
+                    
+                    // Hide register form messages
+                    errorMessage.classList.add('hidden');
+                    successMessage.classList.add('hidden');
+                } else {
+                    showError(data.error || 'Đăng ký thất bại. Vui lòng thử lại.');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.');
+            } finally {
+                // Reset button state
+                registerBtn.disabled = false;
+                registerBtnText.classList.remove('hidden');
+                registerBtnLoading.classList.add('hidden');
+            }
+        });
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            successText.textContent = message;
+            successMessage.classList.remove('hidden');
+        }
+
+        // OTP Modal Functions
+        function showOTPModal() {
+            const otpModal = document.getElementById('otp-modal');
+            const otpEmailSpan = document.getElementById('otp-email');
+            
+            otpEmailSpan.textContent = currentUserEmail;
+            otpModal.classList.remove('hidden');
+            
+            // Focus first input
+            const firstInput = document.querySelectorAll('.otp-input')[0];
+            firstInput.focus();
+            
+            // Start timer
+            startOTPTimer();
+        }
+
+        function hideOTPModal() {
+            const otpModal = document.getElementById('otp-modal');
+            otpModal.classList.add('hidden');
+            clearInterval(otpTimer);
+        }
+
+        function startOTPTimer() {
+            timeLeft = 300; // Reset to 5 minutes
+            updateTimerDisplay();
+            
+            if (otpTimer) clearInterval(otpTimer);
+            
+            otpTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(otpTimer);
+                    showOTPError('Mã OTP đã hết hạn. Vui lòng đăng ký lại.');
+                    document.getElementById('verify-otp-btn').disabled = true;
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('otp-timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // OTP Input handling
+        const otpInputs = document.querySelectorAll('.otp-input');
+        
+        otpInputs.forEach((input, index) => {
+            // Only allow numbers
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                if (this.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Auto submit when all filled
+                if (index === otpInputs.length - 1 && this.value.length === 1) {
+                    const allFilled = Array.from(otpInputs).every(input => input.value.length === 1);
+                    if (allFilled) {
+                        document.getElementById('otp-form').dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+            
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+            
+            // Handle paste
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+                
+                for (let i = 0; i < pasteData.length && index + i < otpInputs.length; i++) {
+                    otpInputs[index + i].value = pasteData[i];
+                }
+                
+                const lastFilledIndex = Math.min(index + pasteData.length - 1, otpInputs.length - 1);
+                otpInputs[lastFilledIndex].focus();
+            });
+        });
+
+        // OTP Form submission
+        const otpForm = document.getElementById('otp-form');
+        const verifyOTPBtn = document.getElementById('verify-otp-btn');
+        const verifyOTPText = document.getElementById('verify-otp-text');
+        const verifyOTPLoading = document.getElementById('verify-otp-loading');
+        const otpErrorMessage = document.getElementById('otp-error-message');
+        const otpErrorText = document.getElementById('otp-error-text');
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get OTP code
+            const otpCode = Array.from(otpInputs).map(input => input.value).join('');
+            
+            if (otpCode.length !== 6) {
+                showOTPError('Vui lòng nhập đầy đủ 6 số');
+                return;
+            }
+            
+            // Hide error
+            otpErrorMessage.classList.add('hidden');
+            
+            // Show loading
+            verifyOTPBtn.disabled = true;
+            verifyOTPText.classList.add('hidden');
+            verifyOTPLoading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        otp_code: otpCode
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Save tokens
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Show success and redirect
+                    hideOTPModal();
+                    alert('Đăng ký thành công! Đang chuyển đến trang chủ...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showOTPError(data.error || 'Mã OTP không đúng. Vui lòng thử lại.');
+                    // Clear inputs
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                }
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                showOTPError('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+            } finally {
+                // Reset button state
+                verifyOTPBtn.disabled = false;
+                verifyOTPText.classList.remove('hidden');
+                verifyOTPLoading.classList.add('hidden');
+            }
+        });
+
+        function showOTPError(message) {
+            otpErrorText.textContent = message;
+            otpErrorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                otpErrorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Resend OTP
+        const resendOTPBtn = document.getElementById('resend-otp-btn');
+        let resendCooldown = false;
+
+        resendOTPBtn.addEventListener('click', async () => {
+            if (resendCooldown) return;
+            
+            resendCooldown = true;
+            resendOTPBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/resend-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Clear inputs and restart timer
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
+                    startOTPTimer();
+                    document.getElementById('verify-otp-btn').disabled = false;
+                    
+                    showOTPError('Mã OTP mới đã được gửi đến email của bạn.');
+                    setTimeout(() => {
+                        otpErrorMessage.classList.add('hidden');
+                    }, 3000);
+                } else {
+                    showOTPError(data.error || 'Không thể gửi lại OTP. Vui lòng thử lại.');
+                }
+            } catch (error) {
+                console.error('Resend OTP error:', error);
+                showOTPError('Không thể kết nối đến máy chủ.');
+            } finally {
+                // Cooldown for 30 seconds
+                setTimeout(() => {
+                    resendCooldown = false;
+                    resendOTPBtn.disabled = false;
+                }, 30000);
+            }
+        });
+    </script>
+</body>
+
+</html>

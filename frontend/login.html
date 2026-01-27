@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập | LC Network</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d4c4",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102220",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .error-message {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
+    <!-- Top Navigation Bar -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-gray-800 px-6 md:px-10 py-3 bg-white dark:bg-background-dark z-10">
+        <div class="flex items-center gap-4 text-[#111817] dark:text-white">
+            <div class="size-6 text-primary">
+                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_6_319)">
+                        <path
+                            d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
+                            fill="currentColor"></path>
+                    </g>
+                    <defs>
+                        <clippath id="clip0_6_319">
+                            <rect fill="white" height="48" width="48"></rect>
+                        </clippath>
+                    </defs>
+                </svg>
+            </div>
+            <h2 class="text-[#111817] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">LC Network
+            </h2>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">Bạn là người mới ?</span>
+            <a href="register.html"
+                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-[#111817] text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+                <span>Đăng ký</span>
+            </a>
+        </div>
+    </header>
+    <main class="flex-1 flex flex-col md:flex-row h-full">
+        <!-- Left Side: Visual/Hero -->
+        <div
+            class="hidden md:flex md:w-1/2 lg:w-3/5 bg-background-dark relative items-center justify-center p-12 overflow-hidden">
+            <div class="absolute inset-0 z-0 opacity-40 bg-cover bg-center"
+                data-alt="Abstract digital network visualization with blue and teal nodes"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDo2c5iA8XJ3lTCn0Bx2vmD7RZPNi9gtmNsOIWJzp0odtgECTfI6yOKQBuiQ7RRyHchw7Yk0z4pEliU-VePqvpp--NBtSOWvB9H--O5-_-XN6DkDpXBjuCo0nbsAqkReg2P8_wRmg9qYjVqW3pBfjcSka9y-05SuJBifp2KMf7iqzK5tSgnVTAU4k0iIv46WxcVTeTkTow7gljMap1mcoCOQLxQ6b7fSf3-SI09mjyv8cn_CUse91kf1gmJUOv0JlKPh5w1YJB9b24');">
+            </div>
+            <div
+                class="absolute inset-0 bg-gradient-to-tr from-background-dark via-background-dark/80 to-primary/20 z-1">
+            </div>
+            <div class="relative z-10 max-w-xl text-white">
+                <div
+                    class="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider">
+                    <span class="material-symbols-outlined text-sm">verified_user</span>
+                    Cộng đồng được giám sát bởi AI
+                </div>
+                <h1 class="text-5xl lg:text-6xl font-black leading-tight tracking-tight mb-6">
+                    Không gian an toàn <br /><span class="text-primary">để kết nối.</span>
+                </h1>
+                <p class="text-lg text-gray-300 font-light leading-relaxed mb-8">
+                    Tham gia cộng đồng nơi trí tuệ kết hợp với sự đồng cảm. AI tiên tiến của chúng tôi đảm bảo mọi sự+ tương tác đều lịch sự, an toàn và có ý nghĩa.
+                </p>
+                <div class="flex gap-8">
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold text-white">24/7</span>
+                        <span class="text-sm text-gray-400">Giám sát</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold text-white">99.9%</span>
+                        <span class="text-sm text-gray-400">Tỷ lệ an toàn</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold text-white">1M+</span>
+                        <span class="text-sm text-gray-400">Người dùng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side: Login Form -->
+        <div
+            class="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:p-20 bg-white dark:bg-background-dark">
+            <div class="w-full max-w-[420px]">
+                <div class="mb-10 text-center md:text-left">
+                    <h2 class="text-3xl font-bold text-[#111817] dark:text-white mb-2">Chào mừng trở lại</h2>
+                    <p class="text-gray-500 dark:text-gray-400">Vui lòng nhập thông tin để đăng nhập.</p>
+                </div>
+                <form class="flex flex-col gap-5">
+                    <!-- Email Field -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[#111817] dark:text-white text-sm font-semibold">Địa chỉ Email</label>
+                        <input
+                            class="form-input w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#111817] dark:text-white h-12 px-4 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400"
+                            placeholder="name@gmail.com" required="" type="email" />
+                    </div>
+                    <!-- Password Field -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[#111817] dark:text-white text-sm font-semibold">Mật khẩu</label>
+                            <a class="text-primary text-xs font-bold hover:underline" href="#">Quên mật khẩu?</a>
+                        </div>
+                        <div class="relative flex items-center">
+                            <input
+                                class="form-input w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#111817] dark:text-white h-12 px-4 pr-12 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-gray-400"
+                                placeholder="••••••••" required="" type="password" />
+                            <button
+                                class="absolute right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center justify-center p-1"
+                                type="button">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" id="remember"
+                            type="checkbox" />
+                        <label class="text-sm text-gray-600 dark:text-gray-400 cursor-pointer" for="remember">Ghi nhớ đăng nhập trong 30 ngày</label>
+                    </div>
+                    <!-- Login Button -->
+                    <button
+                        class="mt-4 w-full bg-primary text-[#111817] font-bold py-3.5 rounded-lg hover:opacity-90 transition-all shadow-lg shadow-primary/10"
+                        type="submit">
+                        Đăng nhập
+                    </button>
+                </form>
+                <!-- Divider -->
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200 dark:border-gray-800"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs uppercase">
+                        <span class="bg-white dark:bg-background-dark px-4 text-gray-500 font-medium">Hoặc tiếp tục với</span>
+                    </div>
+                </div>
+                <!-- Social Logins -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="loginWithGoogle()"
+                        class="flex items-center justify-center gap-2 h-12 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4"></path>
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853"></path>
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                fill="#FBBC05"></path>
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Google</span>
+                    </button>
+                    <button onclick="loginWithFacebook()"
+                        class="flex items-center justify-center gap-2 h-12 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <svg class="w-5 h-5 fill-[#1877F2]" viewBox="0 0 24 24">
+                            <path
+                                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z">
+                            </path>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Facebook</span>
+                    </button>
+                </div>
+
+                <!-- Bottom Link -->
+                <p class="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Chưa có tài khoản? <a class="text-primary font-bold hover:underline" href="register.html">Đăng ký ngay</a>
+                </p>
+                <!-- Security Footer -->
+                <div
+                    class="mt-12 flex items-center justify-center gap-4 text-xs text-gray-400 uppercase tracking-widest font-medium">
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">lock</span>
+                        Bảo mật SSL
+                    </div>
+                    <div class="h-1 w-1 rounded-full bg-gray-300"></div>
+                    <div class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">shield_with_heart</span>
+                        Giám sát AI
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer Info -->
+        <footer class="md:hidden p-6 bg-white dark:bg-background-dark border-t border-gray-100 dark:border-gray-800">
+            <div class="text-center">
+                <p class="text-xs text-gray-400">© 2026 LC Network. Bảo lưu mọi quyền.</p>
+            </div>
+        </footer>
+
+        <!-- Scripts -->
+        <script src="js/config.js"></script>
+        <script>
+            // Toggle Password Visibility
+            document.getElementById('togglePassword').addEventListener('click', function () {
+                const passwordInput = document.getElementById('password');
+                const icon = this.querySelector('.material-symbols-outlined');
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.textContent = 'visibility_off';
+                } else {
+                    passwordInput.type = 'password';
+                    icon.textContent = 'visibility';
+                }
+            });
+
+            // Show Error Message
+            function showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+                const successDiv = document.getElementById('successMessage');
+
+                successDiv.style.display = 'none';
+                errorText.textContent = message;
+                errorDiv.style.display = 'block';
+
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            // Show Success Message
+            function showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                const successText = document.getElementById('successText');
+                const errorDiv = document.getElementById('errorMessage');
+
+                errorDiv.style.display = 'none';
+                successText.textContent = message;
+                successDiv.style.display = 'block';
+            }
+
+            // Toggle Loading State
+            function setLoading(isLoading) {
+                const button = document.getElementById('loginButton');
+                const buttonText = document.getElementById('buttonText');
+                const spinner = document.getElementById('spinner');
+
+                if (isLoading) {
+                    button.disabled = true;
+                    button.classList.add('opacity-75', 'cursor-not-allowed');
+                    buttonText.textContent = 'Signing in...';
+                    spinner.classList.remove('hidden');
+                } else {
+                    button.disabled = false;
+                    button.classList.remove('opacity-75', 'cursor-not-allowed');
+                    buttonText.textContent = 'Sign in';
+                    spinner.classList.add('hidden');
+                }
+            }
+
+            // Handle Login Form Submission
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    showError('Vui lòng nhập email và mật khẩu');
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Save tokens and user data
+                        localStorage.setItem('accessToken', data.access_token);
+                        localStorage.setItem('refreshToken', data.refresh_token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+
+                        showSuccess('Đăng nhập thành công! Đang chuyển hướng...');
+
+                        // Redirect to home page
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1000);
+                    } else {
+                        showError(data.error || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');
+                        setLoading(false);
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError('Không thể kết nối máy chủ. Vui lòng thử lại sau.');
+                    setLoading(false);
+                }
+            });
+
+            // OAuth Login Functions
+            function loginWithGoogle() {
+                showError('Tính năng đăng nhập Google sắp ra mắt!');
+            }
+
+            function loginWithFacebook() {
+                showError('Tính năng đăng nhập Facebook sắp ra mắt!');
+            }
+
+            // Check if already logged in
+            if (localStorage.getItem('accessToken')) {
+                window.location.href = 'index.html';
+            }
+        </script>
+</body>
+r>
+</body>
+
+</html>

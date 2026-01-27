@@ -1,0 +1,9 @@
+# Folder for uploaded files
+# Add your uploads here
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.avi
+*.mov

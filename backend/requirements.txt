@@ -1,0 +1,41 @@
+# Core Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+Flask-JWT-Extended==4.6.0
+Flask-Bcrypt==1.0.1
+Flask-Mail==0.9.1
+
+# Database - MySQL
+SQLAlchemy==2.0.23
+Flask-SQLAlchemy==3.1.1
+PyMySQL==1.1.0
+cryptography==41.0.7
+
+# OAuth
+Authlib==1.3.0
+requests==2.31.0
+
+# File Upload & Storage
+Pillow==10.1.0
+boto3==1.34.0  # AWS S3
+python-magic==0.4.27
+
+# Validation
+email-validator==2.1.0
+python-dotenv==1.0.0
+
+# AI/ML (will be added later in Phase 5)
+# torch==2.1.0
+# transformers==4.35.0
+# opencv-python==4.8.1
+# pytesseract==0.3.10
+
+# Utils
+python-dateutil==2.8.2
+redis==5.0.1
+celery==5.3.4  # For async AI processing
+
+# Development
+pytest==7.4.3
+pytest-flask==1.3.0
+faker==20.1.0

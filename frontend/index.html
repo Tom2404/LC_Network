@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media - Trang chủ</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/newsfeed.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>📱 Social Media</h1>
+            </div>
+            <div class="nav-search">
+                <input type="text" placeholder="Tìm kiếm..." id="searchInput">
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active">
+                    <span class="icon">🏠</span>
+                    <span>Trang chủ</span>
+                </a>
+                <a href="friends.html" class="nav-link">
+                    <span class="icon">👥</span>
+                    <span>Bạn bè</span>
+                </a>
+                <a href="notifications.html" class="nav-link">
+                    <span class="icon">🔔</span>
+                    <span>Thông báo</span>
+                    <span class="badge" id="notifBadge">0</span>
+                </a>
+                <div class="nav-profile">
+                    <img src="images/default-avatar.png" alt="Avatar" id="navAvatar">
+                    <div class="dropdown" id="profileDropdown">
+                        <a href="profile.html">👤 Trang cá nhân</a>
+                        <a href="settings.html">⚙️ Cài đặt</a>
+                        <a href="#" onclick="logout()">🚪 Đăng xuất</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="left-sidebar">
+            <div class="sidebar-menu">
+                <a href="profile.html" class="menu-item">
+                    <span class="icon">👤</span>
+                    <span id="userFullName">User Name</span>
+                </a>
+                <a href="friends.html" class="menu-item">
+                    <span class="icon">👥</span>
+                    <span>Bạn bè</span>
+                </a>
+                <a href="saved.html" class="menu-item">
+                    <span class="icon">💾</span>
+                    <span>Đã lưu</span>
+                </a>
+                <a href="my-posts.html" class="menu-item">
+                    <span class="icon">📝</span>
+                    <span>Bài viết của tôi</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Center Content -->
+        <main class="center-content">
+            <!-- Create Post Box -->
+            <div class="create-post-card">
+                <div class="create-post-header">
+                    <img src="images/default-avatar.png" alt="Avatar" id="createPostAvatar">
+                    <input type="text" placeholder="Bạn đang nghĩ gì?" id="createPostInput" onclick="openCreatePostModal()">
+                </div>
+                <div class="create-post-actions">
+                    <button class="post-action" onclick="openCreatePostModal('image')">
+                        <span class="icon">🖼️</span>
+                        <span>Ảnh/Video</span>
+                    </button>
+                    <button class="post-action" onclick="openCreatePostModal()">
+                        <span class="icon">😊</span>
+                        <span>Cảm xúc</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Posts Feed -->
+            <div id="newsfeed" class="posts-container">
+                <!-- Posts will be loaded here dynamically -->
+                <div class="loading">Đang tải...</div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="sidebar-section">
+                <h3>Lời mời kết bạn</h3>
+                <div id="friendRequests">
+                    <!-- Friend requests will be loaded here -->
+                    <p class="empty-state">Không có lời mời mới</p>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Gợi ý kết bạn</h3>
+                <div id="friendSuggestions">
+                    <!-- Friend suggestions will be loaded here -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Create Post Modal -->
+    <div id="createPostModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tạo bài viết</h2>
+                <button class="close-btn" onclick="closeCreatePostModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-info">
+                    <img src="images/default-avatar.png" alt="Avatar" id="modalAvatar">
+                    <div>
+                        <strong id="modalUserName">User Name</strong>
+                        <select id="postVisibility" class="visibility-select">
+                            <option value="public">🌍 Công khai</option>
+                            <option value="friends">👥 Bạn bè</option>
+                            <option value="private">🔒 Chỉ mình tôi</option>
+                        </select>
+                    </div>
+                </div>
+                <textarea id="postCaption" placeholder="Bạn đang nghĩ gì?" rows="5"></textarea>
+                <div id="mediaPreview" class="media-preview"></div>
+                <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaSelect(event)">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="document.getElementById('mediaInput').click()">
+                    📎 Thêm ảnh/video
+                </button>
+                <button class="btn btn-primary" onclick="submitPost()">Đăng bài</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/newsfeed.js"></script>
+    <script src="js/post.js"></script>
+</body>
+</html>
