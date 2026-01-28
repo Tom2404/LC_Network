@@ -2,7 +2,38 @@
 
 Hệ thống mạng xã hội với tính năng kiểm duyệt nội dung tự động sử dụng AI
 
-## 📋 Lộ trình phát triển
+## � Khởi động nhanh (Quick Start)
+
+### Cài đặt
+```bash
+# Clone repository
+git clone <repository-url>
+cd Test
+
+# Cài đặt dependencies cho backend
+cd backend
+pip install -r requirements.txt
+cd ..
+```
+
+### Chạy ứng dụng (Một lệnh duy nhất!)
+```bash
+# Từ thư mục gốc của project
+python start.py
+```
+
+Sau khi chạy, truy cập:
+- **Ứng dụng web**: http://127.0.0.1:5000
+- **API Backend**: http://127.0.0.1:5000/api
+
+*Giống như Django, bạn chỉ cần chạy 1 file để khởi động cả backend và frontend!*
+
+### Dừng server
+Nhấn `Ctrl+C` trong terminal
+
+---
+
+## �📋 Lộ trình phát triển
 
 ### Phase 1: Foundation & User Management ✅ (Đang thực hiện)
 **Timeline: 2-3 tuần**

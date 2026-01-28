@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
 Startup script for LC Network Application
-Starts both backend and frontend servers in parallel
+Starts the integrated backend + frontend server
 """
 import subprocess
 import sys
 import os
-import time
 from pathlib import Path
 
 def main():
@@ -18,34 +17,41 @@ def main():
     # Get project root directory
     project_root = Path(__file__).parent.absolute()
     backend_dir = project_root / "backend"
-    frontend_dir = project_root / "frontend"
     
-    # Start backend server
-    print("[1/2] Starting Backend Server...")
-    backend_process = subprocess.Popen(
-        [sys.executable, "app.py"],
-        cwd=backend_dir,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
-    )
-    
-    time.sleep(2)
-    
-    # Start frontend server
-    print("[2/2] Starting Frontend Server...")
-    frontend_process = subprocess.Popen(
-        [sys.executable, "-m", "http.server", "8080"],
-        cwd=frontend_dir,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
-    )
-    
-    time.sleep(3)
-    
+    # Start integrated server (backend + frontend)
+    print("Starting Integrated Server (Backend + Frontend)...")
     print()
+    
+    # Run Flask app which now serves both backend API and frontend files
+    os.chdir(backend_dir)
+    
     print("=" * 50)
     print("Application Started Successfully!")
     print("=" * 50)
-    print("Backend:  http://127.0.0.1:5000")
-    print("Frontend: http://localhost:8080")
+    print("Access the application at: http://127.0.0.1:5000")
+    print("- Frontend pages: http://127.0.0.1:5000")
+    print("- Backend API:    http://127.0.0.1:5000/api")
+    print()
+    print("Press Ctrl+C to stop the server")
+    print("=" * 50)
+    print()
+    
+    # Import and run the Flask app
+    sys.path.insert(0, str(backend_dir))
+    from app import create_app
+    app = create_app()
+    
+    # Run with use_reloader=False to avoid path issues
+    # Or set FLASK_DEBUG=1 environment variable for auto-reload during development
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nShutting down server...")
+        print("Server stopped successfully!")
+        sys.exit(0)
     print()
     print("Check the terminal windows for server logs.")
     print("Press Ctrl+C to stop all servers...")

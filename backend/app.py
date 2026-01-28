@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
+import os
 
 from config import config
 from models import db
@@ -13,7 +14,12 @@ from controllers.moderation_controller import moderation_bp
 
 def create_app(config_name='development'):
     """Application factory"""
-    app = Flask(__name__)
+    # Set template and static folders to frontend directory
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
+    app = Flask(__name__, 
+                template_folder=frontend_dir,
+                static_folder=frontend_dir,
+                static_url_path='')
     app.config.from_object(config[config_name])
     
     # Initialize extensions
@@ -40,10 +46,32 @@ def create_app(config_name='development'):
     def health_check():
         return {'status': 'ok', 'message': 'Server is running'}
     
+    # Serve frontend files
+    @app.route('/')
+    def index():
+        return send_from_directory(frontend_dir, 'index.html')
+    
+    @app.route('/login')
+    def login_page():
+        return send_from_directory(frontend_dir, 'login.html')
+    
+    @app.route('/register')
+    def register_page():
+        return send_from_directory(frontend_dir, 'register.html')
+    
+    # Serve static files (CSS, JS, images)
+    @app.route('/<path:path>')
+    def serve_static(path):
+        return send_from_directory(frontend_dir, path)
+    
     # Error handlers
     @app.errorhandler(404)
     def not_found(error):
-        return {'error': 'Resource not found'}, 404
+        # If it's an API request, return JSON error
+        if error.description and 'api' in str(error.description).lower():
+            return {'error': 'Resource not found'}, 404
+        # Otherwise try to serve the default page
+        return send_from_directory(frontend_dir, 'index.html')
     
     @app.errorhandler(500)
     def internal_error(error):
