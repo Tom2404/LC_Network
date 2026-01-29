@@ -1,153 +1,524 @@
 <!DOCTYPE html>
-<html lang="vi">
+
+<html class="light" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media - Trang chủ</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/newsfeed.css">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Trang chủ | LC Network</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d4c4",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102220",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* Notification Animation */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification-enter {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        .notification-exit {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        /* Modal Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-enter {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content-enter {
+            animation: scaleIn 0.3s ease-out;
+        }
+    </style>
 </head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <h1>📱 Social Media</h1>
-            </div>
-            <div class="nav-search">
-                <input type="text" placeholder="Tìm kiếm..." id="searchInput">
-            </div>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link active">
-                    <span class="icon">🏠</span>
-                    <span>Trang chủ</span>
-                </a>
-                <a href="friends.html" class="nav-link">
-                    <span class="icon">👥</span>
-                    <span>Bạn bè</span>
-                </a>
-                <a href="notifications.html" class="nav-link">
-                    <span class="icon">🔔</span>
-                    <span>Thông báo</span>
-                    <span class="badge" id="notifBadge">0</span>
-                </a>
-                <div class="nav-profile">
-                    <img src="images/default-avatar.png" alt="Avatar" id="navAvatar">
-                    <div class="dropdown" id="profileDropdown">
-                        <a href="profile.html">👤 Trang cá nhân</a>
-                        <a href="settings.html">⚙️ Cài đặt</a>
-                        <a href="#" onclick="logout()">🚪 Đăng xuất</a>
-                    </div>
+
+<body class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white transition-colors duration-200">
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-4 right-4 z-[9999] hidden">
+        <div class="bg-white dark:bg-[#152a28] border-2 border-primary dark:border-primary rounded-lg shadow-2xl p-4 min-w-[320px] max-w-md">
+            <div class="flex items-start gap-3">
+                <span id="notificationIcon" class="material-symbols-outlined text-2xl"></span>
+                <div class="flex-1">
+                    <p id="notificationMessage" class="text-sm font-medium dark:text-white"></p>
                 </div>
+                <button onclick="hideNotification()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
             </div>
         </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="left-sidebar">
-            <div class="sidebar-menu">
-                <a href="profile.html" class="menu-item">
-                    <span class="icon">👤</span>
-                    <span id="userFullName">User Name</span>
-                </a>
-                <a href="friends.html" class="menu-item">
-                    <span class="icon">👥</span>
-                    <span>Bạn bè</span>
-                </a>
-                <a href="saved.html" class="menu-item">
-                    <span class="icon">💾</span>
-                    <span>Đã lưu</span>
-                </a>
-                <a href="my-posts.html" class="menu-item">
-                    <span class="icon">📝</span>
-                    <span>Bài viết của tôi</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Center Content -->
-        <main class="center-content">
-            <!-- Create Post Box -->
-            <div class="create-post-card">
-                <div class="create-post-header">
-                    <img src="images/default-avatar.png" alt="Avatar" id="createPostAvatar">
-                    <input type="text" placeholder="Bạn đang nghĩ gì?" id="createPostInput" onclick="openCreatePostModal()">
-                </div>
-                <div class="create-post-actions">
-                    <button class="post-action" onclick="openCreatePostModal('image')">
-                        <span class="icon">🖼️</span>
-                        <span>Ảnh/Video</span>
-                    </button>
-                    <button class="post-action" onclick="openCreatePostModal()">
-                        <span class="icon">😊</span>
-                        <span>Cảm xúc</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Posts Feed -->
-            <div id="newsfeed" class="posts-container">
-                <!-- Posts will be loaded here dynamically -->
-                <div class="loading">Đang tải...</div>
-            </div>
-        </main>
-
-        <!-- Right Sidebar -->
-        <aside class="right-sidebar">
-            <div class="sidebar-section">
-                <h3>Lời mời kết bạn</h3>
-                <div id="friendRequests">
-                    <!-- Friend requests will be loaded here -->
-                    <p class="empty-state">Không có lời mời mới</p>
-                </div>
-            </div>
-            <div class="sidebar-section">
-                <h3>Gợi ý kết bạn</h3>
-                <div id="friendSuggestions">
-                    <!-- Friend suggestions will be loaded here -->
-                </div>
-            </div>
-        </aside>
     </div>
 
-    <!-- Create Post Modal -->
-    <div id="createPostModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Tạo bài viết</h2>
-                <button class="close-btn" onclick="closeCreatePostModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="user-info">
-                    <img src="images/default-avatar.png" alt="Avatar" id="modalAvatar">
-                    <div>
-                        <strong id="modalUserName">User Name</strong>
-                        <select id="postVisibility" class="visibility-select">
-                            <option value="public">🌍 Công khai</option>
-                            <option value="friends">👥 Bạn bè</option>
-                            <option value="private">🔒 Chỉ mình tôi</option>
-                        </select>
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="fixed inset-0 z-[9998] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeLogoutModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl max-w-md w-full border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-3xl text-primary">logout</span>
+                        <h3 class="text-xl font-bold dark:text-white">Xác nhận đăng xuất</h3>
                     </div>
                 </div>
-                <textarea id="postCaption" placeholder="Bạn đang nghĩ gì?" rows="5"></textarea>
-                <div id="mediaPreview" class="media-preview"></div>
-                <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaSelect(event)">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="document.getElementById('mediaInput').click()">
-                    📎 Thêm ảnh/video
-                </button>
-                <button class="btn btn-primary" onclick="submitPost()">Đăng bài</button>
+                
+                <!-- Body -->
+                <div class="p-6">
+                    <p class="text-[#5e8d89] dark:text-gray-300 leading-relaxed">
+                        Bạn có chắc chắn muốn đăng xuất khỏi tài khoản? Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng dịch vụ.
+                    </p>
+                </div>
+                
+                <!-- Footer -->
+                <div class="px-6 pb-6 flex gap-3">
+                    <button onclick="closeLogoutModal()" class="flex-1 px-6 py-3 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#5e8d89] rounded-lg font-bold text-sm hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                        Hủy
+                    </button>
+                    <button onclick="confirmLogout()" class="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 transition-colors shadow-md">
+                        Đăng xuất
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="layout-container flex h-full grow flex-col min-h-screen">
+        <!-- Top Navigation Bar -->
+        <header
+            class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] px-6 lg:px-10 py-3 sticky top-0 z-50">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-4 text-primary">
+                    <div class="size-8">
+                        <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"
+                                fill="currentColor"></path>
+                            <path clip-rule="evenodd"
+                                d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z"
+                                fill="currentColor" fill-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold leading-tight tracking-tight dark:text-white">LC Network</h2>
+                </div>
+                <label class="flex flex-col min-w-40 !h-10 max-w-md">
+                    <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                        <div
+                            class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                            <span class="material-symbols-outlined text-xl">search</span>
+                        </div>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal"
+                            placeholder="Tìm kiếm bài viết hoặc bạn bè..." value="" />
+                    </div>
+                </label>
+            </div>
+            <div class="flex flex-1 justify-end gap-6">
+                <div class="flex gap-2">
+                    <button
+                        class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white">
+                        <span class="material-symbols-outlined">mail</span>
+                    </button>
+                    <button
+                        class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                </div>
+                <div class="relative">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
+                        data-alt="User profile avatar of Alex"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-BQwN-tDLc7stlQxdzyTOHMU6wPKB6lfNX5xUbWsrrdQLEyTuccCr0GXi30NYh_kaIp7RDsMNFTzHPTLiR6PMHuPRmY5B03RyUH1CghH9JDwJ9xq2EvZBsfxnvJu8xU0vVq-pHYyBTMesHEcyKmZsv8kELIWzUWo_3IJtedmsbe3gV0jebggEOxpGtIoLwIZoerObHwtP8-7qLHmEwNnrAus7pRl0W4GZt6LQARoZvoLqqY3cwcr3KSU7WD-0sBaQ8mdlrb26gFQ");'>
+                    </div>
+                    <div
+                        class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]">
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Main Content Area -->
+        <main class="flex flex-1 justify-center py-6 px-4 md:px-8 xl:px-20 gap-8">
+            <!-- Left Sidebar Navigation -->
+            <aside class="hidden lg:flex flex-col w-64 shrink-0 gap-6">
+                <div
+                    class="bg-white dark:bg-[#152a28] rounded-xl p-6 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div id="userAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+                            style='background-image: url("images/default-avatar.png");'></div>
+                        <div class="flex flex-col">
+                            <h1 id="userFullName" class="text-base font-bold dark:text-white">Người dùng</h1>
+                            <div class="flex items-center gap-1">
+                                <span class="size-2 rounded-full bg-green-500"></span>
+                                <p class="text-[#5e8d89] text-xs font-medium">Trạng thái: Hoạt động</p>
+                            </div>
+                        </div>
+                    </div>
+                    <nav class="flex flex-col gap-1">
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-bold"
+                            href="index.html">
+                            <span class="material-symbols-outlined text-2xl">home</span>
+                            <span class="text-sm">Trang chủ</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] transition-colors"
+                            href="profile.html">
+                            <span class="material-symbols-outlined text-2xl">person</span>
+                            <span class="text-sm font-medium">Trang cá nhân</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] transition-colors"
+                            href="friends.html">
+                            <span class="material-symbols-outlined text-2xl">group</span>
+                            <span class="text-sm font-medium">Bạn bè</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] transition-colors"
+                            href="notifications.html">
+                            <span class="material-symbols-outlined text-2xl">notifications</span>
+                            <span class="text-sm font-medium">Thông báo</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] transition-colors"
+                            href="#" onclick="openLogoutModal(); return false;">
+                            <span class="material-symbols-outlined text-2xl">logout</span>
+                            <span class="text-sm font-medium">Đăng xuất</span>
+                        </a>
+                    </nav>
+                    <button
+                        class="mt-8 w-full flex items-center justify-center rounded-lg h-11 bg-primary text-[#111817] text-sm font-bold shadow-md hover:bg-primary/90 transition-all">
+                        Nâng cấp Pro
+                    </button>
+                </div>
+                <!-- Ad/Info Module -->
+                <div
+                    class="bg-gradient-to-br from-primary to-[#0da89a] rounded-xl p-6 text-[#111817] shadow-sm overflow-hidden relative">
+                    <div class="relative z-10">
+                        <h4 class="font-bold mb-2">AI Bảo vệ Hoạt động</h4>
+                        <p class="text-xs opacity-90 leading-relaxed">Nội dung của bạn được bảo vệ bởi hệ thống giám sát
+                            AI thời gian thực.</p>
+                    </div>
+                    <span
+                        class="material-symbols-outlined absolute -bottom-4 -right-4 text-7xl opacity-20">shield_with_heart</span>
+                </div>
+            </aside>
+            <!-- Main Feed -->
+            <div class="flex-1 max-w-2xl flex flex-col gap-6">
+                <!-- Composer -->
+                <div
+                    class="bg-white dark:bg-[#152a28] rounded-xl p-5 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <div class="flex gap-4">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
+                            data-alt="Your avatar"
+                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyhWGzKi6anoQ7IKCcUQbmDaLt88ivG07g8D3eXxmZY1KocQ653mOUP4w85CJmWF_XzclpR_KyakzaoRI-_VJa5i69tGqB1dzhKX4PZ6KNzdo-nz6MKmXANOjHIF1lKJFJUzNaqFn5BDI8vemNa0DfxQ-nk7bZTIguqe_IAv7kFnx57wrJ2VcdD-NzNLHlBRkw4IZtidKcUKf7OPIOBQODTuVswAmXgNKlOTv3Ue923TNIAzOqPhFFkvKiasN7YsdjNxHMPFJQ4Yo");'>
+                        </div>
+                        <div class="flex-1 flex flex-col gap-3">
+                            <textarea id="postContent"
+                                class="w-full border-none focus:ring-0 text-base resize-none bg-transparent placeholder-[#b9d0ce] dark:text-white"
+                                placeholder="Bạn đang nghĩ gì?" rows="2"></textarea>
+                            <div
+                                class="flex items-center justify-between pt-2 border-t border-[#f0f5f4] dark:border-[#2a3d3b]">
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">image</span>
+                                    </button>
+                                    <button
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">videocam</span>
+                                    </button>
+                                    <button
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">bar_chart</span>
+                                    </button>
+                                    <button
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">sentiment_satisfied</span>
+                                    </button>
+                                </div>
+                                <button onclick="createPost()"
+                                    class="px-6 py-2 bg-primary text-[#111817] rounded-lg font-bold text-sm shadow-sm hover:opacity-90">Đăng
+                                    bài</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Posts List -->
+                <div id="postsList" class="flex flex-col gap-6">
+                    <!-- Posts will be loaded here dynamically -->
+                    <div class="text-center py-12 text-[#5e8d89]">
+                        <span class="material-symbols-outlined text-5xl mb-2">article</span>
+                        <p class="text-sm">Đang tải bài viết...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Sidebar: Suggested Friends -->
+            <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
+                <!-- Suggested Creators -->
+                <div
+                    class="bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] p-5">
+                    <h3 class="font-bold text-base mb-4 dark:text-white">Gợi ý cho bạn</h3>
+                    <div id="suggestedFriends" class="flex flex-col gap-5">
+                        <!-- Suggested friends will be loaded here -->
+                        <div class="text-center py-4 text-[#5e8d89] text-sm">
+                            Chưa có gợi ý
+                        </div>
+                    </div>
+                </div>
+                <!-- Trending Topics -->
+                <div
+                    class="bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] p-5">
+                    <h3 class="font-bold text-base mb-4 dark:text-white">Chủ đề thịnh hành</h3>
+                    <div id="trendingTopics" class="flex flex-col gap-4">
+                        <!-- Trending topics will be loaded here -->
+                        <div class="text-center py-4 text-[#5e8d89] text-sm">
+                            Chưa có chủ đề nào
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer Links -->
+                <div class="px-2 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-[#5e8d89]">
+                    <a class="hover:underline" href="#">Chính sách bảo mật</a>
+                    <a class="hover:underline" href="#">Điều khoản dịch vụ</a>
+                    <a class="hover:underline" href="#">Cookies</a>
+                    <a class="hover:underline" href="#">Trung tâm hỗ trợ</a>
+                    <span>© 2026 LC Network</span>
+                </div>
+            </aside>
+        </main>
     </div>
 
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/newsfeed.js"></script>
-    <script src="js/post.js"></script>
+    <script>
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notificationIcon');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            // Set icon and color based on type
+            const types = {
+                success: { icon: 'check_circle', color: 'text-green-500' },
+                error: { icon: 'error', color: 'text-red-500' },
+                warning: { icon: 'warning', color: 'text-yellow-500' },
+                info: { icon: 'info', color: 'text-primary' }
+            };
+            
+            const config = types[type] || types.info;
+            icon.textContent = config.icon;
+            icon.className = `material-symbols-outlined text-2xl ${config.color}`;
+            messageEl.textContent = message;
+            
+            // Show with animation
+            notification.classList.remove('hidden', 'notification-exit');
+            notification.classList.add('notification-enter');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                hideNotification();
+            }, 5000);
+        }
+        
+        function hideNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('notification-enter');
+            notification.classList.add('notification-exit');
+            
+            // Wait for animation to finish before hiding
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 300);
+        }
+
+        // Logout Modal Functions
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-enter');
+            
+            // Add animation to modal content
+            const modalContent = modal.querySelector('.bg-white');
+            modalContent.classList.add('modal-content-enter');
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+            
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            logout();
+        }
+
+        // Load user info when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+            loadNewsfeed();
+        });
+
+        // Load user profile information
+        function loadUserProfile() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+            if (user.full_name) {
+                document.getElementById('userFullName').textContent = user.full_name;
+            }
+
+            if (user.avatar_url) {
+                const avatarEls = document.querySelectorAll('#userAvatar');
+                avatarEls.forEach(el => {
+                    el.style.backgroundImage = `url('${user.avatar_url}')`;
+                });
+            }
+        }
+
+        // Load newsfeed posts
+        async function loadNewsfeed() {
+            const postsContainer = document.getElementById('postsList');
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts?page=1&per_page=10`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Posts loaded:', data);
+                    
+                    // Clear loading message
+                    postsContainer.innerHTML = '';
+                    
+                    // Check if there are posts
+                    if (data.posts && data.posts.length > 0) {
+                        // TODO: Render posts when API structure is confirmed
+                        postsContainer.innerHTML = '<div class="text-center py-8 text-[#5e8d89] text-sm">Đang phát triển chức năng hiển thị bài viết...</div>';
+                    } else {
+                        postsContainer.innerHTML = `
+                            <div class="text-center py-12 text-[#5e8d89]">
+                                <span class="material-symbols-outlined text-5xl mb-2">article</span>
+                                <p class="text-sm">Chưa có bài viết nào</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    console.error('Failed to load posts');
+                    postsContainer.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Không thể tải bài viết</div>';
+                }
+            } catch (error) {
+                console.error('Error loading newsfeed:', error);
+                postsContainer.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Lỗi kết nối</div>';
+            }
+        }
+
+        // Create new post
+        async function createPost() {
+            const content = document.getElementById('postContent').value.trim();
+
+            if (!content) {
+                showNotification('Vui lòng nhập nội dung bài viết', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        caption: content,
+                        visibility: 'public'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Post created:', data);
+                    document.getElementById('postContent').value = '';
+                    showNotification('Đăng bài thành công!', 'success');
+                    loadNewsfeed();
+                } else {
+                    const error = await response.json();
+                    showNotification('Đăng bài thất bại: ' + (error.error || 'Lỗi không xác định'), 'error');
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showNotification('Không thể kết nối máy chủ', 'error');
+            }
+        }
+    </script>
 </body>
+
 </html>

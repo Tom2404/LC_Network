@@ -51,24 +51,22 @@ function loadUserInfo() {
 function logout(skipConfirm = false) {
     console.log('[Auth] Logout called, skipConfirm:', skipConfirm);
     
-    if (skipConfirm || confirm('Bạn có chắc muốn đăng xuất?')) {
-        console.log('[Auth] Clearing localStorage and redirecting...');
+    console.log('[Auth] Clearing localStorage and redirecting...');
+    
+    // Call logout API
+    fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+    }).finally(() => {
+        // Clear local storage
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
         
-        // Call logout API
-        fetch(`${API_URL}/auth/logout`, {
-            method: 'POST',
-            headers: getAuthHeaders()
-        }).finally(() => {
-            // Clear local storage
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            
-            console.log('[Auth] Redirecting to login.html');
-            // Redirect to login
-            window.location.href = 'login.html';
-        });
-    }
+        console.log('[Auth] Redirecting to login.html');
+        // Redirect to login
+        window.location.href = 'login.html';
+    });
 }
 
 // OAuth Login Functions
