@@ -91,7 +91,7 @@ def register():
         db.session.commit()
         
         # Send OTP email
-        send_otp_email(new_user.email, new_user.username, otp_code)
+        send_otp_email(new_user.email, new_user.full_name, otp_code)
         
         return jsonify({
             'message': 'Registration successful! Please check your email for OTP code.',
@@ -143,8 +143,12 @@ def verify_otp():
         user.last_login_at = datetime.utcnow()
         db.session.commit()
         
-        # Log activity
-        log_activity(user.id, 'registration_completed', request)
+        # Log activity (use 'login' instead of 'registration_completed' as it's not in ENUM)
+        # Log in separate try-except to avoid affecting the main transaction
+        try:
+            log_activity(user.id, 'login', request)
+        except Exception as log_error:
+            print(f"Failed to log activity: {log_error}")
         
         # Create tokens for auto-login
         access_token = create_access_token(identity=user.id)
@@ -190,7 +194,7 @@ def resend_otp():
         db.session.commit()
         
         # Send OTP email
-        send_otp_email(user.email, user.username, otp_code)
+        send_otp_email(user.email, user.full_name, otp_code)
         
         return jsonify({
             'message': 'New OTP code has been sent to your email.'
@@ -211,18 +215,23 @@ def login():
     
     try:
         data = request.get_json()
+        print(f"[LOGIN] Received login request for email: {data.get('email') if data else 'No data'}")
         
         if not data.get('email') or not data.get('password'):
+            print("[LOGIN] Missing email or password")
             return jsonify({'error': 'Email and password are required'}), 400
         
         # Find user
         user = User.query.filter_by(email=data['email']).first()
+        print(f"[LOGIN] User found: {user is not None}")
         
         if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
+            print(f"[LOGIN] Authentication failed")
             return jsonify({'error': 'Invalid email or password'}), 401
         
         # Check if account is banned
         if user.is_banned():
+            print(f"[LOGIN] User is banned")
             return jsonify({
                 'error': 'Your account has been banned',
                 'reason': user.ban_reason,
@@ -230,7 +239,9 @@ def login():
             }), 403
         
         # Check OTP verification (must verify OTP to activate account)
+        print(f"[LOGIN] OTP verified: {user.otp_verified}, Email verified: {user.is_email_verified}")
         if not user.otp_verified or not user.is_email_verified:
+            print(f"[LOGIN] Account not verified")
             return jsonify({
                 'error': 'Please verify your OTP code to activate your account.',
                 'note': 'If OTP has expired, please register again.'
@@ -247,6 +258,7 @@ def login():
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
         
+        print(f"[LOGIN] Login successful for user: {user.username}")
         return jsonify({
             'message': 'Login successful',
             'access_token': access_token,
@@ -255,6 +267,7 @@ def login():
         }), 200
         
     except Exception as e:
+        print(f"[LOGIN] Exception occurred: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -313,6 +326,7 @@ def logout():
 def log_activity(user_id, activity_type, req):
     """Log user activity"""
     try:
+        # Use a fresh session for logging to avoid affecting main transaction
         log = UserActivityLog(
             user_id=user_id,
             activity_type=activity_type,
@@ -320,6 +334,9 @@ def log_activity(user_id, activity_type, req):
             user_agent=req.headers.get('User-Agent')
         )
         db.session.add(log)
+        db.session.flush()  # Flush to detect errors early
         db.session.commit()
     except Exception as e:
+        db.session.rollback()  # Rollback only the log transaction
         print(f"Failed to log activity: {e}")
+        # Don't re-raise - logging failure shouldn't affect main operation

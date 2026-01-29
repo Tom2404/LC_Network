@@ -52,39 +52,3 @@ if __name__ == '__main__':
         print("\n\nShutting down server...")
         print("Server stopped successfully!")
         sys.exit(0)
-    print()
-    print("Check the terminal windows for server logs.")
-    print("Press Ctrl+C to stop all servers...")
-    print()
-    
-    # Monitor processes
-    try:
-        while True:
-            # Check if processes are still running
-            backend_status = backend_process.poll()
-            frontend_status = frontend_process.poll()
-            
-            if backend_status is not None:
-                print(f"\n[ERROR] Backend server stopped unexpectedly! (Exit code: {backend_status})")
-                print("Please check backend terminal for errors.")
-                break
-            if frontend_status is not None:
-                print(f"\n[ERROR] Frontend server stopped unexpectedly! (Exit code: {frontend_status})")
-                break
-            
-            time.sleep(1)
-            
-    except KeyboardInterrupt:
-        print("\n\nStopping servers...")
-        backend_process.terminate()
-        frontend_process.terminate()
-        
-        # Wait for processes to finish
-        backend_process.wait(timeout=5)
-        frontend_process.wait(timeout=5)
-        
-        print("Servers stopped successfully.")
-        sys.exit(0)
-
-if __name__ == "__main__":
-    main()

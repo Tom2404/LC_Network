@@ -1,7 +1,7 @@
 from flask_mail import Message
 from flask import current_app
 
-def send_otp_email(to_email, username, otp_code):
+def send_otp_email(to_email, full_name, otp_code):
     """Send OTP code for registration verification"""
     from extensions import mail
     
@@ -13,7 +13,7 @@ def send_otp_email(to_email, username, otp_code):
             <html>
                 <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f6f8f8;">
                     <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                        <h2 style="color: #111817; margin-bottom: 20px;">Xin chào {username}!</h2>
+                        <h2 style="color: #111817; margin-bottom: 20px;">Xin chào {full_name}!</h2>
                         <p style="color: #618986; font-size: 16px; line-height: 1.6;">
                             Cảm ơn bạn đã đăng ký tài khoản tại <strong style="color: #13ecda;">LC Network</strong>.
                         </p>

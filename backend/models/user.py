@@ -46,9 +46,7 @@ class User(db.Model):
         data = {
             'id': self.id,
             'username': self.username,
-            'email': self.email if include_sensitive else None,
             'full_name': self.full_name,
-            'phone_number': self.phone_number if include_sensitive else None,
             'avatar_url': self.avatar_url,
             'account_status': self.account_status,
             'warning_count': self.warning_count,
@@ -56,7 +54,13 @@ class User(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login_at': self.last_login_at.isoformat() if self.last_login_at else None
         }
-        return {k: v for k, v in data.items() if v is not None or include_sensitive}
+        
+        # Add sensitive fields only when requested
+        if include_sensitive:
+            data['email'] = self.email
+            data['phone_number'] = self.phone_number
+        
+        return data
     
     def has_role(self, role_name):
         """Check if user has a specific role"""
