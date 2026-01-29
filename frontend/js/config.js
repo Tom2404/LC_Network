@@ -1,5 +1,8 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api';
+// Auto-detect current host to avoid CORS issues when using 127.0.0.1 vs localhost
+const currentHost = window.location.hostname || 'localhost';
+const currentPort = '5000';
+const API_URL = `http://${currentHost}:${currentPort}/api`;
 
 // Helper function to get auth token
 function getAuthToken() {
