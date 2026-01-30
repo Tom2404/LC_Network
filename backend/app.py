@@ -33,6 +33,27 @@ def create_app(config_name='development'):
     with app.app_context():
         db.create_all()
     
+    # JWT Error Handlers
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        print("JWT EXPIRED!")
+        return {'error': 'Token has expired', 'code': 'token_expired'}, 401
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        print(f"JWT INVALID: {error}")
+        return {'error': 'Invalid token', 'code': 'invalid_token'}, 422
+    
+    @jwt.unauthorized_loader
+    def unauthorized_callback(error):
+        print(f"JWT UNAUTHORIZED: {error}")
+        return {'error': 'Missing Authorization Header', 'code': 'unauthorized'}, 401
+    
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        print("JWT REVOKED!")
+        return {'error': 'Token has been revoked', 'code': 'token_revoked'}, 401
+    
     # Register blueprints (controllers)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/users')
@@ -58,6 +79,12 @@ def create_app(config_name='development'):
     @app.route('/register')
     def register_page():
         return send_from_directory(frontend_dir, 'register.html')
+    
+    # Serve uploaded files
+    @app.route('/uploads/<path:filename>')
+    def serve_upload(filename):
+        uploads_dir = app.config.get('UPLOAD_FOLDER', os.path.join(os.path.dirname(__file__), 'uploads'))
+        return send_from_directory(uploads_dir, filename)
     
     # Serve static files (CSS, JS, images)
     @app.route('/<path:path>')

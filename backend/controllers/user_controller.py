@@ -13,7 +13,7 @@ user_bp = Blueprint('user', __name__)
 def get_profile():
     """Lấy thông tin profile của user hiện tại"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         
         if not user:
@@ -33,7 +33,7 @@ def update_profile():
     Body: {full_name, phone_number, avatar_url (optional)}
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         
         if not user:
@@ -79,31 +79,45 @@ def update_profile():
 def upload_avatar():
     """Upload avatar (with file)"""
     try:
-        current_user_id = get_jwt_identity()
+        print("=== Upload Avatar Request ===")
+        current_user_id = int(get_jwt_identity())  # Convert string to int
+        print(f"User ID: {current_user_id}")
+        
         user = User.query.get(current_user_id)
         
         if not user:
+            print("User not found")
             return jsonify({'error': 'User not found'}), 404
         
+        print(f"Request files: {request.files}")
+        print(f"Request form: {request.form}")
+        
         if 'avatar' not in request.files:
+            print("No avatar in request.files")
             return jsonify({'error': 'No file provided'}), 400
         
         file = request.files['avatar']
+        print(f"File: {file}, Filename: {file.filename}")
         
         if file.filename == '':
+            print("Empty filename")
             return jsonify({'error': 'No file selected'}), 400
         
         if not allowed_file(file.filename, 'image'):
+            print(f"File type not allowed: {file.filename}")
             return jsonify({'error': 'Invalid file type. Only images allowed'}), 400
         
         # Upload file
+        print("Uploading file...")
         file_url = upload_file(file, folder='avatars')
+        print(f"File uploaded: {file_url}")
         
         # TODO: AI moderation for avatar (Phase 5)
         # For now, directly update
         user.avatar_url = file_url
         user.updated_at = datetime.utcnow()
         db.session.commit()
+        print("Database updated")
         
         return jsonify({
             'message': 'Avatar uploaded successfully',
@@ -111,6 +125,9 @@ def upload_avatar():
         }), 200
         
     except Exception as e:
+        print(f"ERROR in upload_avatar: {str(e)}")
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
@@ -136,7 +153,7 @@ def get_user_profile(user_id):
 def get_activity_logs():
     """Xem lịch sử hoạt động"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
@@ -167,7 +184,7 @@ def change_password():
     bcrypt = Bcrypt(current_app)
     
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         
         if not user:

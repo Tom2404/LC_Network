@@ -151,8 +151,8 @@ def verify_otp():
             print(f"Failed to log activity: {log_error}")
         
         # Create tokens for auto-login
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         return jsonify({
             'message': 'OTP verified successfully! You are now logged in.',
@@ -255,8 +255,8 @@ def login():
         log_activity(user.id, 'login', request)
         
         # Create tokens
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
         
         print(f"[LOGIN] Login successful for user: {user.username}")
         return jsonify({
@@ -300,7 +300,7 @@ def refresh():
     """Làm mới access token"""
     try:
         current_user_id = get_jwt_identity()
-        access_token = create_access_token(identity=current_user_id)
+        access_token = create_access_token(identity=str(current_user_id))
         
         return jsonify({'access_token': access_token}), 200
         

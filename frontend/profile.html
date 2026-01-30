@@ -434,15 +434,24 @@
             const file = fileInput.files[0];
             
             if (!file) {
+                console.log('No file selected');
                 return null;
             }
+            
+            console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
             
             const formData = new FormData();
             formData.append('avatar', file);
             
             try {
                 const token = getAuthToken();
-                const response = await fetch(`${API_URL}/users/avatar`, {
+                if (!token) {
+                    throw new Error('Bạn chưa đăng nhập. Vui lòng đăng nhập lại!');
+                }
+                
+                console.log('Sending request to:', `${API_URL}/users/profile/avatar`);
+                
+                const response = await fetch(`${API_URL}/users/profile/avatar`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -450,14 +459,20 @@
                     body: formData
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Upload successful:', data);
                     return data.avatar_url;
                 } else {
-                    throw new Error('Upload failed');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Upload failed:', response.status, errorData);
+                    throw new Error(errorData.error || `Tải ảnh thất bại (Mã lỗi: ${response.status})`);
                 }
             } catch (error) {
                 console.error('Error uploading avatar:', error);
+                showNotification(error.message || 'Không thể tải ảnh lên', 'error');
                 return null;
             }
         }
@@ -483,14 +498,17 @@
                 let avatarUrl = null;
                 const fileInput = document.getElementById('avatarInput');
                 if (fileInput.files.length > 0) {
+                    console.log('File selected, starting upload...');
                     showNotification('Đang tải ảnh lên...', 'info');
                     avatarUrl = await uploadAvatar();
                     if (!avatarUrl) {
-                        showNotification('Tải ảnh thất bại', 'error');
+                        console.error('Upload returned null');
+                        // showNotification already called in uploadAvatar()
                         saveBtn.disabled = false;
                         saveBtn.innerHTML = originalText;
                         return;
                     }
+                    console.log('Avatar uploaded successfully:', avatarUrl);
                 }
 
                 // Update profile info
@@ -565,9 +583,11 @@
             }
             
             if (user.avatar_url) {
-                document.getElementById('profileAvatar').style.backgroundImage = `url('${user.avatar_url}')`;
-                document.getElementById('headerAvatar').style.backgroundImage = `url('${user.avatar_url}')`;
-                document.getElementById('previewAvatar').src = user.avatar_url;
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                console.log('Loading avatar:', avatarUrl);
+                document.getElementById('profileAvatar').style.backgroundImage = `url('${avatarUrl}')`;
+                document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
+                document.getElementById('previewAvatar').src = avatarUrl;
             }
         }
 
