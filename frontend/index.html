@@ -277,23 +277,26 @@
                             <textarea id="postContent"
                                 class="w-full border-none focus:ring-0 text-base resize-none bg-transparent placeholder-[#b9d0ce] dark:text-white"
                                 placeholder="Bạn đang nghĩ gì?" rows="2"></textarea>
+                            <!-- Image Preview Container -->
+                            <div id="imagePreviewContainer" class="hidden grid grid-cols-2 gap-2 mt-2"></div>
+                            <input type="file" id="postImageInput" accept="image/*" multiple class="hidden" onchange="handleImageSelect(event)">
                             <div
                                 class="flex items-center justify-between pt-2 border-t border-[#f0f5f4] dark:border-[#2a3d3b]">
                                 <div class="flex items-center gap-1">
-                                    <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                    <button onclick="document.getElementById('postImageInput').click()"
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm ảnh">
                                         <span class="material-symbols-outlined">image</span>
                                     </button>
                                     <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm video">
                                         <span class="material-symbols-outlined">videocam</span>
                                     </button>
                                     <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm biểu đồ">
                                         <span class="material-symbols-outlined">bar_chart</span>
                                     </button>
                                     <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm emoji">
                                         <span class="material-symbols-outlined">sentiment_satisfied</span>
                                     </button>
                                 </div>
@@ -458,8 +461,9 @@
                     
                     // Check if there are posts
                     if (data.posts && data.posts.length > 0) {
-                        // TODO: Render posts when API structure is confirmed
-                        postsContainer.innerHTML = '<div class="text-center py-8 text-[#5e8d89] text-sm">Đang phát triển chức năng hiển thị bài viết...</div>';
+                        data.posts.forEach(post => {
+                            postsContainer.appendChild(renderPost(post));
+                        });
                     } else {
                         postsContainer.innerHTML = `
                             <div class="text-center py-12 text-[#5e8d89]">
@@ -477,17 +481,188 @@
                 postsContainer.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Lỗi kết nối</div>';
             }
         }
+        
+        // Render a single post
+        function renderPost(post) {
+            const postEl = document.createElement('div');
+            postEl.className = 'bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden';
+            
+            const authorAvatar = post.author?.avatar_url ? `http://127.0.0.1:5000${post.author.avatar_url}` : 'images/default-avatar.png';
+            const timeAgo = getTimeAgo(post.created_at);
+            
+            let mediaHTML = '';
+            if (post.media && post.media.length > 0) {
+                const mediaClass = post.media.length === 1 ? 'grid-cols-1' : post.media.length === 2 ? 'grid-cols-2' : post.media.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+                mediaHTML = `
+                    <div class="grid ${mediaClass} gap-1">
+                        ${post.media.map(m => `
+                            <img src="http://127.0.0.1:5000${m.media_url}" class="w-full ${post.media.length === 1 ? 'max-h-96' : 'h-48'} object-cover">
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            postEl.innerHTML = `
+                <div class="p-5">
+                    <div class="flex items-start gap-3 mb-3">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
+                            style='background-image: url("${authorAvatar}");'></div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm dark:text-white">${post.author?.full_name || 'Unknown'}</h4>
+                            <p class="text-xs text-[#5e8d89]">${timeAgo}</p>
+                        </div>
+                    </div>
+                    ${post.caption ? `<p class="text-sm mb-3 dark:text-white whitespace-pre-wrap">${post.caption}</p>` : ''}
+                </div>
+                ${mediaHTML}
+                <div class="px-5 py-3 border-t border-[#f0f5f4] dark:border-[#2a3d3b] flex items-center justify-between text-sm text-[#5e8d89]">
+                    <button class="flex items-center gap-2 hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-xl">favorite</span>
+                        <span>${post.like_count || 0}</span>
+                    </button>
+                    <button class="flex items-center gap-2 hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span>${post.comment_count || 0}</span>
+                    </button>
+                    <button class="flex items-center gap-2 hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-xl">share</span>
+                        <span>${post.share_count || 0}</span>
+                    </button>
+                </div>
+            `;
+            
+            return postEl;
+        }
+        
+        // Get time ago string
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            
+            // Server trả về UTC time, cần convert sang local
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Vừa xong';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} ngày trước`;
+            const weeks = Math.floor(days / 7);
+            if (weeks < 4) return `${weeks} tuần trước`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} tháng trước`;
+            const years = Math.floor(days / 365);
+            return `${years} năm trước`;
+        }
 
         // Create new post
+        let selectedImages = [];
+        
+        function handleImageSelect(event) {
+            const files = Array.from(event.target.files);
+            const container = document.getElementById('imagePreviewContainer');
+            
+            // Limit to 4 images
+            if (files.length > 4) {
+                showNotification('Chỉ được chọn tối đa 4 ảnh', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            selectedImages = files;
+            container.innerHTML = '';
+            
+            if (files.length > 0) {
+                container.classList.remove('hidden');
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'relative group';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg">
+                            <button onclick="removeImage(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        `;
+                        container.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            const input = document.getElementById('postImageInput');
+            const dt = new DataTransfer();
+            selectedImages.forEach(file => dt.items.add(file));
+            input.files = dt.files;
+            handleImageSelect({ target: input });
+        }
+        
+        async function uploadPostImages() {
+            if (selectedImages.length === 0) return [];
+            
+            const uploadedImages = [];
+            
+            for (const file of selectedImages) {
+                console.log('Uploading image:', file.name);
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('type', 'image');
+                
+                try {
+                    const token = getAuthToken();
+                    const response = await fetch(`${API_URL}/posts/upload-media`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    console.log('Upload response status:', response.status);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Upload successful:', data);
+                        uploadedImages.push({
+                            type: 'image',
+                            url: data.url
+                        });
+                    } else {
+                        const error = await response.json().catch(() => ({}));
+                        console.error('Upload failed:', response.status, error);
+                        showNotification(`Lỗi tải ảnh ${file.name}: ${error.error || 'Unknown'}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    showNotification(`Không thể tải ảnh ${file.name}`, 'error');
+                }
+            }
+            
+            return uploadedImages;
+        }
+        
         async function createPost() {
             const content = document.getElementById('postContent').value.trim();
 
-            if (!content) {
-                showNotification('Vui lòng nhập nội dung bài viết', 'warning');
+            if (!content && selectedImages.length === 0) {
+                showNotification('Vui lòng nhập nội dung hoặc chọn ảnh', 'warning');
                 return;
             }
 
             try {
+                showNotification('Đang đăng bài...', 'info');
+                
+                // Upload images first
+                const media = await uploadPostImages();
+                
                 const response = await fetchWithAuth(`${API_URL}/posts`, {
                     method: 'POST',
                     headers: {
@@ -495,7 +670,8 @@
                     },
                     body: JSON.stringify({
                         caption: content,
-                        visibility: 'public'
+                        visibility: 'public',
+                        media: media
                     })
                 });
 
@@ -503,6 +679,10 @@
                     const data = await response.json();
                     console.log('Post created:', data);
                     document.getElementById('postContent').value = '';
+                    document.getElementById('postImageInput').value = '';
+                    document.getElementById('imagePreviewContainer').innerHTML = '';
+                    document.getElementById('imagePreviewContainer').classList.add('hidden');
+                    selectedImages = [];
                     showNotification('Đăng bài thành công!', 'success');
                     loadNewsfeed();
                 } else {

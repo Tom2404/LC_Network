@@ -18,7 +18,7 @@ def create_post():
     Status: Pending (chờ AI kiểm duyệt)
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         
         if not user or not user.is_active():
@@ -59,13 +59,13 @@ def create_post():
         db.session.commit()
         
         # TODO: Trigger AI moderation (Phase 5)
-        # For now, auto-publish (will be removed in Phase 5)
-        # new_post.status = 'published'
-        # new_post.published_at = datetime.utcnow()
-        # db.session.commit()
+        # For now, auto-publish for development
+        new_post.status = 'published'
+        new_post.published_at = datetime.utcnow()
+        db.session.commit()
         
         return jsonify({
-            'message': 'Post created successfully. Pending moderation.',
+            'message': 'Post created successfully.',
             'post': new_post.to_dict()
         }), 201
         
@@ -79,11 +79,18 @@ def create_post():
 def upload_media():
     """Upload ảnh/video cho bài viết"""
     try:
+        print(f"=== Upload Media Request ===")
+        print(f"Request files: {request.files}")
+        print(f"Request form: {request.form}")
+        
         if 'file' not in request.files:
+            print("No 'file' in request.files")
             return jsonify({'error': 'No file provided'}), 400
         
         file = request.files['file']
         media_type = request.form.get('type', 'image')  # 'image' or 'video'
+        
+        print(f"File: {file.filename}, Type: {media_type}")
         
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
@@ -95,6 +102,8 @@ def upload_media():
         folder = 'posts/images' if media_type == 'image' else 'posts/videos'
         file_url = upload_file(file, folder=folder)
         
+        print(f"File uploaded successfully: {file_url}")
+        
         return jsonify({
             'message': 'File uploaded successfully',
             'url': file_url,
@@ -102,6 +111,9 @@ def upload_media():
         }), 200
         
     except Exception as e:
+        print(f"Error in upload_media: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -111,14 +123,20 @@ def get_posts():
     """
     Lấy danh sách bài viết (Newsfeed)
     Query params: page, per_page, status
+    Hiển thị: bài viết của bản thân và bạn bè
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         status = request.args.get('status')
         
-        query = Post.query.filter(Post.is_deleted == False)
+        # Get list of friends (if friendship table exists)
+        # For now, show all public published posts
+        query = Post.query.filter(
+            Post.is_deleted == False,
+            Post.visibility == 'public'
+        )
         
         # Filter by status if provided
         if status:
@@ -140,6 +158,9 @@ def get_posts():
         }), 200
         
     except Exception as e:
+        print(f"Error in get_posts: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
