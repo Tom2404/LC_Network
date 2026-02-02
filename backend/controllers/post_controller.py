@@ -4,6 +4,7 @@ from models import db
 from models.post import Post
 from models.post_media import PostMedia
 from models.user import User
+from models.like import Like
 from utils.file_upload import upload_file, allowed_file
 from datetime import datetime
 
@@ -150,8 +151,23 @@ def get_posts():
         
         posts = query.paginate(page=page, per_page=per_page, error_out=False)
         
+        # Get list of post IDs that current user has liked
+        liked_post_ids = set(
+            like.target_id for like in Like.query.filter_by(
+                user_id=current_user_id,
+                target_type='post'
+            ).all()
+        )
+        
+        # Add is_liked field to each post
+        posts_data = []
+        for post in posts.items:
+            post_dict = post.to_dict()
+            post_dict['is_liked'] = post.id in liked_post_ids
+            posts_data.append(post_dict)
+        
         return jsonify({
-            'posts': [post.to_dict() for post in posts.items],
+            'posts': posts_data,
             'total': posts.total,
             'pages': posts.pages,
             'current_page': page
@@ -279,4 +295,58 @@ def delete_post(post_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@post_bp.route('/<int:post_id>/like', methods=['POST'])
+@jwt_required()
+def toggle_like(post_id):
+    """Toggle like on a post (like if not liked, unlike if already liked)"""
+    try:
+        current_user_id = int(get_jwt_identity())
+        print(f"[LIKE] User {current_user_id} toggling like on post {post_id}")
+        
+        # Check if post exists
+        post = Post.query.get(post_id)
+        if not post or post.is_deleted:
+            return jsonify({'error': 'Post not found'}), 404
+        
+        # Check if user already liked this post
+        existing_like = Like.query.filter_by(
+            user_id=current_user_id,
+            target_type='post',
+            target_id=post_id
+        ).first()
+        
+        if existing_like:
+            # Unlike: Remove the like
+            print(f"[LIKE] Removing like from post {post_id}")
+            db.session.delete(existing_like)
+            post.like_count = max(0, post.like_count - 1)  # Ensure not negative
+            is_liked = False
+        else:
+            # Like: Add a new like
+            print(f"[LIKE] Adding like to post {post_id}")
+            new_like = Like(
+                user_id=current_user_id,
+                target_type='post',
+                target_id=post_id
+            )
+            db.session.add(new_like)
+            post.like_count = post.like_count + 1
+            is_liked = True
+        
+        db.session.commit()
+        
+        print(f"[LIKE] Success! Post {post_id} now has {post.like_count} likes. User liked: {is_liked}")
+        
+        return jsonify({
+            'message': 'Like toggled successfully',
+            'is_liked': is_liked,
+            'like_count': post.like_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"[LIKE] Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
