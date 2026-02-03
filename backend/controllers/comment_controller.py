@@ -195,7 +195,7 @@ def upload_comment_media():
             return jsonify({'error': 'No file selected'}), 400
         
         # Validate file type
-        allowed_image_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        allowed_image_extensions = {'png', 'jpg', 'jpeg', 'jfif', 'gif', 'webp'}
         allowed_video_extensions = {'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'}
         
         file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
