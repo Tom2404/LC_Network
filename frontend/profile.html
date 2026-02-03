@@ -199,15 +199,15 @@
                         <div id="profileAvatar" class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white dark:border-slate-900 shadow-xl bg-cover bg-center bg-slate-200" style="background-image: url('images/default-avatar.png');"></div>
                         <div class="absolute bottom-1 right-1 md:bottom-2 md:right-2 w-5 h-5 md:w-6 md:h-6 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
                     </div>
-                    <div class="flex-1 text-center md:text-left pb-0 md:pb-2">
-                        <div class="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
-                            <h2 id="profileFullName" class="text-2xl md:text-3xl font-bold">Người dùng</h2>
-                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-emerald-600 dark:text-primary text-xs font-bold rounded-full border border-primary/30">
+                    <div class="flex-1 text-center md:text-left pb-0 md:pb-2 pt-3 md:pt-0">
+                        <div class="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3 mb-2">
+                            <h2 id="profileFullName" class="text-xl md:text-2xl font-bold leading-tight">Người dùng</h2>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/20 text-emerald-600 dark:text-primary text-xs font-bold rounded-full border border-primary/30 mt-0 md:mt-1">
                                 <span class="material-symbols-outlined text-xs">verified_user</span>
                                 TÀI KHOẢN HOẠT ĐỘNG
                             </span>
                         </div>
-                        <p class="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base">
+                        <p class="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base mt-1">
                             <span id="profileUsername">@user</span> • <span id="profileBio">Thành viên LC Network</span>
                         </p>
                     </div>
@@ -219,10 +219,10 @@
                     </div>
                 </div>
                 <div class="flex overflow-x-auto border-t border-slate-100 dark:border-slate-800 pt-1 -mx-4 md:mx-0 px-4 md:px-0">
-                    <button class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">Bài viết</button>
+                    <button onclick="window.location.href='index.html'" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Bài viết</button>
                     <button class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Thông tin</button>
-                    <button class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">Bạn bè</button>
-                    <button class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">Ảnh</button>
+                    <button onclick="window.location.href='friends.html'" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Bạn bè</button>
+                    <button onclick="showNotification('Chức năng đang phát triển', 'info')" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Ảnh</button>
                 </div>
             </div>
         </div>

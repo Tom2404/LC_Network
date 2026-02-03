@@ -306,8 +306,9 @@
                     container.innerHTML = '';
                     
                     if (data.notifications && data.notifications.length > 0) {
-                        // TODO: Render notifications when API structure is confirmed
-                        container.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">Đang phát triển chức năng hiển thị thông báo...</div>';
+                        data.notifications.forEach(notif => {
+                            container.appendChild(renderNotification(notif));
+                        });
                     } else {
                         container.innerHTML = `
                             <div class="text-center py-12 text-slate-400">
@@ -323,6 +324,102 @@
             } catch (error) {
                 console.error('Error loading notifications:', error);
                 container.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Lỗi kết nối</div>';
+            }
+        }
+        
+        // Render a single notification
+        function renderNotification(notif) {
+            const div = document.createElement('div');
+            const isUnread = !notif.is_read;
+            
+            // Get icon and color based on type
+            let icon = 'notifications';
+            let iconColor = 'text-primary';
+            
+            switch(notif.type) {
+                case 'like':
+                    icon = 'favorite';
+                    iconColor = 'text-red-500';
+                    break;
+                case 'comment':
+                    icon = 'chat_bubble';
+                    iconColor = 'text-blue-500';
+                    break;
+                case 'share':
+                    icon = 'share';
+                    iconColor = 'text-green-500';
+                    break;
+                case 'friend_request':
+                    icon = 'person_add';
+                    iconColor = 'text-purple-500';
+                    break;
+                case 'friend_accept':
+                    icon = 'group';
+                    iconColor = 'text-green-500';
+                    break;
+            }
+            
+            const actorAvatar = notif.actor?.avatar_url 
+                ? `http://127.0.0.1:5000${notif.actor.avatar_url}` 
+                : 'images/default-avatar.png';
+            
+            const timeAgo = getTimeAgo(notif.created_at);
+            
+            div.className = `flex gap-4 p-4 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${isUnread ? 'bg-primary/5' : ''}`;
+            div.onclick = () => markAsRead(notif.id);
+            
+            div.innerHTML = `
+                <div class="relative flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-cover bg-center" style="background-image: url('${actorAvatar}')"></div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm ${iconColor}">${icon}</span>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm dark:text-white ${isUnread ? 'font-bold' : ''}">${notif.message}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${timeAgo}</p>
+                </div>
+                ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>' : ''}
+            `;
+            
+            return div;
+        }
+        
+        // Get time ago
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Vừa xong';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} ngày trước`;
+            const weeks = Math.floor(days / 7);
+            if (weeks < 4) return `${weeks} tuần trước`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} tháng trước`;
+            const years = Math.floor(days / 365);
+            return `${years} năm trước`;
+        }
+        
+        // Mark notification as read
+        async function markAsRead(notificationId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/notifications/${notificationId}/read`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Reload to update UI
+                    const currentTab = document.getElementById('tabAll').classList.contains('text-primary') ? 'all' : 'unread';
+                    loadNotifications(currentTab);
+                }
+            } catch (error) {
+                console.error('Error marking as read:', error);
             }
         }
 
@@ -349,7 +446,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.avatar_url) {
-                document.getElementById('headerAvatar').style.backgroundImage = `url('${user.avatar_url}')`;
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
             }
             loadNotifications('all');
         });

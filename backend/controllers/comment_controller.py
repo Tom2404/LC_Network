@@ -1,19 +1,22 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db
-from models.comment import Comment
+from models.comment import Comment, get_vietnam_time
 from models.post import Post
 from models.user import User
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import os
+from werkzeug.utils import secure_filename
+from PIL import Image
 
 comment_bp = Blueprint('comment', __name__)
 
-@comment_bp.route('/post/<int:post_id>', methods=['POST'])
+@comment_bp.route('/posts/<int:post_id>/comments', methods=['POST'])
 @jwt_required()
 def create_comment(post_id):
     """
     Tạo comment cho bài viết
-    Body: {content, parent_comment_id (optional)}
+    Body: {content, media_url (optional), media_type (optional), parent_comment_id (optional)}
     """
     try:
         current_user_id = get_jwt_identity()
@@ -38,7 +41,9 @@ def create_comment(post_id):
             post_id=post_id,
             user_id=current_user_id,
             parent_comment_id=data.get('parent_comment_id'),
-            content=data['content']
+            content=data['content'],
+            media_url=data.get('media_url'),
+            media_type=data.get('media_type')
         )
         
         db.session.add(new_comment)
@@ -58,7 +63,7 @@ def create_comment(post_id):
         return jsonify({'error': str(e)}), 500
 
 
-@comment_bp.route('/post/<int:post_id>', methods=['GET'])
+@comment_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
 @jwt_required()
 def get_comments(post_id):
     """Lấy danh sách comment của bài viết"""
@@ -86,10 +91,10 @@ def get_comments(post_id):
         return jsonify({'error': str(e)}), 500
 
 
-@comment_bp.route('/<int:comment_id>', methods=['DELETE'])
+@comment_bp.route('/posts/comments/<int:comment_id>', methods=['DELETE'])
 @jwt_required()
 def delete_comment(comment_id):
-    """Xóa comment"""
+    """Xóa comment - Chỉ người viết comment hoặc chủ bài viết mới được xóa"""
     try:
         current_user_id = get_jwt_identity()
         comment = Comment.query.get(comment_id)
@@ -97,13 +102,17 @@ def delete_comment(comment_id):
         if not comment:
             return jsonify({'error': 'Comment not found'}), 404
         
-        if comment.user_id != current_user_id:
-            return jsonify({'error': 'Unauthorized'}), 403
+        # Get post to check ownership
+        post = Post.query.get(comment.post_id)
+        if not post:
+            return jsonify({'error': 'Post not found'}), 404
+        
+        # Allow deletion if user is comment author OR post owner
+        if comment.user_id != current_user_id and post.user_id != current_user_id:
+            return jsonify({'error': 'Unauthorized. Only comment author or post owner can delete'}), 403
         
         # Update post comment count
-        post = Post.query.get(comment.post_id)
-        if post:
-            post.comment_count -= 1
+        post.comment_count -= 1
         
         db.session.delete(comment)
         db.session.commit()
@@ -112,4 +121,144 @@ def delete_comment(comment_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@comment_bp.route('/posts/comments/<int:comment_id>', methods=['PUT'])
+@jwt_required()
+def edit_comment(comment_id):
+    """Chỉnh sửa comment - Chỉ người viết comment mới được sửa"""
+    try:
+        current_user_id = get_jwt_identity()
+        comment = Comment.query.get(comment_id)
+        
+        if not comment:
+            return jsonify({'error': 'Comment not found'}), 404
+        
+        # Only comment author can edit
+        if comment.user_id != current_user_id:
+            return jsonify({'error': 'Unauthorized. Only comment author can edit'}), 403
+        
+        data = request.get_json()
+        
+        # Update content if provided
+        if 'content' in data:
+            if not data['content'].strip():
+                return jsonify({'error': 'Content cannot be empty'}), 400
+            comment.content = data['content']
+        
+        # Update media if provided (can remove by setting to null)
+        if 'media_url' in data:
+            comment.media_url = data['media_url']
+        
+        if 'media_type' in data:
+            comment.media_type = data['media_type']
+        
+        comment.updated_at = get_vietnam_time()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Comment updated successfully',
+            'comment': comment.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@comment_bp.route('/posts/comments/upload-media', methods=['POST'])
+@jwt_required()
+def upload_comment_media():
+    """Upload media (image/video) for comment"""
+    try:
+        print("=== UPLOAD MEDIA DEBUG ===")
+        print(f"Files: {request.files}")
+        print(f"Form: {request.form}")
+        
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user or not user.is_active():
+            return jsonify({'error': 'Account is restricted'}), 403
+        
+        if 'file' not in request.files:
+            print("ERROR: No file in request.files")
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        media_type = request.form.get('type', 'image')
+        print(f"File: {file.filename}, Type: {media_type}")
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file type
+        allowed_image_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        allowed_video_extensions = {'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'}
+        
+        file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        
+        if media_type == 'image':
+            if file_ext not in allowed_image_extensions:
+                return jsonify({'error': 'Invalid image format'}), 400
+            max_size = 5 * 1024 * 1024  # 5MB
+        elif media_type == 'video':
+            if file_ext not in allowed_video_extensions:
+                return jsonify({'error': 'Invalid video format'}), 400
+            max_size = 50 * 1024 * 1024  # 50MB
+        else:
+            return jsonify({'error': 'Invalid media type'}), 400
+        
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > max_size:
+            return jsonify({'error': f'File too large. Maximum size: {max_size // (1024*1024)}MB'}), 400
+        
+        # Create upload directory
+        upload_folder = os.path.join('uploads', 'comments', media_type + 's')
+        os.makedirs(upload_folder, exist_ok=True)
+        
+        # Generate unique filename
+        timestamp = get_vietnam_time().strftime('%Y%m%d_%H%M%S')
+        filename = f"{current_user_id}_{timestamp}_{secure_filename(file.filename)}"
+        filepath = os.path.join(upload_folder, filename)
+        
+        # Save file
+        if media_type == 'image':
+            # Optimize image
+            image = Image.open(file)
+            
+            # Convert RGBA to RGB if necessary
+            if image.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                if image.mode == 'P':
+                    image = image.convert('RGBA')
+                background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                image = background
+            
+            # Resize if too large
+            max_dimension = 1920
+            if image.width > max_dimension or image.height > max_dimension:
+                image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+            
+            # Save optimized image
+            image.save(filepath, 'JPEG', quality=85, optimize=True)
+        else:
+            # Save video directly
+            file.save(filepath)
+        
+        # Return URL
+        url = f'/uploads/comments/{media_type}s/{filename}'
+        
+        return jsonify({
+            'url': url,
+            'type': media_type
+        }), 200
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500

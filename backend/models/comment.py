@@ -1,5 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from models import db
+
+# Vietnam timezone (UTC+7)
+VIETNAM_TZ = timezone(timedelta(hours=7))
+
+def get_vietnam_time():
+    """Get current time in Vietnam timezone"""
+    return datetime.now(VIETNAM_TZ).replace(tzinfo=None)
 
 class Comment(db.Model):
     __tablename__ = 'comments'
@@ -11,6 +18,10 @@ class Comment(db.Model):
     
     content = db.Column(db.Text, nullable=False)
     
+    # Media attachment
+    media_url = db.Column(db.String(500))
+    media_type = db.Column(db.String(10))  # 'image' or 'video'
+    
     # AI moderation
     is_blocked = db.Column(db.Boolean, default=False)
     block_reason = db.Column(db.Text)
@@ -18,8 +29,8 @@ class Comment(db.Model):
     
     like_count = db.Column(db.Integer, default=0)
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_vietnam_time, index=True)
+    updated_at = db.Column(db.DateTime, default=get_vietnam_time, onupdate=get_vietnam_time)
     
     # Relationships for nested comments
     replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy='dynamic', cascade='all, delete-orphan')
@@ -34,6 +45,8 @@ class Comment(db.Model):
             'user_id': self.user_id,
             'parent_comment_id': self.parent_comment_id,
             'content': self.content,
+            'media_url': self.media_url,
+            'media_type': self.media_type,
             'is_blocked': self.is_blocked,
             'block_reason': self.block_reason,
             'like_count': self.like_count,

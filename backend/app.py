@@ -11,6 +11,7 @@ from controllers.post_controller import post_bp
 from controllers.comment_controller import comment_bp
 from controllers.friend_controller import friend_bp
 from controllers.moderation_controller import moderation_bp
+from controllers.notification_controller import notification_bp
 
 def create_app(config_name='development'):
     """Application factory"""
@@ -58,9 +59,10 @@ def create_app(config_name='development'):
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(user_bp, url_prefix='/api/users')
     app.register_blueprint(post_bp, url_prefix='/api/posts')
-    app.register_blueprint(comment_bp, url_prefix='/api/comments')
+    app.register_blueprint(comment_bp, url_prefix='/api')  # Changed from /api/posts to /api
     app.register_blueprint(friend_bp, url_prefix='/api/friends')
     app.register_blueprint(moderation_bp, url_prefix='/api/moderation')
+    app.register_blueprint(notification_bp, url_prefix='/api/notifications')
     
     # Health check endpoint
     @app.route('/api/health')

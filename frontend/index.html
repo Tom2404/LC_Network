@@ -124,6 +124,179 @@
         </div>
     </div>
 
+    <!-- Create Post Modal -->
+    <div id="createPostModal" class="fixed inset-0 z-[9998] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCreatePostModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl max-w-2xl w-full border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden">
+                <!-- Header -->
+                <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] flex items-center justify-between">
+                    <h3 class="text-xl font-bold dark:text-white">Tạo bài viết</h3>
+                    <button onclick="closeCreatePostModal()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white p-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6 max-h-[70vh] overflow-y-auto">
+                    <!-- User Info -->
+                    <div class="flex items-center gap-3 mb-4">
+                        <div id="modalUserAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+                            style='background-image: url("images/default-avatar.png");'>
+                        </div>
+                        <div>
+                            <p id="modalUserName" class="font-bold dark:text-white">Người dùng</p>
+                            <select class="text-xs bg-[#f0f5f4] dark:bg-[#1a3330] border-none rounded-lg px-3 py-1 text-[#5e8d89]">
+                                <option>Công khai</option>
+                                <option>Bạn bè</option>
+                                <option>Chỉ mình tôi</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Input -->
+                    <textarea id="modalPostContent"
+                        class="w-full border-none focus:ring-0 text-base resize-none bg-transparent placeholder-[#b9d0ce] dark:text-white mb-4"
+                        placeholder="Bạn đang nghĩ gì?" rows="6"></textarea>
+                    
+                    <!-- Media Preview Container -->
+                    <div id="modalImagePreviewContainer" class="hidden"></div>
+                    
+                    <!-- Media Upload Section -->
+                    <div class="border-2 border-dashed border-[#dae7e6] dark:border-[#2a3d3b] rounded-xl p-6 mb-4">
+                        <div class="text-center">
+                            <div class="flex justify-center gap-4 mb-4">
+                                <button onclick="document.getElementById('modalImageInput').click()" class="flex flex-col items-center gap-2 p-4 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors">
+                                    <div class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-green-500">image</span>
+                                    </div>
+                                    <span class="text-xs font-medium text-[#5e8d89]">Thêm ảnh</span>
+                                </button>
+                                <button onclick="document.getElementById('modalVideoInput').click()" class="flex flex-col items-center gap-2 p-4 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors">
+                                    <div class="w-12 h-12 bg-purple-500/10 rounded-full flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-purple-500">videocam</span>
+                                    </div>
+                                    <span class="text-xs font-medium text-[#5e8d89]">Thêm video</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-[#5e8d89]">Hoặc kéo thả file vào đây</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden Inputs -->
+                    <input type="file" id="modalImageInput" accept="image/*" multiple class="hidden" onchange="handleModalImageSelect(event)">
+                    <input type="file" id="modalVideoInput" accept="video/*" class="hidden" onchange="handleModalVideoSelect(event)">
+                </div>
+                
+                <!-- Footer -->
+                <div class="p-4 border-t border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <button onclick="createPostFromModal()" class="w-full px-6 py-3 bg-primary text-[#111817] rounded-lg font-bold text-sm hover:opacity-90 transition-all shadow-md">
+                        Đăng bài
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="imageLightbox" class="fixed inset-0 z-[9999] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/90" onclick="closeLightbox()"></div>
+        
+        <!-- Navigation Buttons -->
+        <button id="lightboxPrev" onclick="previousImage()" class="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full p-3 transition-all hidden">
+            <span class="material-symbols-outlined text-3xl">chevron_left</span>
+        </button>
+        <button id="lightboxNext" onclick="nextImage()" class="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full p-3 transition-all hidden">
+            <span class="material-symbols-outlined text-3xl">chevron_right</span>
+        </button>
+        
+        <!-- Close Button -->
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full p-3 transition-all">
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+        
+        <!-- Image Container -->
+        <div class="relative z-10 flex items-center justify-center h-full p-8 cursor-pointer" onclick="closeLightbox()">
+            <img id="lightboxImage" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-default" onclick="event.stopPropagation()">
+        </div>
+        
+        <!-- Image Counter -->
+        <div id="lightboxCounter" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium hidden">
+            <span id="currentImageIndex">1</span> / <span id="totalImages">1</span>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="fixed inset-0 z-[9998] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCommentModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl max-w-2xl w-full border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden max-h-[90vh] flex flex-col">
+                <!-- Header -->
+                <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] flex items-center justify-between shrink-0">
+                    <h3 class="text-xl font-bold dark:text-white">Bình luận</h3>
+                    <button onclick="closeCommentModal()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white p-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <!-- Original Post Info -->
+                <div id="commentPostInfo" class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] shrink-0">
+                    <!-- Post info will be loaded here -->
+                </div>
+                
+                <!-- Comments List -->
+                <div id="commentsList" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="text-center py-8 text-[#5e8d89] text-sm">
+                        Đang tải bình luận...
+                    </div>
+                </div>
+                
+                <!-- Comment Input Section -->
+                <div class="p-4 border-t border-[#dae7e6] dark:border-[#2a3d3b] shrink-0">
+                    <!-- Media Preview -->
+                    <div id="commentMediaPreview" class="hidden mb-3"></div>
+                    
+                    <!-- Input Area -->
+                    <div class="flex gap-3 items-start">
+                        <div id="commentUserAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0"
+                            style='background-image: url("images/default-avatar.png");'>
+                        </div>
+                        <div class="flex-1">
+                            <textarea id="commentInput" 
+                                class="w-full border border-[#dae7e6] dark:border-[#2a3d3b] focus:ring-2 focus:ring-primary text-sm resize-none bg-[#f0f5f4] dark:bg-[#1a3330] placeholder-[#5e8d89] dark:text-white rounded-lg px-3 py-2" 
+                                placeholder="Viết bình luận..." 
+                                rows="2"></textarea>
+                            <div class="flex items-center justify-between mt-2">
+                                <div class="flex gap-2">
+                                    <button onclick="document.getElementById('commentImageInput').click()" class="p-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors text-[#5e8d89]" title="Đính kèm ảnh">
+                                        <span class="material-symbols-outlined text-xl text-green-500">image</span>
+                                    </button>
+                                    <button onclick="document.getElementById('commentVideoInput').click()" class="p-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors text-[#5e8d89]" title="Đính kèm video">
+                                        <span class="material-symbols-outlined text-xl text-purple-500">videocam</span>
+                                    </button>
+                                </div>
+                                <button onclick="submitComment()" class="px-4 py-2 bg-primary text-[#111817] rounded-lg font-bold text-sm hover:opacity-90 transition-all">
+                                    Gửi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden File Inputs -->
+                    <input type="file" id="commentImageInput" accept="image/*" class="hidden" onchange="handleCommentMediaSelect(event, 'image')">
+                    <input type="file" id="commentVideoInput" accept="video/*" class="hidden" onchange="handleCommentMediaSelect(event, 'video')">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Modal -->
     <div id="logoutModal" class="fixed inset-0 z-[9998] hidden">
         <!-- Backdrop -->
@@ -201,9 +374,8 @@
                     </button>
                 </div>
                 <div class="relative">
-                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
-                        data-alt="User profile avatar of Alex"
-                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-BQwN-tDLc7stlQxdzyTOHMU6wPKB6lfNX5xUbWsrrdQLEyTuccCr0GXi30NYh_kaIp7RDsMNFTzHPTLiR6PMHuPRmY5B03RyUH1CghH9JDwJ9xq2EvZBsfxnvJu8xU0vVq-pHYyBTMesHEcyKmZsv8kELIWzUWo_3IJtedmsbe3gV0jebggEOxpGtIoLwIZoerObHwtP8-7qLHmEwNnrAus7pRl0W4GZt6LQARoZvoLqqY3cwcr3KSU7WD-0sBaQ8mdlrb26gFQ");'>
+                    <div id="headerAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
+                        style='background-image: url("images/default-avatar.png");'>
                     </div>
                     <div
                         class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]">
@@ -214,7 +386,7 @@
         <!-- Main Content Area -->
         <main class="flex flex-1 justify-center py-6 px-4 md:px-8 xl:px-20 gap-8">
             <!-- Left Sidebar Navigation -->
-            <aside class="hidden lg:flex flex-col w-64 shrink-0 gap-6">
+            <aside class="hidden lg:flex flex-col w-64 shrink-0 gap-6 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
                 <div
                     class="bg-white dark:bg-[#152a28] rounded-xl p-6 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
                     <div class="flex items-center gap-4 mb-6">
@@ -271,45 +443,30 @@
             <!-- Main Feed -->
             <div class="flex-1 max-w-2xl flex flex-col gap-6">
                 <!-- Composer -->
+                <!-- Create Post Button -->
                 <div
-                    class="bg-white dark:bg-[#152a28] rounded-xl p-5 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
-                    <div class="flex gap-4">
-                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
-                            data-alt="Your avatar"
-                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyhWGzKi6anoQ7IKCcUQbmDaLt88ivG07g8D3eXxmZY1KocQ653mOUP4w85CJmWF_XzclpR_KyakzaoRI-_VJa5i69tGqB1dzhKX4PZ6KNzdo-nz6MKmXANOjHIF1lKJFJUzNaqFn5BDI8vemNa0DfxQ-nk7bZTIguqe_IAv7kFnx57wrJ2VcdD-NzNLHlBRkw4IZtidKcUKf7OPIOBQODTuVswAmXgNKlOTv3Ue923TNIAzOqPhFFkvKiasN7YsdjNxHMPFJQ4Yo");'>
+                    class="bg-white dark:bg-[#152a28] rounded-xl p-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <div class="flex gap-4 items-center">
+                        <div id="createPostAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
+                            style='background-image: url("images/default-avatar.png");'>
                         </div>
-                        <div class="flex-1 flex flex-col gap-3">
-                            <textarea id="postContent"
-                                class="w-full border-none focus:ring-0 text-base resize-none bg-transparent placeholder-[#b9d0ce] dark:text-white"
-                                placeholder="Bạn đang nghĩ gì?" rows="2"></textarea>
-                            <!-- Image Preview Container -->
-                            <div id="imagePreviewContainer" class="hidden grid grid-cols-2 gap-2 mt-2"></div>
-                            <input type="file" id="postImageInput" accept="image/*" multiple class="hidden" onchange="handleImageSelect(event)">
-                            <div
-                                class="flex items-center justify-between pt-2 border-t border-[#f0f5f4] dark:border-[#2a3d3b]">
-                                <div class="flex items-center gap-1">
-                                    <button onclick="document.getElementById('postImageInput').click()"
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm ảnh">
-                                        <span class="material-symbols-outlined">image</span>
-                                    </button>
-                                    <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm video">
-                                        <span class="material-symbols-outlined">videocam</span>
-                                    </button>
-                                    <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm biểu đồ">
-                                        <span class="material-symbols-outlined">bar_chart</span>
-                                    </button>
-                                    <button
-                                        class="p-2 text-[#5e8d89] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-full transition-colors" title="Thêm emoji">
-                                        <span class="material-symbols-outlined">sentiment_satisfied</span>
-                                    </button>
-                                </div>
-                                <button onclick="createPost()"
-                                    class="px-6 py-2 bg-primary text-[#111817] rounded-lg font-bold text-sm shadow-sm hover:opacity-90">Đăng
-                                    bài</button>
-                            </div>
-                        </div>
+                        <button onclick="openCreatePostModal()" class="flex-1 text-left px-4 py-3 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#5e8d89] rounded-full hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                            Bạn đang nghĩ gì?
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-around pt-3 mt-3 border-t border-[#f0f5f4] dark:border-[#2a3d3b]">
+                        <button onclick="openCreatePostModal('image')" class="flex items-center gap-2 px-4 py-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors text-[#5e8d89]">
+                            <span class="material-symbols-outlined text-red-500">image</span>
+                            <span class="text-sm font-medium">Ảnh</span>
+                        </button>
+                        <button onclick="openCreatePostModal('video')" class="flex items-center gap-2 px-4 py-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors text-[#5e8d89]">
+                            <span class="material-symbols-outlined text-purple-500">videocam</span>
+                            <span class="text-sm font-medium">Video</span>
+                        </button>
+                        <button onclick="openCreatePostModal()" class="flex items-center gap-2 px-4 py-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] rounded-lg transition-colors text-[#5e8d89]">
+                            <span class="material-symbols-outlined text-yellow-500">sentiment_satisfied</span>
+                            <span class="text-sm font-medium">Cảm xúc</span>
+                        </button>
                     </div>
                 </div>
                 <!-- Posts List -->
@@ -322,7 +479,7 @@
                 </div>
             </div>
             <!-- Right Sidebar: Suggested Friends -->
-            <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
+            <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
                 <!-- Suggested Creators -->
                 <div
                     class="bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] p-5">
@@ -440,14 +597,50 @@
 
             if (user.full_name) {
                 document.getElementById('userFullName').textContent = user.full_name;
+                const modalUserName = document.getElementById('modalUserName');
+                if (modalUserName) modalUserName.textContent = user.full_name;
             }
 
             if (user.avatar_url) {
-                const avatarEls = document.querySelectorAll('#userAvatar');
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                const avatarEls = document.querySelectorAll('#userAvatar, #createPostAvatar, #modalUserAvatar, #headerAvatar');
                 avatarEls.forEach(el => {
-                    el.style.backgroundImage = `url('${user.avatar_url}')`;
+                    el.style.backgroundImage = `url('${avatarUrl}')`;
                 });
             }
+        }
+        
+        // Create Post Modal Functions
+        function openCreatePostModal(mediaType = null) {
+            const modal = document.getElementById('createPostModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-enter');
+            
+            const modalContent = modal.querySelector('.bg-white');
+            modalContent.classList.add('modal-content-enter');
+            
+            document.body.style.overflow = 'hidden';
+            
+            // Auto-trigger file input if mediaType specified
+            if (mediaType === 'image') {
+                setTimeout(() => document.getElementById('modalImageInput').click(), 300);
+            } else if (mediaType === 'video') {
+                setTimeout(() => document.getElementById('modalVideoInput').click(), 300);
+            }
+        }
+
+        function closeCreatePostModal() {
+            const modal = document.getElementById('createPostModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            // Clear form
+            document.getElementById('modalPostContent').value = '';
+            document.getElementById('modalImageInput').value = '';
+            document.getElementById('modalVideoInput').value = '';
+            document.getElementById('modalImagePreviewContainer').innerHTML = '';
+            document.getElementById('modalImagePreviewContainer').classList.add('hidden');
+            selectedImages = [];
         }
 
         // Load newsfeed posts
@@ -498,12 +691,18 @@
             
             let mediaHTML = '';
             if (post.media && post.media.length > 0) {
+                const mediaUrls = post.media.map(m => `http://127.0.0.1:5000${m.media_url}`);
                 const mediaClass = post.media.length === 1 ? 'grid-cols-1' : post.media.length === 2 ? 'grid-cols-2' : post.media.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
                 mediaHTML = `
-                    <div class="grid ${mediaClass} gap-1">
-                        ${post.media.map(m => `
-                            <img src="http://127.0.0.1:5000${m.media_url}" class="w-full ${post.media.length === 1 ? 'max-h-96' : 'h-48'} object-cover">
-                        `).join('')}
+                    <div class="grid ${mediaClass} gap-1 bg-gray-50 dark:bg-gray-900">
+                        ${post.media.map((m, idx) => {
+                            const imgUrl = `http://127.0.0.1:5000${m.media_url}`;
+                            return `
+                                <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity" onclick='openLightbox(${JSON.stringify(mediaUrls)}, ${idx})'>
+                                    <img src="${imgUrl}" class="max-w-full max-h-full object-contain" loading="lazy">
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }
@@ -529,9 +728,9 @@
                         <span class="${likeIconClass} text-xl">favorite</span>
                         <span class="like-count">${post.like_count || 0}</span>
                     </button>
-                    <button class="flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]">
+                    <button class="comment-btn flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]" onclick="openCommentModal(${post.id})">
                         <span class="material-symbols-outlined text-xl">chat_bubble</span>
-                        <span>${post.comment_count || 0}</span>
+                        <span class="comment-count">${post.comment_count || 0}</span>
                     </button>
                     <button class="flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]">
                         <span class="material-symbols-outlined text-xl">share</span>
@@ -568,6 +767,67 @@
 
         // Create new post
         let selectedImages = [];
+        
+        function handleModalImageSelect(event) {
+            const files = Array.from(event.target.files);
+            const container = document.getElementById('modalImagePreviewContainer');
+            
+            // Limit to 4 images
+            if (files.length > 4) {
+                showNotification('Chỉ được chọn tối đa 4 ảnh', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            selectedImages = files;
+            container.innerHTML = '';
+            
+            if (files.length > 0) {
+                container.classList.remove('hidden');
+                container.className = 'grid grid-cols-2 gap-2 mb-4 border-2 border-[#dae7e6] dark:border-[#2a3d3b] rounded-xl p-4';
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'relative group';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-48 object-cover rounded-lg">
+                            <button onclick="removeModalImage(${index})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        `;
+                        container.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        
+        function handleModalVideoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate video size (max 50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('Video không được vượt quá 50MB', 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            showNotification('Chức năng video đang được phát triển', 'info');
+            event.target.value = '';
+        }
+        
+        function removeModalImage(index) {
+            selectedImages.splice(index, 1);
+            const input = document.getElementById('modalImageInput');
+            const dt = new DataTransfer();
+            selectedImages.forEach(file => dt.items.add(file));
+            input.files = dt.files;
+            handleModalImageSelect({ target: input });
+        }
         
         function handleImageSelect(event) {
             const files = Array.from(event.target.files);
@@ -658,6 +918,48 @@
             return uploadedImages;
         }
         
+        async function createPostFromModal() {
+            const content = document.getElementById('modalPostContent').value.trim();
+
+            if (!content && selectedImages.length === 0) {
+                showNotification('Vui lòng nhập nội dung hoặc chọn ảnh', 'warning');
+                return;
+            }
+
+            try {
+                showNotification('Đang đăng bài...', 'info');
+                
+                // Upload images first
+                const media = await uploadPostImages();
+                
+                const response = await fetchWithAuth(`${API_URL}/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        caption: content,
+                        visibility: 'public',
+                        media: media
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Post created:', data);
+                    closeCreatePostModal();
+                    showNotification('Đăng bài thành công!', 'success');
+                    loadNewsfeed();
+                } else {
+                    const error = await response.json();
+                    showNotification('Đăng bài thất bại: ' + (error.error || 'Lỗi không xác định'), 'error');
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showNotification('Không thể kết nối máy chủ', 'error');
+            }
+        }
+        
         async function createPost() {
             const content = document.getElementById('postContent').value.trim();
 
@@ -703,6 +1005,347 @@
                 showNotification('Không thể kết nối máy chủ', 'error');
             }
         }
+        
+        // Comment Modal Functions
+        let currentPostId = null;
+        let commentMediaFile = null;
+        
+        async function openCommentModal(postId) {
+            currentPostId = postId;
+            const modal = document.getElementById('commentModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-enter');
+            document.body.style.overflow = 'hidden';
+            
+            // Load post info
+            await loadCommentPostInfo(postId);
+            
+            // Load comments
+            await loadComments(postId);
+            
+            // Set user avatar
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.avatar_url) {
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                document.getElementById('commentUserAvatar').style.backgroundImage = `url('${avatarUrl}')`;
+            }
+        }
+        
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            // Clear input
+            document.getElementById('commentInput').value = '';
+            document.getElementById('commentMediaPreview').innerHTML = '';
+            document.getElementById('commentMediaPreview').classList.add('hidden');
+            commentMediaFile = null;
+            currentPostId = null;
+        }
+        
+        async function loadCommentPostInfo(postId) {
+            const container = document.getElementById('commentPostInfo');
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${postId}`);
+                if (response.ok) {
+                    const post = await response.json();
+                    const authorAvatar = post.author?.avatar_url ? `http://127.0.0.1:5000${post.author.avatar_url}` : 'images/default-avatar.png';
+                    
+                    let mediaPreview = '';
+                    if (post.media && post.media.length > 0) {
+                        const firstMedia = post.media[0];
+                        mediaPreview = `
+                            <img src="http://127.0.0.1:5000${firstMedia.media_url}" class="w-full max-h-32 object-cover rounded-lg mt-2">
+                        `;
+                    }
+                    
+                    container.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0"
+                                style='background-image: url("${authorAvatar}");'></div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm dark:text-white">${post.author?.full_name || 'Unknown'}</h4>
+                                ${post.caption ? `<p class="text-sm text-[#5e8d89] dark:text-gray-300 mt-1">${post.caption}</p>` : ''}
+                                ${mediaPreview}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading post info:', error);
+            }
+        }
+        
+        async function loadComments(postId) {
+            const container = document.getElementById('commentsList');
+            container.innerHTML = '<div class="text-center py-8 text-[#5e8d89] text-sm">Đang tải bình luận...</div>';
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${postId}/comments`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.comments && data.comments.length > 0) {
+                        container.innerHTML = '';
+                        data.comments.forEach(comment => {
+                            container.appendChild(renderComment(comment));
+                        });
+                    } else {
+                        container.innerHTML = `
+                            <div class="text-center py-8 text-[#5e8d89] text-sm">
+                                <span class="material-symbols-outlined text-4xl mb-2 block">chat_bubble_outline</span>
+                                Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Không thể tải bình luận</div>';
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                container.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Lỗi kết nối</div>';
+            }
+        }
+        
+        function renderComment(comment) {
+            const commentEl = document.createElement('div');
+            commentEl.className = 'flex gap-3 items-start';
+            
+            const authorAvatar = comment.author?.avatar_url ? `http://127.0.0.1:5000${comment.author.avatar_url}` : 'images/default-avatar.png';
+            const timeAgo = getTimeAgo(comment.created_at);
+            
+            let mediaHTML = '';
+            if (comment.media_url) {
+                if (comment.media_type === 'image') {
+                    mediaHTML = `<img src="http://127.0.0.1:5000${comment.media_url}" class="max-w-full max-h-48 rounded-lg mt-2 cursor-pointer" onclick='openLightbox(["http://127.0.0.1:5000${comment.media_url}"], 0)'>`;
+                } else if (comment.media_type === 'video') {
+                    mediaHTML = `<video src="http://127.0.0.1:5000${comment.media_url}" class="max-w-full max-h-48 rounded-lg mt-2" controls></video>`;
+                }
+            }
+            
+            commentEl.innerHTML = `
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0"
+                    style='background-image: url("${authorAvatar}");'></div>
+                <div class="flex-1">
+                    <div class="bg-[#f0f5f4] dark:bg-[#1a3330] rounded-xl px-4 py-2">
+                        <h5 class="font-bold text-sm dark:text-white">${comment.author?.full_name || 'Unknown'}</h5>
+                        <p class="text-sm dark:text-white mt-1">${comment.content}</p>
+                        ${mediaHTML}
+                    </div>
+                    <div class="flex items-center gap-4 mt-1 px-2">
+                        <span class="text-xs text-[#5e8d89]">${timeAgo}</span>
+                        <button class="text-xs font-semibold text-[#5e8d89] hover:text-primary">Thích</button>
+                        <button class="text-xs font-semibold text-[#5e8d89] hover:text-primary">Trả lời</button>
+                    </div>
+                </div>
+            `;
+            
+            return commentEl;
+        }
+        
+        function handleCommentMediaSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file size
+            const maxSize = type === 'image' ? 5 * 1024 * 1024 : 50 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showNotification(`${type === 'image' ? 'Ảnh' : 'Video'} không được vượt quá ${type === 'image' ? '5MB' : '50MB'}`, 'warning');
+                event.target.value = '';
+                return;
+            }
+            
+            commentMediaFile = { file, type };
+            
+            const preview = document.getElementById('commentMediaPreview');
+            preview.classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (type === 'image') {
+                    preview.innerHTML = `
+                        <div class="relative inline-block">
+                            <img src="${e.target.result}" class="max-h-32 rounded-lg">
+                            <button onclick="removeCommentMedia()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    preview.innerHTML = `
+                        <div class="relative inline-block">
+                            <video src="${e.target.result}" class="max-h-32 rounded-lg" controls></video>
+                            <button onclick="removeCommentMedia()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                    `;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeCommentMedia() {
+            commentMediaFile = null;
+            document.getElementById('commentImageInput').value = '';
+            document.getElementById('commentVideoInput').value = '';
+            document.getElementById('commentMediaPreview').innerHTML = '';
+            document.getElementById('commentMediaPreview').classList.add('hidden');
+        }
+        
+        async function submitComment() {
+            const content = document.getElementById('commentInput').value.trim();
+            
+            if (!content && !commentMediaFile) {
+                showNotification('Vui lòng nhập nội dung hoặc chọn ảnh/video', 'warning');
+                return;
+            }
+            
+            try {
+                showNotification('Đang gửi bình luận...', 'info');
+                
+                let mediaUrl = null;
+                let mediaType = null;
+                
+                // Upload media if exists
+                if (commentMediaFile) {
+                    const formData = new FormData();
+                    formData.append('file', commentMediaFile.file);
+                    formData.append('type', commentMediaFile.type);
+                    
+                    const uploadResponse = await fetch(`${API_URL}/posts/comments/upload-media`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getAuthToken()}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        mediaUrl = uploadData.url;
+                        mediaType = commentMediaFile.type;
+                    } else {
+                        showNotification('Không thể tải file lên', 'error');
+                        return;
+                    }
+                }
+                
+                // Create comment
+                const response = await fetchWithAuth(`${API_URL}/posts/${currentPostId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        media_url: mediaUrl,
+                        media_type: mediaType
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã gửi bình luận!', 'success');
+                    
+                    // Clear input
+                    document.getElementById('commentInput').value = '';
+                    removeCommentMedia();
+                    
+                    // Reload comments
+                    await loadComments(currentPostId);
+                    
+                    // Update comment count in post
+                    const postEl = document.querySelector(`[data-post-id="${currentPostId}"]`);
+                    if (postEl) {
+                        const commentCountEl = postEl.querySelector('.comment-count');
+                        if (commentCountEl) {
+                            commentCountEl.textContent = parseInt(commentCountEl.textContent) + 1;
+                        }
+                    }
+                } else {
+                    const error = await response.json();
+                    showNotification('Không thể gửi bình luận: ' + (error.error || 'Lỗi không xác định'), 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+                showNotification('Không thể kết nối máy chủ', 'error');
+            }
+        }
+        
+        // Lightbox functions
+        let lightboxImages = [];
+        let currentLightboxIndex = 0;
+        
+        function openLightbox(images, index = 0) {
+            lightboxImages = images;
+            currentLightboxIndex = index;
+            
+            const lightbox = document.getElementById('imageLightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            const counter = document.getElementById('lightboxCounter');
+            const prevBtn = document.getElementById('lightboxPrev');
+            const nextBtn = document.getElementById('lightboxNext');
+            
+            // Show lightbox
+            lightbox.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load image
+            lightboxImage.src = images[index];
+            
+            // Show/hide navigation buttons
+            if (images.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                counter.classList.remove('hidden');
+                updateLightboxCounter();
+            } else {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+                counter.classList.add('hidden');
+            }
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('imageLightbox');
+            lightbox.classList.add('hidden');
+            document.body.style.overflow = '';
+            lightboxImages = [];
+            currentLightboxIndex = 0;
+        }
+        
+        function previousImage() {
+            if (currentLightboxIndex > 0) {
+                currentLightboxIndex--;
+                document.getElementById('lightboxImage').src = lightboxImages[currentLightboxIndex];
+                updateLightboxCounter();
+            }
+        }
+        
+        function nextImage() {
+            if (currentLightboxIndex < lightboxImages.length - 1) {
+                currentLightboxIndex++;
+                document.getElementById('lightboxImage').src = lightboxImages[currentLightboxIndex];
+                updateLightboxCounter();
+            }
+        }
+        
+        function updateLightboxCounter() {
+            document.getElementById('currentImageIndex').textContent = currentLightboxIndex + 1;
+            document.getElementById('totalImages').textContent = lightboxImages.length;
+        }
+        
+        // Keyboard navigation for lightbox
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('imageLightbox');
+            if (!lightbox.classList.contains('hidden')) {
+                if (e.key === 'Escape') closeLightbox();
+                else if (e.key === 'ArrowLeft') previousImage();
+                else if (e.key === 'ArrowRight') nextImage();
+            }
+        });
         
         // Toggle like on post
         async function toggleLike(postId) {

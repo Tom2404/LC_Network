@@ -7,6 +7,7 @@ from models.user import User
 from models.like import Like
 from utils.file_upload import upload_file, allowed_file
 from datetime import datetime
+from controllers.notification_controller import create_notification
 
 post_bp = Blueprint('post', __name__)
 
@@ -335,6 +336,19 @@ def toggle_like(post_id):
             db.session.add(new_like)
             post.like_count = post.like_count + 1
             is_liked = True
+            
+            # Create notification for post author (if not liking own post)
+            if post.user_id != current_user_id:
+                liker = User.query.get(current_user_id)
+                if liker:
+                    create_notification(
+                        user_id=post.user_id,
+                        notification_type='like',
+                        title='Lượt thích mới',
+                        message=f'{liker.full_name} đã thích bài viết của bạn',
+                        related_id=current_user_id,  # Who liked
+                        related_type='like'
+                    )
         
         db.session.commit()
         
