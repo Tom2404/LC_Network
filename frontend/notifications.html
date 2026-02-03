@@ -198,11 +198,16 @@
 
         <!-- Tabs -->
         <div class="flex gap-4 border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto">
-            <button onclick="switchTab('all')" id="tabAll" class="px-6 py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">
-                Tất cả
+            <button onclick="switchTab('account')" id="tabAccount" class="px-6 py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">mail</span>
+                Tài khoản
             </button>
-            <button onclick="switchTab('unread')" id="tabUnread" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">
-                Chưa đọc
+            <button onclick="switchTab('post')" id="tabPost" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">notifications</span>
+                Bài viết
+            </button>
+            <button onclick="switchTab('all')" id="tabAll" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">
+                Tất cả
             </button>
         </div>
 
@@ -276,18 +281,18 @@
 
         // Tab switching
         function switchTab(tab) {
-            document.getElementById('tabAll').classList.remove('text-primary', 'border-primary');
-            document.getElementById('tabAll').classList.add('text-slate-400', 'border-transparent');
-            document.getElementById('tabUnread').classList.remove('text-primary', 'border-primary');
-            document.getElementById('tabUnread').classList.add('text-slate-400', 'border-transparent');
+            // Reset all tabs
+            ['tabAccount', 'tabPost', 'tabAll'].forEach(tabId => {
+                const tabEl = document.getElementById(tabId);
+                tabEl.classList.remove('text-primary', 'border-primary');
+                tabEl.classList.add('text-slate-400', 'border-transparent');
+            });
             
-            if (tab === 'all') {
-                document.getElementById('tabAll').classList.remove('text-slate-400', 'border-transparent');
-                document.getElementById('tabAll').classList.add('text-primary', 'border-primary');
-            } else if (tab === 'unread') {
-                document.getElementById('tabUnread').classList.remove('text-slate-400', 'border-transparent');
-                document.getElementById('tabUnread').classList.add('text-primary', 'border-primary');
-            }
+            // Activate selected tab
+            const activeTabId = tab === 'account' ? 'tabAccount' : tab === 'post' ? 'tabPost' : 'tabAll';
+            const activeTab = document.getElementById(activeTabId);
+            activeTab.classList.remove('text-slate-400', 'border-transparent');
+            activeTab.classList.add('text-primary', 'border-primary');
             
             loadNotifications(tab);
         }
@@ -297,7 +302,17 @@
             const container = document.getElementById('notificationsContent');
             
             try {
-                const response = await fetchWithAuth(`${API_URL}/notifications?filter=${filter}`);
+                // Map tab names to category values
+                let category = null;
+                if (filter === 'account') {
+                    category = 'account';
+                } else if (filter === 'post') {
+                    category = 'post';
+                }
+                
+                const url = category ? `${API_URL}/notifications?category=${category}` : `${API_URL}/notifications`;
+                const response = await fetchWithAuth(url);
+                
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Notifications loaded:', data);
@@ -310,10 +325,12 @@
                             container.appendChild(renderNotification(notif));
                         });
                     } else {
+                        const emptyIcon = filter === 'account' ? 'mail_outline' : filter === 'post' ? 'notifications_off' : 'notifications_off';
+                        const emptyText = filter === 'account' ? 'Chưa có thông báo về tài khoản' : filter === 'post' ? 'Chưa có thông báo về bài viết' : 'Chưa có thông báo nào';
                         container.innerHTML = `
                             <div class="text-center py-12 text-slate-400">
-                                <span class="material-symbols-outlined text-6xl mb-3">notifications_off</span>
-                                <p>Chưa có thông báo nào</p>
+                                <span class="material-symbols-outlined text-6xl mb-3">${emptyIcon}</span>
+                                <p>${emptyText}</p>
                             </div>
                         `;
                     }
@@ -336,27 +353,63 @@
             let icon = 'notifications';
             let iconColor = 'text-primary';
             
-            switch(notif.type) {
-                case 'like':
-                    icon = 'favorite';
-                    iconColor = 'text-red-500';
-                    break;
-                case 'comment':
-                    icon = 'chat_bubble';
-                    iconColor = 'text-blue-500';
-                    break;
-                case 'share':
-                    icon = 'share';
-                    iconColor = 'text-green-500';
-                    break;
-                case 'friend_request':
-                    icon = 'person_add';
-                    iconColor = 'text-purple-500';
-                    break;
-                case 'friend_accept':
-                    icon = 'group';
-                    iconColor = 'text-green-500';
-                    break;
+            // Account notifications (moderation, account status)
+            if (notif.category === 'account') {
+                switch(notif.type) {
+                    case 'post_approved':
+                        icon = 'check_circle';
+                        iconColor = 'text-green-500';
+                        break;
+                    case 'post_rejected':
+                        icon = 'block';
+                        iconColor = 'text-red-500';
+                        break;
+                    case 'post_flagged':
+                        icon = 'flag';
+                        iconColor = 'text-orange-500';
+                        break;
+                    case 'account_suspended':
+                    case 'account_banned':
+                        icon = 'lock';
+                        iconColor = 'text-red-600';
+                        break;
+                    case 'account_warning':
+                        icon = 'warning';
+                        iconColor = 'text-yellow-500';
+                        break;
+                    default:
+                        icon = 'mail';
+                        iconColor = 'text-blue-500';
+                }
+            } 
+            // Post/activity notifications
+            else {
+                switch(notif.type) {
+                    case 'like':
+                        icon = 'favorite';
+                        iconColor = 'text-red-500';
+                        break;
+                    case 'comment':
+                        icon = 'chat_bubble';
+                        iconColor = 'text-blue-500';
+                        break;
+                    case 'reply':
+                        icon = 'reply';
+                        iconColor = 'text-blue-400';
+                        break;
+                    case 'share':
+                        icon = 'share';
+                        iconColor = 'text-green-500';
+                        break;
+                    case 'friend_request':
+                        icon = 'person_add';
+                        iconColor = 'text-purple-500';
+                        break;
+                    case 'friend_accept':
+                        icon = 'group';
+                        iconColor = 'text-green-500';
+                        break;
+                }
             }
             
             const actorAvatar = notif.actor?.avatar_url 
@@ -414,8 +467,20 @@
                 });
                 
                 if (response.ok) {
-                    // Reload to update UI
-                    const currentTab = document.getElementById('tabAll').classList.contains('text-primary') ? 'all' : 'unread';
+                    // Reload to update UI - determine current tab
+                    const tabs = ['tabAccount', 'tabPost', 'tabAll'];
+                    let currentTab = 'account'; // default
+                    
+                    for (const tabId of tabs) {
+                        const tab = document.getElementById(tabId);
+                        if (tab.classList.contains('text-primary')) {
+                            if (tabId === 'tabAccount') currentTab = 'account';
+                            else if (tabId === 'tabPost') currentTab = 'post';
+                            else currentTab = 'all';
+                            break;
+                        }
+                    }
+                    
                     loadNotifications(currentTab);
                 }
             } catch (error) {
@@ -432,7 +497,22 @@
                 
                 if (response.ok) {
                     showNotification('Đã đánh dấu tất cả thông báo là đã đọc', 'success');
-                    loadNotifications('all');
+                    
+                    // Reload current tab
+                    const tabs = ['tabAccount', 'tabPost', 'tabAll'];
+                    let currentTab = 'account';
+                    
+                    for (const tabId of tabs) {
+                        const tab = document.getElementById(tabId);
+                        if (tab.classList.contains('text-primary')) {
+                            if (tabId === 'tabAccount') currentTab = 'account';
+                            else if (tabId === 'tabPost') currentTab = 'post';
+                            else currentTab = 'all';
+                            break;
+                        }
+                    }
+                    
+                    loadNotifications(currentTab);
                 } else {
                     showNotification('Không thể đánh dấu đã đọc', 'error');
                 }
@@ -449,7 +529,8 @@
                 const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
                 document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
             }
-            loadNotifications('all');
+            // Load account notifications by default
+            loadNotifications('account');
         });
     </script>
 </body>

@@ -26,10 +26,17 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     def to_dict(self):
+        # Determine category based on type
+        account_types = ['violation_warning', 'post_approved', 'post_rejected', 'appeal_result', 'account_suspended', 'account_banned', 'account_warning', 'post_flagged']
+        post_types = ['like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept']
+        
+        category = 'account' if self.type in account_types else 'post'
+        
         return {
             'id': self.id,
             'user_id': self.user_id,
             'type': self.type,
+            'category': category,
             'title': self.title,
             'message': self.message,
             'related_id': self.related_id,

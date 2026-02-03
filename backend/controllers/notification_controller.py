@@ -16,14 +16,20 @@ def get_notifications():
         current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
-        filter_type = request.args.get('filter', 'all')  # all, unread
+        category = request.args.get('category', None)  # account, post, or None for all
+        
+        # Define notification types by category
+        account_types = ['violation_warning', 'post_approved', 'post_rejected', 'appeal_result']
+        post_types = ['like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept']
         
         # Base query
         query = Notification.query.filter_by(user_id=current_user_id)
         
-        # Filter by read status
-        if filter_type == 'unread':
-            query = query.filter_by(is_read=False)
+        # Filter by category
+        if category == 'account':
+            query = query.filter(Notification.type.in_(account_types))
+        elif category == 'post':
+            query = query.filter(Notification.type.in_(post_types))
         
         # Order by newest first
         query = query.order_by(Notification.created_at.desc())

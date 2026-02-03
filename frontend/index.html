@@ -124,6 +124,48 @@
         </div>
     </div>
 
+    <!-- Account Notifications Dropdown -->
+    <div id="accountNotificationsDropdown" class="fixed top-16 right-20 z-[9997] hidden w-96 max-h-[500px]">
+        <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] flex items-center justify-between">
+                <h3 class="font-bold text-lg dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-500">mail</span>
+                    Thông báo tài khoản
+                </h3>
+                <button onclick="closeAccountDropdown()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="accountNotificationsList" class="flex-1 overflow-y-auto max-h-[400px]">
+                <div class="text-center py-8 text-[#5e8d89] text-sm">Đang tải...</div>
+            </div>
+            <div class="p-3 border-t border-[#dae7e6] dark:border-[#2a3d3b]">
+                <a href="notifications.html?tab=account" class="text-sm text-primary hover:underline font-semibold">Xem tất cả →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Notifications Dropdown -->
+    <div id="postNotificationsDropdown" class="fixed top-16 right-20 z-[9997] hidden w-96 max-h-[500px]">
+        <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] flex items-center justify-between">
+                <h3 class="font-bold text-lg dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">notifications</span>
+                    Thông báo bài viết
+                </h3>
+                <button onclick="closePostDropdown()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="postNotificationsList" class="flex-1 overflow-y-auto max-h-[400px]">
+                <div class="text-center py-8 text-[#5e8d89] text-sm">Đang tải...</div>
+            </div>
+            <div class="p-3 border-t border-[#dae7e6] dark:border-[#2a3d3b]">
+                <a href="notifications.html?tab=post" class="text-sm text-primary hover:underline font-semibold">Xem tất cả →</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Post Modal -->
     <div id="createPostModal" class="fixed inset-0 z-[9998] hidden">
         <!-- Backdrop -->
@@ -364,13 +406,15 @@
             </div>
             <div class="flex flex-1 justify-end gap-6">
                 <div class="flex gap-2">
-                    <button
-                        class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white">
+                    <button onclick="toggleAccountNotifications()" id="accountNotifBtn"
+                        class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
                         <span class="material-symbols-outlined">mail</span>
+                        <span id="accountNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
                     </button>
-                    <button
-                        class="flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white">
+                    <button onclick="togglePostNotifications()" id="postNotifBtn"
+                        class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
                         <span class="material-symbols-outlined">notifications</span>
+                        <span id="postNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
                     </button>
                 </div>
                 <div class="relative">
@@ -589,6 +633,27 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadUserProfile();
             loadNewsfeed();
+            loadNotificationCounts();
+            
+            // Auto refresh notification counts every 30 seconds
+            setInterval(() => {
+                loadNotificationCounts();
+            }, 30000);
+        });
+
+        // Click outside to close dropdowns
+        document.addEventListener('click', (e) => {
+            const accountDropdown = document.getElementById('accountNotificationsDropdown');
+            const postDropdown = document.getElementById('postNotificationsDropdown');
+            const accountBtn = document.getElementById('accountNotifBtn');
+            const postBtn = document.getElementById('postNotifBtn');
+            
+            if (!accountDropdown.contains(e.target) && !accountBtn.contains(e.target)) {
+                closeAccountDropdown();
+            }
+            if (!postDropdown.contains(e.target) && !postBtn.contains(e.target)) {
+                closePostDropdown();
+            }
         });
 
         // Load user profile information
@@ -1091,6 +1156,10 @@
                         container.innerHTML = '';
                         data.comments.forEach(comment => {
                             container.appendChild(renderComment(comment));
+                            // Load replies for each comment
+                            if (comment.id) {
+                                loadReplies(comment.id);
+                            }
                         });
                     } else {
                         container.innerHTML = `
@@ -1111,7 +1180,8 @@
         
         function renderComment(comment) {
             const commentEl = document.createElement('div');
-            commentEl.className = 'flex gap-3 items-start';
+            commentEl.className = 'comment-item mb-4';
+            commentEl.dataset.commentId = comment.id;
             
             const authorAvatar = comment.author?.avatar_url ? `http://127.0.0.1:5000${comment.author.avatar_url}` : 'images/default-avatar.png';
             const timeAgo = getTimeAgo(comment.created_at);
@@ -1125,19 +1195,31 @@
                 }
             }
             
+            const likeIcon = comment.is_liked ? 'favorite' : 'favorite_border';
+            const likeColor = comment.is_liked ? 'text-red-500' : 'text-[#5e8d89]';
+            
             commentEl.innerHTML = `
-                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0"
-                    style='background-image: url("${authorAvatar}");'></div>
-                <div class="flex-1">
-                    <div class="bg-[#f0f5f4] dark:bg-[#1a3330] rounded-xl px-4 py-2">
-                        <h5 class="font-bold text-sm dark:text-white">${comment.author?.full_name || 'Unknown'}</h5>
-                        <p class="text-sm dark:text-white mt-1">${comment.content}</p>
-                        ${mediaHTML}
-                    </div>
-                    <div class="flex items-center gap-4 mt-1 px-2">
-                        <span class="text-xs text-[#5e8d89]">${timeAgo}</span>
-                        <button class="text-xs font-semibold text-[#5e8d89] hover:text-primary">Thích</button>
-                        <button class="text-xs font-semibold text-[#5e8d89] hover:text-primary">Trả lời</button>
+                <div class="flex gap-3 items-start">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0"
+                        style='background-image: url("${authorAvatar}");'></div>
+                    <div class="flex-1">
+                        <div class="bg-[#f0f5f4] dark:bg-[#1a3330] rounded-xl px-4 py-2">
+                            <h5 class="font-bold text-sm dark:text-white">${comment.author?.full_name || 'Unknown'}</h5>
+                            <p class="text-sm dark:text-white mt-1">${comment.content}</p>
+                            ${mediaHTML}
+                        </div>
+                        <div class="flex items-center gap-4 mt-1 px-2">
+                            <span class="text-xs text-[#5e8d89]">${timeAgo}</span>
+                            <button onclick="toggleCommentLike(${comment.id})" class="flex items-center gap-1 text-xs font-semibold ${likeColor} hover:text-red-500 transition-colors">
+                                <span class="material-symbols-outlined text-sm like-icon">${likeIcon}</span>
+                                <span class="like-count">${comment.like_count > 0 ? comment.like_count : ''}</span>
+                            </button>
+                            <button onclick="showReplyForm(${comment.id})" class="text-xs font-semibold text-[#5e8d89] hover:text-primary">Trả lời</button>
+                        </div>
+                        <!-- Reply form will be inserted here -->
+                        <div id="replyForm-${comment.id}" class="hidden mt-3"></div>
+                        <!-- Replies will be loaded here -->
+                        <div id="replies-${comment.id}" class="ml-8 mt-3 space-y-3"></div>
                     </div>
                 </div>
             `;
@@ -1274,6 +1356,195 @@
             }
         }
         
+        // Like comment function
+        async function toggleCommentLike(commentId) {
+            console.log('[COMMENT LIKE] Toggling like for comment:', commentId);
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/comments/${commentId}/like`, {
+                    method: 'POST'
+                });
+                
+                console.log('[COMMENT LIKE] Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('[COMMENT LIKE] Response data:', data);
+                    
+                    // Update UI
+                    const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+                    console.log('[COMMENT LIKE] Comment element found:', !!commentEl);
+                    
+                    if (commentEl) {
+                        const likeIcon = commentEl.querySelector('.like-icon');
+                        const likeCount = commentEl.querySelector('.like-count');
+                        const likeBtn = likeIcon?.closest('button');
+                        
+                        console.log('[COMMENT LIKE] UI elements:', { likeIcon: !!likeIcon, likeCount: !!likeCount, likeBtn: !!likeBtn });
+                        
+                        if (likeIcon && likeBtn) {
+                            if (data.is_liked) {
+                                likeIcon.textContent = 'favorite';
+                                likeBtn.classList.remove('text-[#5e8d89]');
+                                likeBtn.classList.add('text-red-500');
+                            } else {
+                                likeIcon.textContent = 'favorite_border';
+                                likeBtn.classList.remove('text-red-500');
+                                likeBtn.classList.add('text-[#5e8d89]');
+                            }
+                            
+                            if (likeCount) {
+                                likeCount.textContent = data.like_count > 0 ? data.like_count : '';
+                            }
+                        }
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error('[COMMENT LIKE] Error response:', errorData);
+                    showNotification('Không thể thực hiện thao tác', 'error');
+                }
+            } catch (error) {
+                console.error('[COMMENT LIKE] Exception:', error);
+                showNotification('Không thể thực hiện thao tác', 'error');
+            }
+        }
+        
+        // Show reply form
+        function showReplyForm(commentId) {
+            const replyFormContainer = document.getElementById(`replyForm-${commentId}`);
+            
+            if (replyFormContainer.classList.contains('hidden')) {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const avatarUrl = user.avatar_url ? `http://127.0.0.1:5000${user.avatar_url}` : 'images/default-avatar.png';
+                
+                replyFormContainer.innerHTML = `
+                    <div class="flex gap-2 items-start">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0"
+                            style='background-image: url("${avatarUrl}");'></div>
+                        <div class="flex-1">
+                            <textarea id="replyInput-${commentId}" 
+                                class="w-full border border-[#dae7e6] dark:border-[#2a3d3b] focus:ring-2 focus:ring-primary text-sm resize-none bg-[#f0f5f4] dark:bg-[#1a3330] placeholder-[#5e8d89] dark:text-white rounded-lg px-3 py-2" 
+                                placeholder="Viết câu trả lời..." 
+                                rows="2"></textarea>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="submitReply(${commentId})" class="px-3 py-1 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-[#347e78]">Gửi</button>
+                                <button onclick="hideReplyForm(${commentId})" class="px-3 py-1 bg-gray-200 dark:bg-[#2a3d3b] text-[#5e8d89] dark:text-white rounded-lg text-sm font-semibold hover:bg-gray-300">Hủy</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                replyFormContainer.classList.remove('hidden');
+            } else {
+                hideReplyForm(commentId);
+            }
+        }
+        
+        function hideReplyForm(commentId) {
+            const replyFormContainer = document.getElementById(`replyForm-${commentId}`);
+            replyFormContainer.innerHTML = '';
+            replyFormContainer.classList.add('hidden');
+        }
+        
+        // Submit reply
+        async function submitReply(parentCommentId) {
+            const replyInput = document.getElementById(`replyInput-${parentCommentId}`);
+            const content = replyInput.value.trim();
+            
+            if (!content) {
+                showNotification('Vui lòng nhập nội dung trả lời', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${currentPostId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        parent_comment_id: parentCommentId
+                    })
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã gửi câu trả lời!', 'success');
+                    hideReplyForm(parentCommentId);
+                    
+                    // Load replies for this comment
+                    await loadReplies(parentCommentId);
+                    
+                    // Update comment count in post
+                    const postEl = document.querySelector(`[data-post-id="${currentPostId}"]`);
+                    if (postEl) {
+                        const commentCountEl = postEl.querySelector('.comment-count');
+                        if (commentCountEl) {
+                            commentCountEl.textContent = parseInt(commentCountEl.textContent) + 1;
+                        }
+                    }
+                } else {
+                    const error = await response.json();
+                    showNotification('Không thể gửi trả lời: ' + (error.error || 'Lỗi không xác định'), 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting reply:', error);
+                showNotification('Không thể kết nối máy chủ', 'error');
+            }
+        }
+        
+        // Load replies for a comment
+        async function loadReplies(commentId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/comments/${commentId}/replies`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const repliesContainer = document.getElementById(`replies-${commentId}`);
+                    
+                    if (data.replies && data.replies.length > 0) {
+                        repliesContainer.innerHTML = '';
+                        data.replies.forEach(reply => {
+                            repliesContainer.appendChild(renderReply(reply));
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading replies:', error);
+            }
+        }
+        
+        // Render reply (simplified version of renderComment)
+        function renderReply(reply) {
+            const replyEl = document.createElement('div');
+            replyEl.className = 'flex gap-2 items-start';
+            replyEl.dataset.commentId = reply.id;
+            
+            const authorAvatar = reply.author?.avatar_url ? `http://127.0.0.1:5000${reply.author.avatar_url}` : 'images/default-avatar.png';
+            const timeAgo = getTimeAgo(reply.created_at);
+            
+            const likeIcon = reply.is_liked ? 'favorite' : 'favorite_border';
+            const likeColor = reply.is_liked ? 'text-red-500' : 'text-[#5e8d89]';
+            
+            replyEl.innerHTML = `
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0"
+                    style='background-image: url("${authorAvatar}");'></div>
+                <div class="flex-1">
+                    <div class="bg-[#f0f5f4] dark:bg-[#1a3330] rounded-xl px-3 py-2">
+                        <h5 class="font-bold text-xs dark:text-white">${reply.author?.full_name || 'Unknown'}</h5>
+                        <p class="text-xs dark:text-white mt-1">${reply.content}</p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1 px-2">
+                        <span class="text-xs text-[#5e8d89]">${timeAgo}</span>
+                        <button onclick="toggleCommentLike(${reply.id})" class="flex items-center gap-1 text-xs font-semibold ${likeColor} hover:text-red-500 transition-colors">
+                            <span class="material-symbols-outlined text-sm like-icon">${likeIcon}</span>
+                            <span class="like-count">${reply.like_count > 0 ? reply.like_count : ''}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return replyEl;
+        }
+        
         // Lightbox functions
         let lightboxImages = [];
         let currentLightboxIndex = 0;
@@ -1403,6 +1674,226 @@
             } catch (error) {
                 console.error('[LIKE] Exception:', error);
                 showNotification('Không thể kết nối máy chủ', 'error');
+            }
+        }
+
+        // Notification Dropdown Functions
+        async function toggleAccountNotifications() {
+            const dropdown = document.getElementById('accountNotificationsDropdown');
+            const postDropdown = document.getElementById('postNotificationsDropdown');
+            
+            // Close post dropdown if open
+            postDropdown.classList.add('hidden');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                await loadDropdownNotifications('account');
+            } else {
+                closeAccountDropdown();
+            }
+        }
+
+        async function togglePostNotifications() {
+            const dropdown = document.getElementById('postNotificationsDropdown');
+            const accountDropdown = document.getElementById('accountNotificationsDropdown');
+            
+            // Close account dropdown if open
+            accountDropdown.classList.add('hidden');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                await loadDropdownNotifications('post');
+            } else {
+                closePostDropdown();
+            }
+        }
+
+        function closeAccountDropdown() {
+            document.getElementById('accountNotificationsDropdown').classList.add('hidden');
+        }
+
+        function closePostDropdown() {
+            document.getElementById('postNotificationsDropdown').classList.add('hidden');
+        }
+
+        async function loadDropdownNotifications(category) {
+            const listId = category === 'account' ? 'accountNotificationsList' : 'postNotificationsList';
+            const list = document.getElementById(listId);
+            
+            list.innerHTML = '<div class="text-center py-8 text-[#5e8d89] text-sm">Đang tải...</div>';
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/notifications?category=${category}&per_page=5`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.notifications && data.notifications.length > 0) {
+                        list.innerHTML = data.notifications.map(notif => renderDropdownNotification(notif)).join('');
+                    } else {
+                        list.innerHTML = '<div class="text-center py-8 text-[#5e8d89] text-sm">Không có thông báo</div>';
+                    }
+                } else {
+                    list.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Không thể tải thông báo</div>';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                list.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Lỗi kết nối</div>';
+            }
+        }
+
+        function renderDropdownNotification(notif) {
+            let icon = 'notifications';
+            let iconColor = 'text-primary';
+            
+            if (notif.category === 'account') {
+                switch(notif.type) {
+                    case 'post_approved': icon = 'check_circle'; iconColor = 'text-green-500'; break;
+                    case 'post_rejected': icon = 'block'; iconColor = 'text-red-500'; break;
+                    case 'post_flagged': icon = 'flag'; iconColor = 'text-orange-500'; break;
+                    case 'account_suspended': icon = 'lock'; iconColor = 'text-red-500'; break;
+                    case 'account_banned': icon = 'lock'; iconColor = 'text-red-500'; break;
+                    case 'account_warning': icon = 'warning'; iconColor = 'text-yellow-500'; break;
+                    case 'violation_warning': icon = 'warning'; iconColor = 'text-yellow-500'; break;
+                    case 'appeal_result': icon = 'mail'; iconColor = 'text-blue-500'; break;
+                }
+            } else {
+                switch(notif.type) {
+                    case 'like': icon = 'favorite'; iconColor = 'text-red-500'; break;
+                    case 'comment': icon = 'chat_bubble'; iconColor = 'text-blue-500'; break;
+                    case 'reply': icon = 'reply'; iconColor = 'text-sky-500'; break;
+                    case 'share': icon = 'share'; iconColor = 'text-green-500'; break;
+                    case 'friend_request': icon = 'person_add'; iconColor = 'text-purple-500'; break;
+                    case 'friend_accept': icon = 'group'; iconColor = 'text-green-500'; break;
+                }
+            }
+            
+            const timeAgo = getTimeAgo(notif.created_at);
+            const unreadClass = notif.is_read ? 'bg-white dark:bg-[#152a28]' : 'bg-[#f0f5f4] dark:bg-[#1a3330]';
+            
+            // Encode notification data for onclick
+            const notifData = encodeURIComponent(JSON.stringify(notif));
+            
+            return `
+                <div class="${unreadClass} p-3 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] cursor-pointer transition-colors" onclick="handleNotificationClick('${notifData}', '${notif.category}')">
+                    <div class="flex gap-3">
+                        <span class="material-symbols-outlined ${iconColor} text-2xl shrink-0">${icon}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm dark:text-white font-semibold mb-1">${notif.title || 'Thông báo'}</p>
+                            <p class="text-xs text-[#5e8d89] dark:text-gray-400 line-clamp-2">${notif.message}</p>
+                            <p class="text-xs text-[#5e8d89] dark:text-gray-500 mt-1">${timeAgo}</p>
+                        </div>
+                        ${!notif.is_read ? '<div class="w-2 h-2 bg-primary rounded-full shrink-0 mt-1"></div>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function handleNotificationClick(encodedNotif, category) {
+            try {
+                const notif = JSON.parse(decodeURIComponent(encodedNotif));
+                
+                // Mark as read
+                await fetchWithAuth(`${API_URL}/notifications/${notif.id}/read`, {
+                    method: 'PUT'
+                });
+                
+                // Close dropdown
+                closeAccountDropdown();
+                closePostDropdown();
+                
+                // Update badge
+                await loadNotificationCounts();
+                
+                // Navigate to related content
+                if (notif.post_id) {
+                    // For like, comment, reply notifications - navigate to post
+                    if (['like', 'comment', 'reply'].includes(notif.type)) {
+                        // First check if post is already visible on page
+                        const postEl = document.querySelector(`[data-post-id="${notif.post_id}"]`);
+                        if (postEl) {
+                            // Scroll to post
+                            postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Highlight post briefly
+                            postEl.classList.add('ring-2', 'ring-primary');
+                            setTimeout(() => {
+                                postEl.classList.remove('ring-2', 'ring-primary');
+                            }, 2000);
+                            
+                            // If comment/reply, open comment modal
+                            if (notif.type === 'comment' || notif.type === 'reply') {
+                                setTimeout(() => {
+                                    openCommentModal(notif.post_id);
+                                }, 500);
+                            }
+                        } else {
+                            // Post not on page, reload and try to find it
+                            showNotification('Đang tải bài viết...', 'info');
+                            await loadNewsfeed();
+                            
+                            // Try again after reload
+                            setTimeout(() => {
+                                const postEl = document.querySelector(`[data-post-id="${notif.post_id}"]`);
+                                if (postEl) {
+                                    postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    postEl.classList.add('ring-2', 'ring-primary');
+                                    setTimeout(() => {
+                                        postEl.classList.remove('ring-2', 'ring-primary');
+                                    }, 2000);
+                                    
+                                    if (notif.type === 'comment' || notif.type === 'reply') {
+                                        setTimeout(() => {
+                                            openCommentModal(notif.post_id);
+                                        }, 500);
+                                    }
+                                } else {
+                                    showNotification('Không tìm thấy bài viết', 'warning');
+                                }
+                            }, 1000);
+                        }
+                    }
+                } else if (notif.type === 'friend_request') {
+                    // Navigate to friends page
+                    window.location.href = 'friends.html';
+                } else {
+                    // For account notifications, just mark as read
+                    showNotification('Đã đánh dấu đã đọc', 'success');
+                }
+            } catch (error) {
+                console.error('Error handling notification click:', error);
+                showNotification('Không thể thực hiện thao tác', 'error');
+            }
+        }
+
+        async function loadNotificationCounts() {
+            try {
+                const [accountRes, postRes] = await Promise.all([
+                    fetchWithAuth(`${API_URL}/notifications?category=account&per_page=100`),
+                    fetchWithAuth(`${API_URL}/notifications?category=post&per_page=100`)
+                ]);
+                
+                if (accountRes.ok) {
+                    const accountData = await accountRes.json();
+                    const accountUnread = accountData.notifications.filter(n => !n.is_read).length;
+                    updateBadge('accountNotifBadge', accountUnread);
+                }
+                
+                if (postRes.ok) {
+                    const postData = await postRes.json();
+                    const postUnread = postData.notifications.filter(n => !n.is_read).length;
+                    updateBadge('postNotifBadge', postUnread);
+                }
+            } catch (error) {
+                console.error('Error loading notification counts:', error);
+            }
+        }
+
+        function updateBadge(badgeId, count) {
+            const badge = document.getElementById(badgeId);
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
             }
         }
     </script>
