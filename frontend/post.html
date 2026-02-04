@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Chi tiết bài viết | LC Network</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#18a058",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .material-symbols-outlined-filled {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+
+<body class="bg-[#e8f1f0] dark:bg-[#0d1918] text-[#101818] dark:text-white transition-colors duration-200">
+    <!-- Header -->
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] px-6 lg:px-10 py-3 sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <button onclick="window.history.back()" class="text-[#101818] dark:text-white hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-3xl">arrow_back</span>
+            </button>
+            <div class="flex items-center gap-3 text-[#101818] dark:text-white">
+                <div class="size-10">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M39.4501 12.8999L35.6501 9.0999C33.6501 7.0999 30.5501 7.0999 28.5501 9.0999L11.1501 26.4999C10.5501 27.0999 10.1501 27.8999 10.0501 28.7999L9.1501 35.5999C9.0501 36.3999 9.3501 37.1999 9.9501 37.7999C10.4501 38.2999 11.1501 38.5999 11.8501 38.5999C11.9501 38.5999 12.0501 38.5999 12.1501 38.5999L18.9501 37.6999C19.8501 37.5999 20.6501 37.1999 21.2501 36.5999L38.6501 19.1999C40.6501 17.1999 40.6501 14.8999 39.4501 12.8999Z" fill="currentColor"/>
+                        <path d="M38.2501 24.5999C37.4501 24.5999 36.7501 25.2999 36.7501 26.0999V35.7999C36.7501 37.5999 35.2501 39.0999 33.4501 39.0999H12.2501C10.4501 39.0999 8.9501 37.5999 8.9501 35.7999V14.5999C8.9501 12.7999 10.4501 11.2999 12.2501 11.2999H21.9501C22.7501 11.2999 23.4501 10.5999 23.4501 9.7999C23.4501 8.9999 22.7501 8.2999 21.9501 8.2999H12.2501C8.8501 8.2999 5.9501 11.1999 5.9501 14.5999V35.7999C5.9501 39.1999 8.8501 42.0999 12.2501 42.0999H33.4501C36.8501 42.0999 39.7501 39.1999 39.7501 35.7999V26.0999C39.7501 25.2999 39.0501 24.5999 38.2501 24.5999Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h2 class="text-[#101818] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">LC Network</h2>
+            </div>
+            <label class="flex flex-col min-w-40 !h-10 max-w-64">
+                <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+                    <div class="text-[#5e8d89] dark:text-[#8faeaa] flex border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] items-center justify-center pl-4 rounded-l-xl border-r-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+                        </svg>
+                    </div>
+                    <input placeholder="Tìm kiếm..." class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#101818] dark:text-white focus:outline-0 focus:ring-0 border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] focus:border-[#dae7e6] h-full placeholder:text-[#5e8d89] dark:placeholder:text-[#8faeaa] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" />
+                </div>
+            </label>
+        </div>
+        <div class="flex flex-1 justify-end gap-6">
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="text-[#101818] dark:text-white flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 bg-transparent text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                    <span class="truncate">Trang chủ</span>
+                </a>
+                <a href="friends.html" class="text-[#101818] dark:text-white flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 bg-transparent text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                    <span class="truncate">Bạn bè</span>
+                </a>
+                <a href="notifications.html" class="text-[#101818] dark:text-white flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 bg-transparent text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                    <span class="truncate">Thông báo</span>
+                </a>
+            </div>
+            <div id="headerAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 cursor-pointer" onclick="window.location.href='profile.html'" style="background-image: url('images/default-avatar.png');"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex justify-center py-6 px-4 md:px-8">
+        <div class="w-full max-w-4xl">
+            <!-- Post Card -->
+            <div id="postContainer" class="bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden">
+                <!-- Loading State -->
+                <div id="loadingState" class="flex items-center justify-center py-20">
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-5xl text-[#5e8d89] animate-spin">progress_activity</span>
+                        <p class="mt-4 text-[#5e8d89]">Đang tải bài viết...</p>
+                    </div>
+                </div>
+
+                <!-- Post Content (will be filled by JS) -->
+                <div id="postContent" class="hidden">
+                    <!-- Post Header -->
+                    <div class="p-4 flex items-center justify-between border-b border-[#dae7e6] dark:border-[#2a3d3b]">
+                        <div class="flex items-center gap-3">
+                            <div id="postAuthorAvatar" class="size-12 rounded-full bg-cover bg-center border-2 border-[#dae7e6]" style="background-image: url('images/default-avatar.png');"></div>
+                            <div>
+                                <h3 id="postAuthorName" class="text-[#101818] dark:text-white font-bold text-base">Đang tải...</h3>
+                                <p id="postTime" class="text-[#5e8d89] dark:text-[#8faeaa] text-sm">Vừa xong</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Text Content -->
+                    <div id="postTextContent" class="p-4 text-[#101818] dark:text-white text-base leading-relaxed whitespace-pre-wrap"></div>
+
+                    <!-- Post Media -->
+                    <div id="postMediaContainer" class="hidden">
+                        <img id="postImage" class="w-full object-cover max-h-[600px] hidden cursor-pointer" onclick="openImageModal(this.src)" />
+                        <video id="postVideo" class="w-full object-cover max-h-[600px] hidden" controls></video>
+                    </div>
+
+                    <!-- Post Stats and Actions -->
+                    <div class="px-4 py-3 border-t border-[#dae7e6] dark:border-[#2a3d3b]">
+                        <div class="flex items-center justify-between text-sm text-[#5e8d89] dark:text-[#8faeaa] mb-3">
+                            <span id="likeCount">0 lượt thích</span>
+                            <span id="commentCount">0 bình luận</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="likeButton" onclick="toggleLike()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[#e8f1f0] dark:hover:bg-[#2a3d3b] transition-colors text-[#5e8d89] dark:text-[#8faeaa]">
+                                <span class="material-symbols-outlined">favorite_border</span>
+                                <span class="font-medium">Thích</span>
+                            </button>
+                            <button onclick="document.getElementById('commentInput').focus()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[#e8f1f0] dark:hover:bg-[#2a3d3b] transition-colors text-[#5e8d89] dark:text-[#8faeaa]">
+                                <span class="material-symbols-outlined">chat_bubble_outline</span>
+                                <span class="font-medium">Bình luận</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="border-t border-[#dae7e6] dark:border-[#2a3d3b]">
+                        <!-- Comment Input -->
+                        <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b]">
+                            <div class="flex items-start gap-3">
+                                <div id="currentUserAvatar" class="size-10 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('images/default-avatar.png');"></div>
+                                <div class="flex-1">
+                                    <textarea id="commentInput" placeholder="Viết bình luận..." class="w-full px-4 py-2 rounded-lg border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] text-[#101818] dark:text-white placeholder:text-[#5e8d89] focus:outline-none focus:border-primary resize-none" rows="2"></textarea>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <div class="flex items-center gap-2">
+                                            <label class="cursor-pointer p-2 rounded-lg hover:bg-[#e8f1f0] dark:hover:bg-[#2a3d3b] transition-colors text-[#5e8d89]">
+                                                <span class="material-symbols-outlined">image</span>
+                                                <input type="file" id="commentMediaInput" accept="image/*,video/*" class="hidden" onchange="handleCommentMedia(event)" />
+                                            </label>
+                                        </div>
+                                        <button onclick="submitComment()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                                            Gửi
+                                        </button>
+                                    </div>
+                                    <div id="commentMediaPreview" class="mt-2 hidden relative">
+                                        <img id="commentMediaImg" class="max-h-32 rounded-lg border border-[#dae7e6]" />
+                                        <button onclick="removeCommentMedia()" class="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70">
+                                            <span class="material-symbols-outlined text-xl">close</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comments List -->
+                        <div id="commentsList" class="max-h-[600px] overflow-y-auto custom-scrollbar">
+                            <div class="p-8 text-center text-[#5e8d89]">
+                                <span class="material-symbols-outlined text-5xl">chat_bubble_outline</span>
+                                <p class="mt-2">Chưa có bình luận nào</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 z-[9999] hidden">
+        <div class="absolute inset-0 bg-black/90" onclick="closeImageModal()"></div>
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full p-3 transition-all">
+            <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+        <div class="relative z-10 flex items-center justify-center h-full p-8 cursor-pointer" onclick="closeImageModal()">
+            <img id="modalImage" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-default" onclick="event.stopPropagation()">
+        </div>
+    </div>
+
+    <script>
+        let currentPostId = null;
+        let currentPost = null;
+        let commentMediaFile = null;
+
+        // Get post ID from URL
+        function getPostIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // Get time ago string
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Vừa xong';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} ngày trước`;
+            const weeks = Math.floor(days / 7);
+            if (weeks < 4) return `${weeks} tuần trước`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} tháng trước`;
+            const years = Math.floor(days / 365);
+            return `${years} năm trước`;
+        }
+
+        // Load user avatar in header
+        async function loadUserAvatar() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.avatar_url) {
+                document.getElementById('headerAvatar').style.backgroundImage = `url(${API_URL}${user.avatar_url})`;
+                document.getElementById('currentUserAvatar').style.backgroundImage = `url(${API_URL}${user.avatar_url})`;
+            }
+        }
+
+        // Load post data
+        async function loadPost(postId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${postId}`);
+                if (!response.ok) throw new Error('Không thể tải bài viết');
+                
+                currentPost = await response.json();
+                renderPost(currentPost);
+                
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('postContent').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading post:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-5xl text-red-500">error</span>
+                        <p class="mt-4 text-[#101818] dark:text-white font-medium">Không thể tải bài viết</p>
+                        <button onclick="window.history.back()" class="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                            Quay lại
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render post
+        function renderPost(post) {
+            // Author info - Access nested author object
+            const authorName = post.author?.full_name || post.author?.username || 'Người dùng';
+            const authorAvatar = post.author?.avatar_url ? `${API_URL}${post.author.avatar_url}` : 'images/default-avatar.png';
+            
+            document.getElementById('postAuthorName').textContent = authorName;
+            document.getElementById('postAuthorAvatar').style.backgroundImage = `url('${authorAvatar}')`;
+            document.getElementById('postTime').textContent = getTimeAgo(post.created_at);
+
+            // Content
+            document.getElementById('postTextContent').textContent = post.content || '';
+
+            // Media
+            if (post.media && post.media.length > 0) {
+                const firstMedia = post.media[0];
+                const mediaUrl = firstMedia.media_url.startsWith('http') ? firstMedia.media_url : `${API_URL}${firstMedia.media_url}`;
+                
+                document.getElementById('postMediaContainer').classList.remove('hidden');
+                
+                if (firstMedia.media_type === 'video') {
+                    document.getElementById('postVideo').src = mediaUrl;
+                    document.getElementById('postVideo').classList.remove('hidden');
+                } else {
+                    document.getElementById('postImage').src = mediaUrl;
+                    document.getElementById('postImage').classList.remove('hidden');
+                }
+            }
+
+            // Stats
+            document.getElementById('likeCount').textContent = `${post.like_count || 0} lượt thích`;
+            document.getElementById('commentCount').textContent = `${post.comment_count || 0} bình luận`;
+
+            // Like button
+            const likeButton = document.getElementById('likeButton');
+            const likeIcon = likeButton.querySelector('.material-symbols-outlined');
+            if (post.is_liked) {
+                likeIcon.classList.remove('material-symbols-outlined');
+                likeIcon.classList.add('material-symbols-outlined-filled');
+                likeButton.classList.add('text-red-500');
+            }
+        }
+
+
+        // Toggle like
+        async function toggleLike() {
+            if (!currentPostId) return;
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${currentPostId}/like`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    await loadPost(currentPostId);
+                }
+            } catch (error) {
+                console.error('Error toggling like:', error);
+            }
+        }
+
+        // Load comments
+        async function loadComments(postId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${postId}/comments`);
+                if (!response.ok) throw new Error('Không thể tải bình luận');
+                
+                const data = await response.json();
+                
+                // Handle different response structures
+                let comments = [];
+                if (Array.isArray(data)) {
+                    comments = data;
+                } else if (data.comments && Array.isArray(data.comments)) {
+                    comments = data.comments;
+                } else if (data.data && Array.isArray(data.data)) {
+                    comments = data.data;
+                }
+                
+                renderComments(comments);
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                document.getElementById('commentsList').innerHTML = `
+                    <div class="p-8 text-center text-red-500">
+                        <span class="material-symbols-outlined text-5xl">error</span>
+                        <p class="mt-2">Không thể tải bình luận</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render comments
+        function renderComments(comments) {
+            const container = document.getElementById('commentsList');
+            
+            if (comments.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-[#5e8d89]">
+                        <span class="material-symbols-outlined text-5xl">chat_bubble_outline</span>
+                        <p class="mt-2">Chưa có bình luận nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = comments.map(comment => renderComment(comment)).join('');
+        }
+
+        // Render single comment - ACCESS NESTED AUTHOR OBJECT
+        function renderComment(comment) {
+            const authorName = comment.author?.full_name || comment.author?.username || 'Người dùng';
+            const authorAvatar = comment.author?.avatar_url ? `${API_URL}${comment.author.avatar_url}` : 'images/default-avatar.png';
+            const timeAgo = getTimeAgo(comment.created_at);
+            
+            let mediaHTML = '';
+            if (comment.media_url) {
+                const mediaUrl = comment.media_url.startsWith('http') ? comment.media_url : `${API_URL}${comment.media_url}`;
+                if (comment.media_type === 'video') {
+                    mediaHTML = `<video src="${mediaUrl}" controls class="mt-2 max-h-48 rounded-lg border border-[#dae7e6]"></video>`;
+                } else {
+                    mediaHTML = `<img src="${mediaUrl}" class="mt-2 max-h-48 rounded-lg border border-[#dae7e6] cursor-pointer" onclick="openImageModal('${mediaUrl}')" />`;
+                }
+            }
+
+            const likeIcon = comment.is_liked ? 'favorite' : 'favorite_border';
+            const likeColor = comment.is_liked ? 'text-red-500' : 'text-[#5e8d89]';
+
+            return `
+                <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#e8f1f0] dark:hover:bg-[#1a332f] transition-colors">
+                    <div class="flex gap-3">
+                        <div class="size-10 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('${authorAvatar}');"></div>
+                        <div class="flex-1">
+                            <div class="bg-[#e8f1f0] dark:bg-[#1a332f] rounded-2xl px-4 py-3">
+                                <p class="font-bold text-[#101818] dark:text-white text-sm">${authorName}</p>
+                                <p class="text-[#101818] dark:text-white text-sm mt-1 whitespace-pre-wrap">${comment.content}</p>
+                                ${mediaHTML}
+                            </div>
+                            <div class="flex items-center gap-4 mt-2 ml-2">
+                                <button onclick="toggleCommentLike(${comment.id})" class="flex items-center gap-1 text-xs font-medium ${likeColor} hover:underline">
+                                    <span class="material-symbols-outlined text-sm">${likeIcon}</span>
+                                    <span>${comment.like_count || 0} Thích</span>
+                                </button>
+                                <button onclick="showReplyForm(${comment.id})" class="text-xs font-medium text-[#5e8d89] dark:text-[#8faeaa] hover:underline">
+                                    Trả lời
+                                </button>
+                                <span class="text-xs text-[#5e8d89] dark:text-[#8faeaa]">${timeAgo}</span>
+                            </div>
+                            
+                            <!-- Reply Form -->
+                            <div id="replyForm-${comment.id}" class="mt-3 ml-4 hidden">
+                                <div class="flex items-start gap-2">
+                                    <div id="currentUserAvatar2" class="size-8 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('images/default-avatar.png');"></div>
+                                    <div class="flex-1">
+                                        <textarea id="replyInput-${comment.id}" placeholder="Viết trả lời..." class="w-full px-3 py-2 rounded-lg border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] text-[#101818] dark:text-white text-sm placeholder:text-[#5e8d89] focus:outline-none focus:border-primary resize-none" rows="2"></textarea>
+                                        <div class="flex items-center justify-end gap-2 mt-2">
+                                            <button onclick="hideReplyForm(${comment.id})" class="px-3 py-1 text-sm text-[#5e8d89] hover:bg-[#e8f1f0] rounded-lg transition-colors">
+                                                Hủy
+                                            </button>
+                                            <button onclick="submitReply(${comment.id})" class="px-4 py-1 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                                                Gửi
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Replies -->
+                            <div id="replies-${comment.id}" class="mt-3 ml-4 space-y-3">
+                                ${(comment.replies || []).map(reply => renderReply(reply)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render reply - ACCESS NESTED AUTHOR OBJECT
+        function renderReply(reply) {
+            const authorName = reply.author?.full_name || reply.author?.username || 'Người dùng';
+            const authorAvatar = reply.author?.avatar_url ? `${API_URL}${reply.author.avatar_url}` : 'images/default-avatar.png';
+            const timeAgo = getTimeAgo(reply.created_at);
+
+            const likeIcon = reply.is_liked ? 'favorite' : 'favorite_border';
+            const likeColor = reply.is_liked ? 'text-red-500' : 'text-[#5e8d89]';
+
+            return `
+                <div class="flex gap-2">
+                    <div class="size-8 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('${authorAvatar}');"></div>
+                    <div class="flex-1">
+                        <div class="bg-[#e8f1f0] dark:bg-[#1a332f] rounded-2xl px-3 py-2">
+                            <p class="font-bold text-[#101818] dark:text-white text-xs">${authorName}</p>
+                            <p class="text-[#101818] dark:text-white text-xs mt-1 whitespace-pre-wrap">${reply.content}</p>
+                        </div>
+                        <div class="flex items-center gap-3 mt-1 ml-2">
+                            <button onclick="toggleCommentLike(${reply.id})" class="flex items-center gap-1 text-xs font-medium ${likeColor} hover:underline">
+                                <span class="material-symbols-outlined text-xs">${likeIcon}</span>
+                                <span>${reply.like_count || 0}</span>
+                            </button>
+                            <span class="text-xs text-[#5e8d89] dark:text-[#8faeaa]">${timeAgo}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle comment media
+        function handleCommentMedia(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert(`Kích thước file quá lớn. Tối đa ${file.type.startsWith('video/') ? '50MB' : '5MB'}`);
+                return;
+            }
+
+            commentMediaFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('commentMediaImg').src = e.target.result;
+                document.getElementById('commentMediaPreview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Remove comment media
+        function removeCommentMedia() {
+            commentMediaFile = null;
+            document.getElementById('commentMediaInput').value = '';
+            document.getElementById('commentMediaPreview').classList.add('hidden');
+        }
+
+        // Submit comment
+        async function submitComment() {
+            const content = document.getElementById('commentInput').value.trim();
+            if (!content && !commentMediaFile) return;
+
+            try {
+                let mediaUrl = null;
+                if (commentMediaFile) {
+                    const formData = new FormData();
+                    formData.append('media', commentMediaFile);
+                    
+                    const uploadResponse = await fetchWithAuth(`${API_URL}/posts/comments/upload-media`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (uploadResponse.ok) {
+                        const data = await uploadResponse.json();
+                        mediaUrl = data.media_url;
+                    }
+                }
+
+                const response = await fetchWithAuth(`${API_URL}/posts/${currentPostId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, media_url: mediaUrl })
+                });
+
+                if (response.ok) {
+                    document.getElementById('commentInput').value = '';
+                    removeCommentMedia();
+                    await loadComments(currentPostId);
+                    await loadPost(currentPostId);
+                }
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+                alert('Không thể gửi bình luận');
+            }
+        }
+
+        // Toggle comment like
+        async function toggleCommentLike(commentId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/comments/${commentId}/like`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    await loadComments(currentPostId);
+                }
+            } catch (error) {
+                console.error('Error toggling comment like:', error);
+            }
+        }
+
+        // Show reply form
+        function showReplyForm(commentId) {
+            const form = document.getElementById(`replyForm-${commentId}`);
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+                document.getElementById(`replyInput-${commentId}`).focus();
+            }
+        }
+
+        // Hide reply form
+        function hideReplyForm(commentId) {
+            document.getElementById(`replyForm-${commentId}`).classList.add('hidden');
+            document.getElementById(`replyInput-${commentId}`).value = '';
+        }
+
+        // Submit reply
+        async function submitReply(parentCommentId) {
+            const content = document.getElementById(`replyInput-${parentCommentId}`).value.trim();
+            if (!content) return;
+
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/${currentPostId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, parent_comment_id: parentCommentId })
+                });
+
+                if (response.ok) {
+                    hideReplyForm(parentCommentId);
+                    await loadComments(currentPostId);
+                    await loadPost(currentPostId);
+                }
+            } catch (error) {
+                console.error('Error submitting reply:', error);
+                alert('Không thể gửi trả lời');
+            }
+        }
+
+        // Image modal functions
+        function openImageModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentPostId = getPostIdFromURL();
+            
+            if (!currentPostId) {
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-5xl text-red-500">error</span>
+                        <p class="mt-4 text-[#101818] dark:text-white font-medium">Không tìm thấy bài viết</p>
+                        <button onclick="window.location.href='index.html'" class="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                            Về trang chủ
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            loadUserAvatar();
+            await loadPost(currentPostId);
+            await loadComments(currentPostId);
+        });
+    </script>
+</body>
+
+</html>

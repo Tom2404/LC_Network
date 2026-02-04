@@ -763,7 +763,7 @@
                         ${post.media.map((m, idx) => {
                             const imgUrl = `http://127.0.0.1:5000${m.media_url}`;
                             return `
-                                <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity" onclick='openLightbox(${JSON.stringify(mediaUrls)}, ${idx})'>
+                                <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity" onclick='window.location.href="post.html?id=${post.id}"'>
                                     <img src="${imgUrl}" class="max-w-full max-h-full object-contain" loading="lazy">
                                 </div>
                             `;
@@ -1806,50 +1806,9 @@
                 
                 // Navigate to related content
                 if (notif.post_id) {
-                    // For like, comment, reply notifications - navigate to post
+                    // For like, comment, reply notifications - navigate to post page
                     if (['like', 'comment', 'reply'].includes(notif.type)) {
-                        // First check if post is already visible on page
-                        const postEl = document.querySelector(`[data-post-id="${notif.post_id}"]`);
-                        if (postEl) {
-                            // Scroll to post
-                            postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            // Highlight post briefly
-                            postEl.classList.add('ring-2', 'ring-primary');
-                            setTimeout(() => {
-                                postEl.classList.remove('ring-2', 'ring-primary');
-                            }, 2000);
-                            
-                            // If comment/reply, open comment modal
-                            if (notif.type === 'comment' || notif.type === 'reply') {
-                                setTimeout(() => {
-                                    openCommentModal(notif.post_id);
-                                }, 500);
-                            }
-                        } else {
-                            // Post not on page, reload and try to find it
-                            showNotification('Đang tải bài viết...', 'info');
-                            await loadNewsfeed();
-                            
-                            // Try again after reload
-                            setTimeout(() => {
-                                const postEl = document.querySelector(`[data-post-id="${notif.post_id}"]`);
-                                if (postEl) {
-                                    postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    postEl.classList.add('ring-2', 'ring-primary');
-                                    setTimeout(() => {
-                                        postEl.classList.remove('ring-2', 'ring-primary');
-                                    }, 2000);
-                                    
-                                    if (notif.type === 'comment' || notif.type === 'reply') {
-                                        setTimeout(() => {
-                                            openCommentModal(notif.post_id);
-                                        }, 500);
-                                    }
-                                } else {
-                                    showNotification('Không tìm thấy bài viết', 'warning');
-                                }
-                            }, 1000);
-                        }
+                        window.location.href = `post.html?id=${notif.post_id}`;
                     }
                 } else if (notif.type === 'friend_request') {
                     // Navigate to friends page
