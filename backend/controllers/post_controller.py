@@ -346,8 +346,8 @@ def toggle_like(post_id):
                         notification_type='like',
                         title='Lượt thích mới',
                         message=f'{liker.full_name} đã thích bài viết của bạn',
-                        related_id=current_user_id,  # Who liked
-                        related_type='like'
+                        related_id=post_id,  # Post ID for navigation
+                        related_type='post'
                     )
         
         db.session.commit()

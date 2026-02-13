@@ -460,7 +460,9 @@ CREATE TABLE notifications (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     
-    type ENUM('like', 'comment', 'share', 'friend_request', 'friend_accept', 'violation_warning', 'post_approved', 'post_rejected', 'appeal_result') NOT NULL,
+    type ENUM('like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept', 
+              'violation_warning', 'post_approved', 'post_rejected', 'post_flagged',
+              'appeal_result', 'account_suspended', 'account_banned', 'account_warning') NOT NULL,
     
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,

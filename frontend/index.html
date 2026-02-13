@@ -1830,7 +1830,7 @@
                 
                 // Mark as read
                 await fetchWithAuth(`${API_URL}/notifications/${notif.id}/read`, {
-                    method: 'PUT'
+                    method: 'POST'
                 });
                 
                 // Close dropdown
@@ -1842,11 +1842,9 @@
                 
                 // Navigate to related content
                 if (notif.post_id) {
-                    // For like, comment, reply notifications - navigate to post page
-                    if (['like', 'comment', 'reply'].includes(notif.type)) {
-                        window.location.href = `post.html?id=${notif.post_id}`;
-                    }
-                } else if (notif.type === 'friend_request') {
+                    // For like, comment, reply, share - open the post in comment modal
+                    await openCommentModal(notif.post_id);
+                } else if (notif.type === 'friend_request' || notif.type === 'friend_accept') {
                     // Navigate to friends page
                     window.location.href = 'friends.html';
                 } else {

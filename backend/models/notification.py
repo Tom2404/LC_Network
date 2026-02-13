@@ -5,12 +5,23 @@ from sqlalchemy import Enum
 class Notification(db.Model):
     __tablename__ = 'notifications'
     
+    # Notification type categories
+    ACCOUNT_TYPES = [
+        'violation_warning', 'post_approved', 'post_rejected', 'post_flagged',
+        'appeal_result', 'account_suspended', 'account_banned', 'account_warning'
+    ]
+    
+    POST_TYPES = [
+        'like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept'
+    ]
+    
     id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     
     type = db.Column(
-        Enum('like', 'comment', 'share', 'friend_request', 'friend_accept', 
-             'violation_warning', 'post_approved', 'post_rejected', 'appeal_result', 
+        Enum('like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept', 
+             'violation_warning', 'post_approved', 'post_rejected', 'post_flagged', 
+             'appeal_result', 'account_suspended', 'account_banned', 'account_warning',
              name='notification_type_enum'),
         nullable=False
     )
@@ -27,10 +38,7 @@ class Notification(db.Model):
     
     def to_dict(self):
         # Determine category based on type
-        account_types = ['violation_warning', 'post_approved', 'post_rejected', 'appeal_result', 'account_suspended', 'account_banned', 'account_warning', 'post_flagged']
-        post_types = ['like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept']
-        
-        category = 'account' if self.type in account_types else 'post'
+        category = 'account' if self.type in self.ACCOUNT_TYPES else 'post'
         
         return {
             'id': self.id,

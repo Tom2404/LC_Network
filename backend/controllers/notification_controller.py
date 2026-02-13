@@ -42,25 +42,29 @@ def get_notifications():
         for notif in notifications.items:
             notif_dict = notif.to_dict()
             
-            # Get actor info (user who triggered the notification)
-            if notif.related_type in ['like', 'comment', 'share', 'friend_request']:
-                # related_id is the actor's user_id for these types
-                actor = User.query.get(notif.related_id)
-                if actor:
-                    notif_dict['actor'] = {
-                        'id': actor.id,
-                        'full_name': actor.full_name,
-                        'avatar_url': actor.avatar_url
-                    }
-            
-            # Get post info if applicable
-            if notif.related_type == 'post':
-                post = Post.query.get(notif.related_id)
-                if post:
-                    notif_dict['post'] = {
-                        'id': post.id,
-                        'caption': post.caption[:100] if post.caption else None
-                    }
+            # For post-related notifications, add post_id for frontend navigation
+            if notif.type in ['like', 'comment', 'reply', 'share']:
+                if notif.related_type == 'post':
+                    # related_id is the post_id
+                    notif_dict['post_id'] = notif.related_id
+                    post = Post.query.get(notif.related_id)
+                    if post:
+                        notif_dict['post'] = {
+                            'id': post.id,
+                            'caption': post.caption[:100] if post.caption else None
+                        }
+                elif notif.related_type == 'comment':
+                    # related_id is the comment_id, need to get post_id from comment
+                    from models.comment import Comment
+                    comment = Comment.query.get(notif.related_id)
+                    if comment:
+                        notif_dict['post_id'] = comment.post_id
+                        post = Post.query.get(comment.post_id)
+                        if post:
+                            notif_dict['post'] = {
+                                'id': post.id,
+                                'caption': post.caption[:100] if post.caption else None
+                            }
             
             notification_list.append(notif_dict)
         
