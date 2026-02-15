@@ -253,7 +253,7 @@
         async function loadUserAvatar() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.avatar_url) {
-                const avatarUrl = `${API_URL}${user.avatar_url}`;
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `${API_URL}${user.avatar_url}`;
                 document.getElementById('headerAvatar').style.backgroundImage = `url(${avatarUrl})`;
                 const commentAvatar = document.getElementById('currentUserAvatar');
                 if (commentAvatar) {
@@ -299,55 +299,29 @@
         // Render post
         function renderPost(post) {
             console.log('=== RENDERING POST ===');
-            console.log('Post object keys:', Object.keys(post));
-            console.log('Post.author:', post.author);
-            console.log('Post.user:', post.user);
-            console.log('Post.user_id:', post.user_id);
-            console.log('Post.username:', post.username);
-            console.log('Post.full_name:', post.full_name);
-            console.log('Post.created_at:', post.created_at);
+            console.log('Post data:', post);
             
-            // Try different possible data structures
-            let authorName = 'Người dùng';
-            let authorAvatar = 'images/default-avatar.png';
+            // Author info (backend returns post.author)
+            const authorName = post.author?.full_name || post.author?.username || 'Người dùng';
+            const authorAvatarPath = post.author?.avatar_url || null;
+            const authorAvatar = authorAvatarPath 
+                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
+                : 'images/default-avatar.png';
             
-            // Check nested author object first
-            if (post.author) {
-                authorName = post.author.full_name || post.author.username || 'Người dùng';
-                if (post.author.avatar_url) {
-                    authorAvatar = post.author.avatar_url.startsWith('http') ? post.author.avatar_url : `${API_URL}${post.author.avatar_url}`;
-                }
-            } 
-            // Check nested user object
-            else if (post.user) {
-                authorName = post.user.full_name || post.user.username || 'Người dùng';
-                if (post.user.avatar_url) {
-                    authorAvatar = post.user.avatar_url.startsWith('http') ? post.user.avatar_url : `${API_URL}${post.user.avatar_url}`;
-                }
-            }
-            // Check flat structure
-            else if (post.full_name || post.username) {
-                authorName = post.full_name || post.username || 'Người dùng';
-                if (post.avatar_url) {
-                    authorAvatar = post.avatar_url.startsWith('http') ? post.avatar_url : `${API_URL}${post.avatar_url}`;
-                }
-            }
-            
-            console.log('Final author name:', authorName);
-            console.log('Final author avatar:', authorAvatar);
+            console.log('Author name:', authorName);
+            console.log('Author avatar:', authorAvatar);
             
             document.getElementById('postAuthorName').textContent = authorName;
             document.getElementById('postAuthorAvatar').src = authorAvatar;
             
-            // Fix date handling
+            // Time
             const timeText = post.created_at ? getTimeAgo(post.created_at) : 'Không rõ thời gian';
-            console.log('Time text:', timeText);
             document.getElementById('postTime').textContent = timeText;
 
-            // Content
+            // Content (caption)
             const contentEl = document.getElementById('postTextContent');
-            if (post.content) {
-                contentEl.textContent = post.content;
+            if (post.caption) {
+                contentEl.textContent = post.caption;
                 contentEl.classList.remove('hidden');
             } else {
                 contentEl.classList.add('hidden');
@@ -360,8 +334,10 @@
             
             if (post.media && post.media.length > 0) {
                 const firstMedia = post.media[0];
-                const mediaUrl = firstMedia.media_url.startsWith('http') ? firstMedia.media_url : `${API_URL}${firstMedia.media_url}`;
+                const mediaPath = firstMedia.media_url;
+                const mediaUrl = mediaPath.startsWith('http') ? mediaPath : `${API_URL}${mediaPath}`;
                 
+                console.log('Media path:', mediaPath);
                 console.log('Media URL:', mediaUrl);
                 console.log('Media type:', firstMedia.media_type);
                 
@@ -379,11 +355,13 @@
                     // Error handler for images
                     mediaImage.onerror = () => {
                         console.error('Failed to load image:', mediaUrl);
+                        console.error('Tried to load from:', mediaImage.src);
                         mediaImage.classList.add('hidden');
                         mediaContainer.classList.add('hidden');
                     };
                 }
             } else {
+                console.log('No media in post');
                 mediaContainer.classList.add('hidden');
             }
 
@@ -474,50 +452,27 @@
             container.innerHTML = comments.map(comment => renderComment(comment)).join('');
         }
 
-        // Render single comment - ACCESS NESTED AUTHOR OBJECT
+        // Render single comment
         function renderComment(comment) {
             console.log('=== RENDERING COMMENT ===');
-            console.log('Comment keys:', Object.keys(comment));
-            console.log('Comment.author:', comment.author);
-            console.log('Comment.user:', comment.user);
-            console.log('Comment.username:', comment.username);
-            console.log('Comment.full_name:', comment.full_name);
+            console.log('Comment:', comment);
             
-            // Try different possible data structures
-            let authorName = 'Người dùng';
-            let authorAvatar = 'images/default-avatar.png';
-            
-            // Check nested author object first
-            if (comment.author) {
-                authorName = comment.author.full_name || comment.author.username || 'Người dùng';
-                if (comment.author.avatar_url) {
-                    authorAvatar = comment.author.avatar_url.startsWith('http') ? comment.author.avatar_url : `${API_URL}${comment.author.avatar_url}`;
-                }
-            }
-            // Check nested user object
-            else if (comment.user) {
-                authorName = comment.user.full_name || comment.user.username || 'Người dùng';
-                if (comment.user.avatar_url) {
-                    authorAvatar = comment.user.avatar_url.startsWith('http') ? comment.user.avatar_url : `${API_URL}${comment.user.avatar_url}`;
-                }
-            }
-            // Check flat structure
-            else if (comment.full_name || comment.username) {
-                authorName = comment.full_name || comment.username || 'Người dùng';
-                if (comment.avatar_url) {
-                    authorAvatar = comment.avatar_url.startsWith('http') ? comment.avatar_url : `${API_URL}${comment.avatar_url}`;
-                }
-            }
+            // Author info (backend returns comment.author)
+            const authorName = comment.author?.full_name || comment.author?.username || 'Người dùng';
+            const authorAvatarPath = comment.author?.avatar_url || null;
+            const authorAvatar = authorAvatarPath
+                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
+                : 'images/default-avatar.png';
             
             const timeAgo = comment.created_at ? getTimeAgo(comment.created_at) : 'Không rõ thời gian';
             
-            console.log('Final comment author:', authorName);
-            console.log('Final comment avatar:', authorAvatar);
-            console.log('Comment time:', timeAgo);
+            console.log('Comment author:', authorName, authorAvatar);
             
             let mediaHTML = '';
             if (comment.media_url) {
-                const mediaUrl = comment.media_url.startsWith('http') ? comment.media_url : `${API_URL}${comment.media_url}`;
+                const mediaPath = comment.media_url;
+                const mediaUrl = mediaPath.startsWith('http') ? mediaPath : `${API_URL}${mediaPath}`;
+                console.log('Comment media URL:', mediaUrl);
                 if (comment.media_type === 'video') {
                     mediaHTML = `<video src="${mediaUrl}" controls class="mt-2 max-h-48 rounded-lg border border-[#dae7e6]"></video>`;
                 } else {
@@ -530,7 +485,10 @@
 
             // Get current user avatar for reply form
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const currentUserAvatar = currentUser.avatar_url ? `${API_URL}${currentUser.avatar_url}` : 'images/default-avatar.png';
+            const currentUserAvatarPath = currentUser.avatar_url || null;
+            const currentUserAvatar = currentUserAvatarPath
+                ? (currentUserAvatarPath.startsWith('http') ? currentUserAvatarPath : `${API_URL}${currentUserAvatarPath}`)
+                : 'images/default-avatar.png';
 
             return `
                 <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#e8f1f0] dark:hover:bg-[#1a332f] transition-colors">
@@ -581,44 +539,21 @@
             `;
         }
 
-        // Render reply - ACCESS NESTED AUTHOR OBJECT
+        // Render reply
         function renderReply(reply) {
             console.log('=== RENDERING REPLY ===');
-            console.log('Reply keys:', Object.keys(reply));
-            console.log('Reply.author:', reply.author);
-            console.log('Reply.user:', reply.user);
+            console.log('Reply:', reply);
             
-            // Try different possible data structures
-            let authorName = 'Người dùng';
-            let authorAvatar = 'images/default-avatar.png';
-            
-            // Check nested author object first
-            if (reply.author) {
-                authorName = reply.author.full_name || reply.author.username || 'Người dùng';
-                if (reply.author.avatar_url) {
-                    authorAvatar = reply.author.avatar_url.startsWith('http') ? reply.author.avatar_url : `${API_URL}${reply.author.avatar_url}`;
-                }
-            }
-            // Check nested user object
-            else if (reply.user) {
-                authorName = reply.user.full_name || reply.user.username || 'Người dùng';
-                if (reply.user.avatar_url) {
-                    authorAvatar = reply.user.avatar_url.startsWith('http') ? reply.user.avatar_url : `${API_URL}${reply.user.avatar_url}`;
-                }
-            }
-            // Check flat structure
-            else if (reply.full_name || reply.username) {
-                authorName = reply.full_name || reply.username || 'Người dùng';
-                if (reply.avatar_url) {
-                    authorAvatar = reply.avatar_url.startsWith('http') ? reply.avatar_url : `${API_URL}${reply.avatar_url}`;
-                }
-            }
+            // Author info (backend returns reply.author)
+            const authorName = reply.author?.full_name || reply.author?.username || 'Người dùng';
+            const authorAvatarPath = reply.author?.avatar_url || null;
+            const authorAvatar = authorAvatarPath
+                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
+                : 'images/default-avatar.png';
             
             const timeAgo = reply.created_at ? getTimeAgo(reply.created_at) : 'Không rõ thời gian';
 
-            console.log('Final reply author:', authorName);
-            console.log('Final reply avatar:', authorAvatar);
-            console.log('Reply time:', timeAgo);
+            console.log('Reply author:', authorName, authorAvatar);
 
             const likeIcon = reply.is_liked ? 'favorite' : 'favorite_border';
             const likeColor = reply.is_liked ? 'text-red-500' : 'text-[#5e8d89]';

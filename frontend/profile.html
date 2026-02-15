@@ -219,8 +219,8 @@
                     </div>
                 </div>
                 <div class="flex overflow-x-auto border-t border-slate-100 dark:border-slate-800 pt-1 -mx-4 md:mx-0 px-4 md:px-0">
-                    <button onclick="window.location.href='index.html'" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Bài viết</button>
-                    <button class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">Thông tin</button>
+                    <button id="tabPosts" onclick="switchTab('posts')" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap cursor-pointer">Bài viết</button>
+                    <button id="tabInfo" onclick="switchTab('info')" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">Thông tin</button>
                     <button onclick="window.location.href='friends.html'" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Bạn bè</button>
                     <button onclick="showNotification('Chức năng đang phát triển', 'info')" class="px-4 md:px-6 py-3 md:py-4 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap cursor-pointer">Ảnh</button>
                 </div>
@@ -229,6 +229,37 @@
 
         <!-- Profile Information -->
         <div class="space-y-6">
+            <!-- Posts Tab Content -->
+            <div id="postsContent" class="space-y-4">
+                <!-- Loading State -->
+                <div id="postsLoading" class="text-center py-12 text-slate-400">
+                    <span class="material-symbols-outlined text-6xl mb-3 animate-pulse">article</span>
+                    <p>Đang tải bài viết...</p>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="postsEmpty" class="hidden bg-white dark:bg-slate-900 rounded-xl p-12 shadow-sm border border-slate-200 dark:border-slate-800 text-center">
+                    <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-700 mb-4">description</span>
+                    <h3 class="text-lg font-bold text-slate-400 mb-2">Chưa có bài viết nào</h3>
+                    <p class="text-sm text-slate-400 mb-6">Bắt đầu chia sẻ những khoảnh khắc của bạn!</p>
+                    <button onclick="window.location.href='index.html'" class="px-6 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all">
+                        Tạo bài viết đầu tiên
+                    </button>
+                </div>
+                
+                <!-- Posts List -->
+                <div id="postsList" class="space-y-4"></div>
+                
+                <!-- Load More Button -->
+                <div id="loadMoreContainer" class="hidden text-center py-4">
+                    <button onclick="loadMorePosts()" id="loadMoreBtn" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        Xem thêm bài viết
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Info Tab Content -->
+            <div id="infoContent" class="hidden space-y-6">
             <div class="bg-white dark:bg-slate-900 rounded-xl p-8 shadow-sm border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between mb-8">
                     <h3 class="text-xl font-bold flex items-center gap-2">
@@ -278,6 +309,8 @@
                     <p class="text-[10px] text-primary font-bold uppercase tracking-tighter">Trạng thái: Tối ưu</p>
                 </div>
             </div>
+            </div>
+            <!-- End Info Content -->
         </div>
     </main>
 
@@ -594,7 +627,242 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             loadUserProfile();
+            loadMyPosts(); // Load posts by default
         });
+        
+        // Tab Switching
+        let currentTab = 'posts';
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.getElementById('tabPosts').classList.remove('text-primary', 'border-primary');
+            document.getElementById('tabPosts').classList.add('text-slate-400', 'border-transparent');
+            document.getElementById('tabInfo').classList.remove('text-primary', 'border-primary');
+            document.getElementById('tabInfo').classList.add('text-slate-400', 'border-transparent');
+            
+            // Hide all content
+            document.getElementById('postsContent').classList.add('hidden');
+            document.getElementById('infoContent').classList.add('hidden');
+            
+            // Show selected content
+            if (tab === 'posts') {
+                document.getElementById('tabPosts').classList.remove('text-slate-400', 'border-transparent');
+                document.getElementById('tabPosts').classList.add('text-primary', 'border-primary');
+                document.getElementById('postsContent').classList.remove('hidden');
+            } else if (tab === 'info') {
+                document.getElementById('tabInfo').classList.remove('text-slate-400', 'border-transparent');
+                document.getElementById('tabInfo').classList.add('text-primary', 'border-primary');
+                document.getElementById('infoContent').classList.remove('hidden');
+            }
+        }
+        
+        // Posts Management
+        let currentPage = 1;
+        let totalPages = 1;
+        let isLoading = false;
+        
+        async function loadMyPosts(page = 1) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/posts/my-posts?page=${page}&per_page=10`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    document.getElementById('postsLoading').classList.add('hidden');
+                    
+                    if (data.posts && data.posts.length > 0) {
+                        const postsList = document.getElementById('postsList');
+                        
+                        // If first page, clear existing posts
+                        if (page === 1) {
+                            postsList.innerHTML = '';
+                        }
+                        
+                        // Render posts
+                        data.posts.forEach(post => {
+                            const postElement = renderPostCard(post);
+                            postsList.appendChild(postElement);
+                        });
+                        
+                        // Update pagination
+                        currentPage = data.current_page;
+                        totalPages = data.pages;
+                        
+                        // Show/hide load more button
+                        if (currentPage < totalPages) {
+                            document.getElementById('loadMoreContainer').classList.remove('hidden');
+                        } else {
+                            document.getElementById('loadMoreContainer').classList.add('hidden');
+                        }
+                        
+                        // Hide empty state
+                        document.getElementById('postsEmpty').classList.add('hidden');
+                    } else if (page === 1) {
+                        // Show empty state only on first page
+                        document.getElementById('postsEmpty').classList.remove('hidden');
+                    }
+                } else {
+                    console.error('Failed to load posts');
+                    showNotification('Không thể tải bài viết', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                showNotification('Lỗi kết nối', 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        function loadMorePosts() {
+            if (currentPage < totalPages) {
+                loadMyPosts(currentPage + 1);
+            }
+        }
+        
+        // Render Post Card
+        function renderPostCard(post) {
+            const div = document.createElement('div');
+            div.className = 'bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden';
+            
+            const timeAgo = getTimeAgo(post.created_at);
+            
+            // Get current user info from localStorage (since these are my posts)
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const userFullName = post.author?.full_name || currentUser.full_name || 'Người dùng';
+            const userAvatar = post.author?.avatar_url || currentUser.avatar_url || 'images/default-avatar.png';
+            const avatarUrl = userAvatar.startsWith('http') ? userAvatar : `http://127.0.0.1:5000${userAvatar}`;
+            
+            // Status badge
+            let statusBadge = '';
+            if (post.status === 'pending') {
+                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">schedule</span>Đang chờ duyệt</span>';
+            } else if (post.status === 'rejected') {
+                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">block</span>Bị từ chối</span>';
+            } else if (post.status === 'flagged') {
+                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">flag</span>Đã được đánh dấu</span>';
+            }
+            
+            div.innerHTML = `
+                <!-- Post Header -->
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-cover bg-center" style="background-image: url('${avatarUrl}')"></div>
+                        <div>
+                            <p class="font-bold text-sm">${userFullName}</p>
+                            <p class="text-xs text-slate-500">${timeAgo}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${statusBadge}
+                        <button onclick="openPostMenu(${post.id})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                            <span class="material-symbols-outlined text-slate-500">more_horiz</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Post Caption -->
+                ${post.caption ? `<div class="px-4 pb-3"><p class="text-sm whitespace-pre-wrap">${escapeHtml(post.caption)}</p></div>` : ''}
+                
+                <!-- Post Media -->
+                ${renderPostMedia(post)}
+                
+                <!-- Post Stats & Actions -->
+                <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center justify-between text-sm text-slate-500 mb-3">
+                        <span>${post.like_count || 0} lượt thích</span>
+                        <span>${post.comment_count || 0} bình luận • ${post.share_count || 0} chia sẻ</span>
+                    </div>
+                    <div class="flex items-center justify-around border-t border-slate-100 dark:border-slate-800 pt-2">
+                        <button class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
+                            <span class="material-symbols-outlined text-lg">thumb_up</span>
+                            Thích
+                        </button>
+                        <button onclick="window.location.href='post.html?id=${post.id}'" class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
+                            <span class="material-symbols-outlined text-lg">chat_bubble</span>
+                            Bình luận
+                        </button>
+                        <button class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
+                            <span class="material-symbols-outlined text-lg">share</span>
+                            Chia sẻ
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function renderPostMedia(post) {
+            if (!post.media || post.media.length === 0) {
+                return '';
+            }
+            
+            let mediaHtml = '<div class="relative bg-slate-100 dark:bg-slate-800">';
+            
+            if (post.media.length === 1) {
+                const media = post.media[0];
+                const mediaUrl = media.media_url.startsWith('http') ? media.media_url : `http://127.0.0.1:5000${media.media_url}`;
+                
+                if (media.media_type === 'image') {
+                    mediaHtml += `<img src="${mediaUrl}" alt="Post image" class="w-full max-h-[600px] object-contain">`;
+                } else if (media.media_type === 'video') {
+                    mediaHtml += `<video controls class="w-full max-h-[600px]"><source src="${mediaUrl}" type="video/mp4"></video>`;
+                }
+            } else {
+                // Multiple media - grid layout
+                mediaHtml += '<div class="grid grid-cols-2 gap-1">';
+                post.media.slice(0, 4).forEach((media, idx) => {
+                    const mediaUrl = media.media_url.startsWith('http') ? media.media_url : `http://127.0.0.1:5000${media.media_url}`;
+                    if (media.media_type === 'image') {
+                        mediaHtml += `<img src="${mediaUrl}" alt="Post image ${idx+1}" class="w-full h-48 object-cover">`;
+                    }
+                });
+                if (post.media.length > 4) {
+                    mediaHtml += `<div class="absolute bottom-2 right-2 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">+${post.media.length - 4}</div>`;
+                }
+                mediaHtml += '</div>';
+            }
+            
+            mediaHtml += '</div>';
+            return mediaHtml;
+        }
+        
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Vừa xong';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} ngày trước`;
+            const weeks = Math.floor(days / 7);
+            if (weeks < 4) return `${weeks} tuần trước`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} tháng trước`;
+            const years = Math.floor(days / 365);
+            return `${years} năm trước`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function openPostMenu(postId) {
+            // TODO: Implement post menu (edit, delete, etc.)
+            showNotification('Chức năng đang phát triển', 'info');
+        }
     </script>
 </body>
 
