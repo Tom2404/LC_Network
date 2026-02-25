@@ -379,54 +379,48 @@
     </div>
     <div class="layout-container flex h-full grow flex-col min-h-screen">
         <!-- Top Navigation Bar -->
-        <header
-            class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] px-6 lg:px-10 py-3 sticky top-0 z-50">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] px-6 lg:px-10 py-3 sticky top-0 z-50">
             <div class="flex items-center gap-8">
-                <div class="flex items-center gap-4 text-primary">
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                     <div class="size-8">
                         <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"
-                                fill="currentColor"></path>
-                            <path clip-rule="evenodd"
-                                d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z"
-                                fill="currentColor" fill-rule="evenodd"></path>
+                            <path d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z" fill="currentColor"></path>
+                            <path clip-rule="evenodd" d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z" fill="currentColor" fill-rule="evenodd"></path>
                         </svg>
                     </div>
-                    <h2 class="text-xl font-bold leading-tight tracking-tight dark:text-white">LC Network</h2>
-                </div>
-                <label class="flex flex-col min-w-40 !h-10 max-w-md">
+                    <h2 class="text-lg font-extrabold tracking-tight hidden sm:block">LC Network</h2>
+                </a>
+                <!-- Navigation Links -->
+                <nav class="hidden lg:flex items-center gap-6">
+                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="index.html">Trang chủ</a>
+                    <a class="text-sm font-semibold hover:text-primary transition-colors" href="friends.html">Bạn bè</a>
+                    <a class="text-sm font-semibold hover:text-primary transition-colors" href="notifications.html">Thông báo</a>
+                </nav>
+                <!-- Search Bar -->
+                <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-md">
                     <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
-                        <div
-                            class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                        <div class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
                             <span class="material-symbols-outlined text-xl">search</span>
                         </div>
-                        <input
-                            class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal"
-                            placeholder="Tìm kiếm bài viết hoặc bạn bè..." value="" />
+                        <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm..." value="" />
                     </div>
                 </label>
             </div>
-            <div class="flex flex-1 justify-end gap-6">
-                <div class="flex gap-2">
-                    <button onclick="toggleAccountNotifications()" id="accountNotifBtn"
-                        class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
-                        <span class="material-symbols-outlined">mail</span>
-                        <span id="accountNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
-                    </button>
-                    <button onclick="togglePostNotifications()" id="postNotifBtn"
-                        class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
-                        <span class="material-symbols-outlined">notifications</span>
-                        <span id="postNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
-                    </button>
-                </div>
+            <div class="flex flex-1 justify-end gap-2">
+                <!-- Notification Buttons -->
+                <button onclick="toggleAccountNotifications()" id="accountNotifBtn" class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                    <span class="material-symbols-outlined">mail</span>
+                    <span id="accountNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+                </button>
+                <button onclick="togglePostNotifications()" id="postNotifBtn" class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span id="postNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+                </button>
+                <!-- User Avatar -->
                 <div class="relative">
-                    <div id="headerAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
-                        style='background-image: url("images/default-avatar.png");'>
-                    </div>
-                    <div
-                        class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]">
-                    </div>
+                    <div id="headerAvatar" onclick="openLogoutModal()" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("images/default-avatar.png");'></div>
+                    <div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]"></div>
                 </div>
             </div>
         </header>
@@ -642,6 +636,9 @@
             setInterval(() => {
                 loadNotificationCounts();
             }, 30000);
+            
+            // Setup search functionality
+            setupSearch();
         });
 
         // Click outside to close dropdowns
@@ -1887,6 +1884,199 @@
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
+            }
+        }
+
+        // Search functionality
+        let searchTimeout = null;
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // If search is empty, reload normal newsfeed
+                if (!query) {
+                    loadNewsfeed();
+                    return;
+                }
+                
+                // Debounce search (wait 500ms after user stops typing)
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 500);
+            });
+        }
+
+        async function performSearch(query) {
+            try {
+                const token = localStorage.getItem('accessToken');
+                
+                // Search both posts and users in parallel
+                const [postsResponse, usersResponse] = await Promise.all([
+                    fetch(`http://127.0.0.1:5000/api/posts/search?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }),
+                    fetch(`http://127.0.0.1:5000/api/users/search?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                ]);
+                
+                const postsData = await postsResponse.json();
+                const usersData = await usersResponse.json();
+                
+                // Display search results
+                displaySearchResults(postsData, usersData, query);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                showNotification('Lỗi khi tìm kiếm', 'error');
+            }
+        }
+
+        function displaySearchResults(postsData, usersData, query) {
+            const newsfeedContainer = document.getElementById('newsfeedContainer');
+            let html = '';
+            
+            // Display search header
+            html += `
+                <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <h2 class="text-xl font-bold text-[#101818] dark:text-white mb-2">Kết quả tìm kiếm: "${query}"</h2>
+                    <p class="text-[#5e8d89]">Tìm thấy ${postsData.total || 0} bài viết và ${usersData.total || 0} người dùng</p>
+                </div>
+            `;
+            
+            // Display users results
+            if (usersData.users && usersData.users.length > 0) {
+                html += `
+                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                        <h3 class="text-lg font-bold text-[#101818] dark:text-white mb-4">Người dùng</h3>
+                        <div class="space-y-3">
+                `;
+                
+                usersData.users.forEach(user => {
+                    const avatarUrl = user.avatar_url 
+                        ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`)
+                        : 'images/default-avatar.png';
+                    
+                    let friendButton = '';
+                    if (user.friendship_status === 'accepted') {
+                        friendButton = '<span class="text-sm text-green-600 dark:text-green-400">✓ Bạn bè</span>';
+                    } else if (user.friendship_status === 'pending' && user.is_requester) {
+                        friendButton = '<span class="text-sm text-gray-600 dark:text-gray-400">Đã gửi lời mời</span>';
+                    } else if (user.friendship_status === 'pending' && !user.is_requester) {
+                        friendButton = `<button onclick="respondToFriendRequest(${user.id}, 'accept')" class="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">Chấp nhận</button>`;
+                    } else {
+                        friendButton = `<button onclick="sendFriendRequest(${user.id})" class="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">Kết bạn</button>`;
+                    }
+                    
+                    html += `
+                        <div class="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1a3330] rounded-lg transition-colors">
+                            <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
+                                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
+                                    style='background-image: url("${avatarUrl}");'></div>
+                                <div>
+                                    <h4 class="font-semibold text-[#101818] dark:text-white">${user.full_name}</h4>
+                                    <p class="text-sm text-[#5e8d89]">${user.email}</p>
+                                </div>
+                            </div>
+                            ${friendButton}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Display posts results
+            if (postsData.posts && postsData.posts.length > 0) {
+                html += `<div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <h3 class="text-lg font-bold text-[#101818] dark:text-white mb-4">Bài viết</h3>
+                </div>`;
+                
+                postsData.posts.forEach(post => {
+                    html += renderPost(post);
+                });
+            } else if (usersData.users && usersData.users.length === 0) {
+                html += `
+                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 text-center shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
+                        <p class="text-[#5e8d89]">Không tìm thấy kết quả nào</p>
+                    </div>
+                `;
+            }
+            
+            newsfeedContainer.innerHTML = html;
+        }
+
+        async function sendFriendRequest(userId) {
+            try {
+                const token = localStorage.getItem('accessToken');
+                const response = await fetch(`http://127.0.0.1:5000/api/friends/request/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification('Đã gửi lời mời kết bạn', 'success');
+                    // Re-search to update UI
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value.trim()) {
+                        performSearch(searchInput.value.trim());
+                    }
+                } else {
+                    showNotification(data.error || 'Không thể gửi lời mời kết bạn', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showNotification('Lỗi khi gửi lời mời kết bạn', 'error');
+            }
+        }
+
+        async function respondToFriendRequest(userId, action) {
+            try {
+                const token = localStorage.getItem('accessToken');
+                const endpoint = action === 'accept' ? 'accept' : 'reject';
+                
+                const response = await fetch(`http://127.0.0.1:5000/api/friends/request/${userId}/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showNotification(action === 'accept' ? 'Đã chấp nhận lời mời kết bạn' : 'Đã từ chối lời mời', 'success');
+                    // Re-search to update UI
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value.trim()) {
+                        performSearch(searchInput.value.trim());
+                    }
+                } else {
+                    showNotification(data.error || 'Có lỗi xảy ra', 'error');
+                }
+            } catch (error) {
+                console.error('Error responding to friend request:', error);
+                showNotification('Lỗi khi phản hồi lời mời kết bạn', 'error');
             }
         }
     </script>

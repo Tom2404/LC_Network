@@ -125,19 +125,43 @@ def get_posts():
     """
     Lấy danh sách bài viết (Newsfeed)
     Query params: page, per_page, status
-    Hiển thị: bài viết của bản thân và bạn bè
+    Hiển thị: 
+    - Bài viết của bản thân
+    - Bài viết của những người đã kết bạn với nhau (accepted)
+    - Bài viết của những người mà mình đã gửi lời mời kết bạn (pending, mình là requester)
     """
     try:
+        from models.friendship import Friendship
+        
         current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         status = request.args.get('status')
         
-        # Get list of friends (if friendship table exists)
-        # For now, show all public published posts
+        # Lấy danh sách user_id có thể xem bài viết
+        visible_user_ids = [current_user_id]  # Luôn thấy bài viết của chính mình
+        
+        # 1. Lấy những người đã kết bạn (status='accepted')
+        accepted_friends = Friendship.query.filter_by(
+            user_id=current_user_id,
+            status='accepted'
+        ).all()
+        for f in accepted_friends:
+            visible_user_ids.append(f.friend_id)
+        
+        # 2. Lấy những người mà mình đã gửi lời mời kết bạn (status='pending', mình là requester)
+        pending_requests = Friendship.query.filter_by(
+            user_id=current_user_id,
+            status='pending'
+        ).filter(Friendship.requester_id == current_user_id).all()
+        for f in pending_requests:
+            visible_user_ids.append(f.friend_id)
+        
+        # Query bài viết
         query = Post.query.filter(
             Post.is_deleted == False,
-            Post.visibility == 'public'
+            Post.visibility == 'public',
+            Post.user_id.in_(visible_user_ids)
         )
         
         # Filter by status if provided
@@ -211,6 +235,64 @@ def get_my_posts():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@post_bp.route('/user/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_user_posts(user_id):
+    """
+    Lấy bài viết của user khác (xem qua trang cá nhân)
+    Query params: page, per_page
+    Tất cả user đều có thể xem, không phụ thuộc vào trạng thái kết bạn
+    """
+    try:
+        current_user_id = int(get_jwt_identity())
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # Kiểm tra user có tồn tại không
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Lấy bài viết public đã published của user
+        query = Post.query.filter_by(
+            user_id=user_id,
+            is_deleted=False,
+            visibility='public',
+            status='published'
+        ).order_by(Post.created_at.desc())
+        
+        posts = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Get list of post IDs that current user has liked
+        liked_post_ids = set(
+            like.target_id for like in Like.query.filter_by(
+                user_id=current_user_id,
+                target_type='post'
+            ).all()
+        )
+        
+        # Add is_liked field to each post
+        posts_data = []
+        for post in posts.items:
+            post_dict = post.to_dict()
+            post_dict['is_liked'] = post.id in liked_post_ids
+            posts_data.append(post_dict)
+        
+        return jsonify({
+            'posts': posts_data,
+            'total': posts.total,
+            'pages': posts.pages,
+            'current_page': page
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in get_user_posts: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 
 @post_bp.route('/<int:post_id>', methods=['GET'])
@@ -363,4 +445,82 @@ def toggle_like(post_id):
     except Exception as e:
         db.session.rollback()
         print(f"[LIKE] Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@post_bp.route('/search', methods=['GET'])
+@jwt_required()
+def search_posts():
+    """
+    Tìm kiếm bài viết theo caption
+    Query params: q (query string), page, per_page
+    """
+    try:
+        from models.friendship import Friendship
+        
+        current_user_id = int(get_jwt_identity())
+        query_string = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        if not query_string:
+            return jsonify({'error': 'Search query is required'}), 400
+        
+        # Lấy danh sách user_id có thể xem bài viết (giống logic get_posts)
+        visible_user_ids = [current_user_id]
+        
+        # Lấy những người đã kết bạn
+        accepted_friends = Friendship.query.filter_by(
+            user_id=current_user_id,
+            status='accepted'
+        ).all()
+        for f in accepted_friends:
+            visible_user_ids.append(f.friend_id)
+        
+        # Lấy những người mà mình đã gửi lời mời kết bạn
+        pending_requests = Friendship.query.filter_by(
+            user_id=current_user_id,
+            status='pending'
+        ).filter(Friendship.requester_id == current_user_id).all()
+        for f in pending_requests:
+            visible_user_ids.append(f.friend_id)
+        
+        # Tìm kiếm bài viết có caption chứa query_string
+        query = Post.query.filter(
+            Post.is_deleted == False,
+            Post.visibility == 'public',
+            Post.status == 'published',
+            Post.user_id.in_(visible_user_ids),
+            Post.caption.ilike(f'%{query_string}%')  # Case-insensitive search
+        ).order_by(Post.created_at.desc())
+        
+        posts = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Get list of post IDs that current user has liked
+        liked_post_ids = set(
+            like.target_id for like in Like.query.filter_by(
+                user_id=current_user_id,
+                target_type='post'
+            ).all()
+        )
+        
+        # Add is_liked field to each post
+        posts_data = []
+        for post in posts.items:
+            post_dict = post.to_dict()
+            post_dict['is_liked'] = post.id in liked_post_ids
+            posts_data.append(post_dict)
+        
+        return jsonify({
+            'posts': posts_data,
+            'total': posts.total,
+            'pages': posts.pages,
+            'current_page': page,
+            'query': query_string
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in search_posts: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
