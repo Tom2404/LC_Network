@@ -99,10 +99,48 @@
         .modal-content-enter {
             animation: scaleIn 0.3s ease-out;
         }
+
+        /* Search Filter Active State */
+        .search-filter-active {
+            background: white;
+            color: #38a89d;
+            border-bottom: 3px solid #38a89d;
+        }
+
+        .dark .search-filter-active {
+            background: #152a28;
+            color: #38a89d;
+        }
     </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+    <!-- Search Dropdown -->
+    <div id="searchDropdown" class="fixed top-16 left-1/2 -translate-x-1/2 z-[9997] hidden w-full max-w-2xl">
+        <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden max-h-[70vh] mx-4">
+            <!-- Search Filters -->
+            <div class="flex border-b border-[#dae7e6] dark:border-[#2a3d3b] bg-[#f0f5f4] dark:bg-[#1a3330]">
+                <button onclick="setSearchFilter('all')" id="searchFilterAll" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors search-filter-active">
+                    Tất cả
+                </button>
+                <button onclick="setSearchFilter('people')" id="searchFilterPeople" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Người dùng
+                </button>
+                <button onclick="setSearchFilter('posts')" id="searchFilterPosts" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Bài viết
+                </button>
+            </div>
+            
+            <!-- Search Results Container -->
+            <div id="searchResultsContainer" class="overflow-y-auto max-h-[60vh]">
+                <div class="p-8 text-center text-[#5e8d89]">
+                    <span class="material-symbols-outlined text-4xl mb-2 opacity-50">search</span>
+                    <p class="text-sm">Nhập từ khóa để tìm kiếm</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="notification" class="fixed top-4 right-4 z-[9999] hidden">
         <div class="bg-white dark:bg-[#152a28] border-2 border-primary dark:border-primary rounded-lg shadow-2xl p-4 min-w-[320px] max-w-md">
@@ -223,6 +261,7 @@
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/search.js"></script>
     <script>
         // Toast Notification System
         function showNotification(message, type = 'info') {
@@ -530,6 +569,7 @@
             }
             // Load account notifications by default
             loadNotifications('account');
+            setupSearch();
         });
     </script>
 </body>

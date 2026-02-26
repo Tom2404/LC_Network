@@ -99,10 +99,48 @@
         .modal-content-enter {
             animation: scaleIn 0.3s ease-out;
         }
+
+        /* Search Filter Active State */
+        .search-filter-active {
+            background: white;
+            color: #38a89d;
+            border-bottom: 3px solid #38a89d;
+        }
+
+        .dark .search-filter-active {
+            background: #152a28;
+            color: #38a89d;
+        }
     </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+    <!-- Search Dropdown -->
+    <div id="searchDropdown" class="fixed top-16 left-1/2 -translate-x-1/2 z-[9997] hidden w-full max-w-2xl">
+        <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden max-h-[70vh] mx-4">
+            <!-- Search Filters -->
+            <div class="flex border-b border-[#dae7e6] dark:border-[#2a3d3b] bg-[#f0f5f4] dark:bg-[#1a3330]">
+                <button onclick="setSearchFilter('all')" id="searchFilterAll" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors search-filter-active">
+                    Tất cả
+                </button>
+                <button onclick="setSearchFilter('people')" id="searchFilterPeople" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Người dùng
+                </button>
+                <button onclick="setSearchFilter('posts')" id="searchFilterPosts" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Bài viết
+                </button>
+            </div>
+            
+            <!-- Search Results Container -->
+            <div id="searchResultsContainer" class="overflow-y-auto max-h-[60vh]">
+                <div class="p-8 text-center text-[#5e8d89]">
+                    <span class="material-symbols-outlined text-4xl mb-2 opacity-50">search</span>
+                    <p class="text-sm">Nhập từ khóa để tìm kiếm</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="notification" class="fixed top-4 right-4 z-[9999] hidden">
         <div class="bg-white dark:bg-[#152a28] border-2 border-primary dark:border-primary rounded-lg shadow-2xl p-4 min-w-[320px] max-w-md">
@@ -174,12 +212,15 @@
                 <a class="text-sm font-semibold hover:text-primary transition-colors" href="notifications.html">Thông báo</a>
             </nav>
             <!-- Search Bar -->
-            <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-md">
+            <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-md relative">
                 <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
                     <div class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
                         <span class="material-symbols-outlined text-xl">search</span>
                     </div>
-                    <input class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm..." value="" />
+                    <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm bạn bè, bài viết..." value="" />
+                    <button id="clearSearchBtn" onclick="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 hidden text-[#5e8d89] hover:text-[#101818] dark:hover:text-white p-1 rounded-full hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
                 </div>
             </label>
         </div>
@@ -364,6 +405,7 @@
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/search.js"></script>
     <script>
         // Notification System
         function showNotification(message, type = 'info') {
@@ -687,6 +729,7 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             loadUserProfile();
+            setupSearch();
             
             const profileUserId = getProfileUserId();
             if (profileUserId) {

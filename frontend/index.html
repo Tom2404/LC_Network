@@ -105,6 +105,18 @@
         .modal-content-enter {
             animation: scaleIn 0.3s ease-out;
         }
+
+        /* Search Filter Active State */
+        .search-filter-active {
+            background: white;
+            color: #38a89d;
+            border-bottom: 3px solid #38a89d;
+        }
+
+        .dark .search-filter-active {
+            background: #152a28;
+            color: #38a89d;
+        }
     </style>
 </head>
 
@@ -120,6 +132,32 @@
                 <button onclick="hideNotification()" class="text-[#5e8d89] hover:text-[#101818] dark:hover:text-white">
                     <span class="material-symbols-outlined text-xl">close</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Dropdown -->
+    <div id="searchDropdown" class="fixed top-16 left-1/2 -translate-x-1/2 z-[9997] hidden w-full max-w-2xl">
+        <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden max-h-[70vh] mx-4">
+            <!-- Search Filters -->
+            <div class="flex border-b border-[#dae7e6] dark:border-[#2a3d3b] bg-[#f0f5f4] dark:bg-[#1a3330]">
+                <button onclick="setSearchFilter('all')" id="searchFilterAll" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors search-filter-active">
+                    Tất cả
+                </button>
+                <button onclick="setSearchFilter('people')" id="searchFilterPeople" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Người dùng
+                </button>
+                <button onclick="setSearchFilter('posts')" id="searchFilterPosts" class="flex-1 px-4 py-3 text-sm font-semibold transition-colors text-[#5e8d89] hover:bg-white dark:hover:bg-[#152a28]">
+                    Bài viết
+                </button>
+            </div>
+            
+            <!-- Search Results Container -->
+            <div id="searchResultsContainer" class="overflow-y-auto max-h-[60vh]">
+                <div class="p-8 text-center text-[#5e8d89]">
+                    <span class="material-symbols-outlined text-4xl mb-2 opacity-50">search</span>
+                    <p class="text-sm">Nhập từ khóa để tìm kiếm</p>
+                </div>
             </div>
         </div>
     </div>
@@ -398,12 +436,15 @@
                     <a class="text-sm font-semibold hover:text-primary transition-colors" href="notifications.html">Thông báo</a>
                 </nav>
                 <!-- Search Bar -->
-                <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-md">
+                <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-md relative">
                     <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
                         <div class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
                             <span class="material-symbols-outlined text-xl">search</span>
                         </div>
-                        <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm..." value="" />
+                        <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm bài viết, bạn bè..." value="" />
+                        <button id="clearSearchBtn" onclick="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 hidden text-[#5e8d89] hover:text-[#101818] dark:hover:text-white p-1 rounded-full hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                            <span class="material-symbols-outlined text-lg">close</span>
+                        </button>
                     </div>
                 </label>
             </div>
@@ -558,6 +599,7 @@
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/search.js"></script>
     <script>
         // Notification System
         function showNotification(message, type = 'info') {
@@ -645,14 +687,19 @@
         document.addEventListener('click', (e) => {
             const accountDropdown = document.getElementById('accountNotificationsDropdown');
             const postDropdown = document.getElementById('postNotificationsDropdown');
+            const searchDropdown = document.getElementById('searchDropdown');
             const accountBtn = document.getElementById('accountNotifBtn');
             const postBtn = document.getElementById('postNotifBtn');
+            const searchInput = document.getElementById('searchInput');
             
             if (!accountDropdown.contains(e.target) && !accountBtn.contains(e.target)) {
                 closeAccountDropdown();
             }
             if (!postDropdown.contains(e.target) && !postBtn.contains(e.target)) {
                 closePostDropdown();
+            }
+            if (!searchDropdown.contains(e.target) && !searchInput.contains(e.target)) {
+                closeSearchDropdown();
             }
         });
 
@@ -1641,13 +1688,30 @@
             document.getElementById('totalImages').textContent = lightboxImages.length;
         }
         
-        // Keyboard navigation for lightbox
+        // Keyboard navigation for lightbox and search
         document.addEventListener('keydown', (e) => {
             const lightbox = document.getElementById('imageLightbox');
+            const searchDropdown = document.getElementById('searchDropdown');
+            
+            // Lightbox navigation
             if (!lightbox.classList.contains('hidden')) {
                 if (e.key === 'Escape') closeLightbox();
                 else if (e.key === 'ArrowLeft') previousImage();
                 else if (e.key === 'ArrowRight') nextImage();
+            }
+            
+            // Search dropdown navigation
+            if (!searchDropdown.classList.contains('hidden')) {
+                if (e.key === 'Escape') {
+                    closeSearchDropdown();
+                    document.getElementById('searchInput').blur();
+                }
+            }
+            
+            // Quick search shortcut (Ctrl/Cmd + K)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
             }
         });
         
@@ -1887,198 +1951,8 @@
             }
         }
 
-        // Search functionality
-        let searchTimeout = null;
-
-        function setupSearch() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                
-                // Clear previous timeout
-                if (searchTimeout) {
-                    clearTimeout(searchTimeout);
-                }
-                
-                // If search is empty, reload normal newsfeed
-                if (!query) {
-                    loadNewsfeed();
-                    return;
-                }
-                
-                // Debounce search (wait 500ms after user stops typing)
-                searchTimeout = setTimeout(() => {
-                    performSearch(query);
-                }, 500);
-            });
-        }
-
-        async function performSearch(query) {
-            try {
-                const token = localStorage.getItem('accessToken');
-                
-                // Search both posts and users in parallel
-                const [postsResponse, usersResponse] = await Promise.all([
-                    fetch(`http://127.0.0.1:5000/api/posts/search?q=${encodeURIComponent(query)}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }),
-                    fetch(`http://127.0.0.1:5000/api/users/search?q=${encodeURIComponent(query)}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    })
-                ]);
-                
-                const postsData = await postsResponse.json();
-                const usersData = await usersResponse.json();
-                
-                // Display search results
-                displaySearchResults(postsData, usersData, query);
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                showNotification('Lỗi khi tìm kiếm', 'error');
-            }
-        }
-
-        function displaySearchResults(postsData, usersData, query) {
-            const newsfeedContainer = document.getElementById('newsfeedContainer');
-            let html = '';
-            
-            // Display search header
-            html += `
-                <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
-                    <h2 class="text-xl font-bold text-[#101818] dark:text-white mb-2">Kết quả tìm kiếm: "${query}"</h2>
-                    <p class="text-[#5e8d89]">Tìm thấy ${postsData.total || 0} bài viết và ${usersData.total || 0} người dùng</p>
-                </div>
-            `;
-            
-            // Display users results
-            if (usersData.users && usersData.users.length > 0) {
-                html += `
-                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
-                        <h3 class="text-lg font-bold text-[#101818] dark:text-white mb-4">Người dùng</h3>
-                        <div class="space-y-3">
-                `;
-                
-                usersData.users.forEach(user => {
-                    const avatarUrl = user.avatar_url 
-                        ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`)
-                        : 'images/default-avatar.png';
-                    
-                    let friendButton = '';
-                    if (user.friendship_status === 'accepted') {
-                        friendButton = '<span class="text-sm text-green-600 dark:text-green-400">✓ Bạn bè</span>';
-                    } else if (user.friendship_status === 'pending' && user.is_requester) {
-                        friendButton = '<span class="text-sm text-gray-600 dark:text-gray-400">Đã gửi lời mời</span>';
-                    } else if (user.friendship_status === 'pending' && !user.is_requester) {
-                        friendButton = `<button onclick="respondToFriendRequest(${user.id}, 'accept')" class="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">Chấp nhận</button>`;
-                    } else {
-                        friendButton = `<button onclick="sendFriendRequest(${user.id})" class="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">Kết bạn</button>`;
-                    }
-                    
-                    html += `
-                        <div class="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1a3330] rounded-lg transition-colors">
-                            <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?id=${user.id}'">
-                                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12"
-                                    style='background-image: url("${avatarUrl}");'></div>
-                                <div>
-                                    <h4 class="font-semibold text-[#101818] dark:text-white">${user.full_name}</h4>
-                                    <p class="text-sm text-[#5e8d89]">${user.email}</p>
-                                </div>
-                            </div>
-                            ${friendButton}
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Display posts results
-            if (postsData.posts && postsData.posts.length > 0) {
-                html += `<div class="bg-white dark:bg-[#152a28] rounded-xl p-6 mb-4 shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
-                    <h3 class="text-lg font-bold text-[#101818] dark:text-white mb-4">Bài viết</h3>
-                </div>`;
-                
-                postsData.posts.forEach(post => {
-                    html += renderPost(post);
-                });
-            } else if (usersData.users && usersData.users.length === 0) {
-                html += `
-                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 text-center shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b]">
-                        <p class="text-[#5e8d89]">Không tìm thấy kết quả nào</p>
-                    </div>
-                `;
-            }
-            
-            newsfeedContainer.innerHTML = html;
-        }
-
-        async function sendFriendRequest(userId) {
-            try {
-                const token = localStorage.getItem('accessToken');
-                const response = await fetch(`http://127.0.0.1:5000/api/friends/request/${userId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showNotification('Đã gửi lời mời kết bạn', 'success');
-                    // Re-search to update UI
-                    const searchInput = document.getElementById('searchInput');
-                    if (searchInput.value.trim()) {
-                        performSearch(searchInput.value.trim());
-                    }
-                } else {
-                    showNotification(data.error || 'Không thể gửi lời mời kết bạn', 'error');
-                }
-            } catch (error) {
-                console.error('Error sending friend request:', error);
-                showNotification('Lỗi khi gửi lời mời kết bạn', 'error');
-            }
-        }
-
-        async function respondToFriendRequest(userId, action) {
-            try {
-                const token = localStorage.getItem('accessToken');
-                const endpoint = action === 'accept' ? 'accept' : 'reject';
-                
-                const response = await fetch(`http://127.0.0.1:5000/api/friends/request/${userId}/${endpoint}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showNotification(action === 'accept' ? 'Đã chấp nhận lời mời kết bạn' : 'Đã từ chối lời mời', 'success');
-                    // Re-search to update UI
-                    const searchInput = document.getElementById('searchInput');
-                    if (searchInput.value.trim()) {
-                        performSearch(searchInput.value.trim());
-                    }
-                } else {
-                    showNotification(data.error || 'Có lỗi xảy ra', 'error');
-                }
-            } catch (error) {
-                console.error('Error responding to friend request:', error);
-                showNotification('Lỗi khi phản hồi lời mời kết bạn', 'error');
-            }
-        }
+        // Initialize search functionality from search.js
+        setupSearch();
     </script>
 </body>
 
