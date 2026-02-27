@@ -156,6 +156,42 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-[9999] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl max-w-md w-full border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden modal-content-enter">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-red-500/10 to-red-500/5 p-6 border-b border-[#dae7e6] dark:border-[#2a3d3b]">
+                    <div class="flex items-center gap-3">
+                        <span id="confirmModalIcon" class="material-symbols-outlined text-3xl text-red-500">warning</span>
+                        <h3 id="confirmModalTitle" class="text-xl font-bold dark:text-white">Xác nhận</h3>
+                    </div>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-6">
+                    <p id="confirmModalMessage" class="text-[#5e8d89] dark:text-gray-300 leading-relaxed">
+                        Bạn có chắc chắn muốn thực hiện hành động này?
+                    </p>
+                </div>
+                
+                <!-- Footer -->
+                <div class="px-6 pb-6 flex gap-3">
+                    <button onclick="closeConfirmModal()" class="flex-1 px-6 py-3 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#5e8d89] rounded-lg font-bold text-sm hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                        Hủy
+                    </button>
+                    <button id="confirmModalButton" onclick="executeConfirmAction()" class="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 transition-colors shadow-md">
+                        Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Modal -->
     <div id="logoutModal" class="fixed inset-0 z-[9998] hidden">
         <!-- Backdrop -->
@@ -256,11 +292,8 @@
                             <span id="profileUsername">@user</span> • <span id="profileBio">Thành viên LC Network</span>
                         </p>
                     </div>
-                    <div class="pb-0 md:pb-2 flex gap-3">
-                        <button class="px-4 md:px-6 py-2 md:py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 text-sm" onclick="openEditModal()">
-                            <span class="material-symbols-outlined text-sm">edit</span>
-                            <span class="hidden sm:inline">Chỉnh sửa</span>
-                        </button>
+                    <div id="profileActionButtons" class="pb-0 md:pb-2 flex gap-3">
+                        <!-- Buttons will be dynamically rendered here -->
                     </div>
                 </div>
                 <div class="flex overflow-x-auto border-t border-slate-100 dark:border-slate-800 pt-1 -mx-4 md:mx-0 px-4 md:px-0">
@@ -436,6 +469,57 @@
             notification.classList.remove('notification-enter');
             notification.classList.add('notification-exit');
             setTimeout(() => notification.classList.add('hidden'), 300);
+        }
+
+        // Confirm Modal Functions
+        let confirmCallback = null;
+        
+        function showConfirmModal(options) {
+            confirmCallback = options.onConfirm || null;
+            
+            const modal = document.getElementById('confirmModal');
+            const icon = document.getElementById('confirmModalIcon');
+            const title = document.getElementById('confirmModalTitle');
+            const message = document.getElementById('confirmModalMessage');
+            const button = document.getElementById('confirmModalButton');
+            
+            // Set content
+            title.textContent = options.title || 'Xác nhận';
+            message.textContent = options.message || 'Bạn có chắc chắn muốn thực hiện hành động này?';
+            button.textContent = options.confirmText || 'Xác nhận';
+            
+            // Set icon and colors based on type
+            if (options.type === 'danger') {
+                icon.textContent = 'warning';
+                icon.className = 'material-symbols-outlined text-3xl text-red-500';
+                button.className = 'flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 transition-colors shadow-md';
+            } else if (options.type === 'warning') {
+                icon.textContent = 'info';
+                icon.className = 'material-symbols-outlined text-3xl text-yellow-500';
+                button.className = 'flex-1 px-6 py-3 bg-yellow-500 text-white rounded-lg font-bold text-sm hover:bg-yellow-600 transition-colors shadow-md';
+            } else {
+                icon.textContent = 'help';
+                icon.className = 'material-symbols-outlined text-3xl text-primary';
+                button.className = 'flex-1 px-6 py-3 bg-primary text-background-dark rounded-lg font-bold text-sm hover:opacity-90 transition-colors shadow-md';
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-enter');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            confirmCallback = null;
+        }
+        
+        function executeConfirmAction() {
+            if (confirmCallback && typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+            closeConfirmModal();
         }
 
         // Logout Modal Functions
@@ -639,6 +723,20 @@
             }
         }
 
+        // Initialize header with current logged-in user's info
+        function initHeader() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            console.log('[DEBUG] Initializing header for logged-in user:', user.username || 'unknown');
+            
+            // Set header avatar to current logged-in user
+            if (user.avatar_url) {
+                const avatarUrl = user.avatar_url.startsWith('http') 
+                    ? user.avatar_url 
+                    : `http://127.0.0.1:5000${user.avatar_url}`;
+                document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
+            }
+        }
+
         // Get user ID from URL or use current user
         function getProfileUserId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -708,14 +806,11 @@
                         if (user.avatar_url) {
                             const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
                             document.getElementById('profileAvatar').style.backgroundImage = `url('${avatarUrl}')`;
-                            document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
+                            // NOTE: Do NOT update headerAvatar here - it should always show the current logged-in user's avatar
                         }
                         
-                        // Hide edit button when viewing other user's profile
-                        const editBtn = document.querySelector('button[onclick="openEditModal()"]');
-                        if (editBtn) {
-                            editBtn.style.display = 'none';
-                        }
+                        // Load friendship status for this user
+                        await loadFriendshipStatus(profileUserId);
                     } else {
                         showNotification('Không thể tải thông tin người dùng', 'error');
                     }
@@ -726,8 +821,267 @@
             }
         }
 
+        // Friendship Management
+        async function loadFriendshipStatus(userId) {
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const buttonsContainer = document.getElementById('profileActionButtons');
+            
+            if (!userId) {
+                // My own profile - show edit button
+                console.log('[DEBUG] Loading own profile - showing edit button');
+                buttonsContainer.innerHTML = `
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 text-sm" onclick="openEditModal()">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        <span class="hidden sm:inline">Chỉnh sửa</span>
+                    </button>
+                `;
+                return;
+            }
+            
+            // Show loading state
+            buttonsContainer.innerHTML = `
+                <button class="px-4 md:px-6 py-2 md:py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-lg shadow-sm flex items-center gap-2 text-sm" disabled>
+                    <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                    <span class="hidden sm:inline">Đang tải...</span>
+                </button>
+            `;
+            
+            try {
+                console.log(`[DEBUG] Checking friendship status with user ${userId}`);
+                const response = await fetchWithAuth(`${API_URL}/friends/status/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const status = data.status;
+                    
+                    console.log(`[DEBUG] Friendship status loaded: ${status} for user ${userId}`);
+                    renderFriendshipButton(status, userId);
+                } else {
+                    console.error('[ERROR] Failed to load friendship status:', response.status);
+                    // Default to add friend button if status check fails
+                    renderFriendshipButton('none', userId);
+                }
+            } catch (error) {
+                console.error('[ERROR] Error loading friendship status:', error);
+                // Default to add friend button on error
+                renderFriendshipButton('none', userId);
+            }
+        }
+        
+        function renderFriendshipButton(status, userId) {
+            const buttonsContainer = document.getElementById('profileActionButtons');
+            
+            let buttonHtml = '';
+            
+            console.log(`[DEBUG] Rendering button for status: ${status}`);
+            
+            if (status === 'accepted') {
+                // Already friends - show unfriend button
+                buttonHtml = `
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 text-sm" onclick="unfriend(${userId})">
+                        <span class="material-symbols-outlined text-sm">person_remove</span>
+                        <span class="hidden sm:inline">Hủy kết bạn</span>
+                    </button>
+                `;
+            } else if (status === 'pending_sent') {
+                // Request sent, waiting for acceptance - show cancel button
+                buttonHtml = `
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 font-bold rounded-lg shadow-sm hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-all flex items-center gap-2 text-sm" onclick="cancelFriendRequest(${userId})">
+                        <span class="material-symbols-outlined text-sm">schedule</span>
+                        <span class="hidden sm:inline">Hủy lời mời</span>
+                    </button>
+                `;
+            } else if (status === 'pending_received') {
+                // Received request from this user - show accept/reject buttons
+                buttonHtml = `
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-green-500 text-white font-bold rounded-lg shadow-sm hover:bg-green-600 transition-all flex items-center gap-2 text-sm" onclick="acceptFriendRequest(${userId})">
+                        <span class="material-symbols-outlined text-sm">check</span>
+                        <span class="hidden sm:inline">Chấp nhận</span>
+                    </button>
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 text-sm" onclick="rejectFriendRequest(${userId})">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                        <span class="hidden sm:inline">Từ chối</span>
+                    </button>
+                `;
+            } else {
+                // Not friends - show add friend button
+                buttonHtml = `
+                    <button class="px-4 md:px-6 py-2 md:py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 text-sm" onclick="sendFriendRequest(${userId})">
+                        <span class="material-symbols-outlined text-sm">person_add</span>
+                        <span class="hidden sm:inline">Thêm bạn bè</span>
+                    </button>
+                `;
+            }
+            
+            buttonsContainer.innerHTML = buttonHtml;
+        }
+        
+        async function sendFriendRequest(userId) {
+            console.log(`[DEBUG] Sending friend request to user ${userId}`);
+            
+            // Disable button to prevent double-click
+            const button = event.target.closest('button');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> <span class="hidden sm:inline">Đang gửi...</span>';
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    console.log(`[DEBUG] Friend request sent successfully`);
+                    showNotification('Đã gửi lời mời kết bạn', 'success');
+                    await loadFriendshipStatus(userId);
+                } else {
+                    const error = await response.json();
+                    console.error(`[ERROR] Failed to send friend request:`, error);
+                    showNotification(error.error || 'Không thể gửi lời mời', 'error');
+                    // Re-enable button on error
+                    if (button) await loadFriendshipStatus(userId);
+                }
+            } catch (error) {
+                console.error('[ERROR] Error sending friend request:', error);
+                showNotification('Lỗi kết nối máy chủ', 'error');
+                // Re-enable button on error
+                if (button) await loadFriendshipStatus(userId);
+            }
+        }
+        
+        async function cancelFriendRequest(userId) {
+            console.log(`[DEBUG] Canceling friend request to user ${userId}`);
+            
+            // Disable button
+            const button = event.target.closest('button');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> <span class="hidden sm:inline">Đang hủy...</span>';
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    console.log(`[DEBUG] Friend request canceled successfully`);
+                    showNotification('Đã hủy lời mời kết bạn', 'success');
+                    await loadFriendshipStatus(userId);
+                } else {
+                    const error = await response.json();
+                    console.error(`[ERROR] Failed to cancel friend request:`, error);
+                    showNotification(error.error || 'Không thể hủy lời mời', 'error');
+                    if (button) await loadFriendshipStatus(userId);
+                }
+            } catch (error) {
+                console.error('[ERROR] Error canceling friend request:', error);
+                showNotification('Lỗi kết nối máy chủ', 'error');
+                if (button) await loadFriendshipStatus(userId);
+            }
+        }
+        
+        async function acceptFriendRequest(userId) {
+            console.log(`[DEBUG] Accepting friend request from user ${userId}`);
+            
+            // Disable buttons
+            const button = event.target.closest('button');
+            const buttonsContainer = document.getElementById('profileActionButtons');
+            if (buttonsContainer) {
+                buttonsContainer.querySelector('button').disabled = true;
+                buttonsContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/accept`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    console.log(`[DEBUG] Friend request accepted successfully`);
+                    showNotification('Đã chấp nhận lời mời kết bạn! 🎉', 'success');
+                    await loadFriendshipStatus(userId);
+                } else {
+                    const error = await response.json();
+                    console.error(`[ERROR] Failed to accept friend request:`, error);
+                    showNotification(error.error || 'Không thể chấp nhận lời mời', 'error');
+                    await loadFriendshipStatus(userId);
+                }
+            } catch (error) {
+                console.error('[ERROR] Error accepting friend request:', error);
+                showNotification('Lỗi kết nối máy chủ', 'error');
+                await loadFriendshipStatus(userId);
+            }
+        }
+        
+        async function rejectFriendRequest(userId) {
+            console.log(`[DEBUG] Rejecting friend request from user ${userId}`);
+            
+            showConfirmModal({
+                title: 'Từ chối lời mời',
+                message: 'Bạn có chắc chắn muốn từ chối lời mời kết bạn này?',
+                confirmText: 'Từ chối',
+                type: 'warning',
+                onConfirm: async () => {
+                    try {
+                        const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/reject`, {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            console.log(`[DEBUG] Friend request rejected successfully`);
+                            showNotification('Đã từ chối lời mời kết bạn', 'success');
+                            await loadFriendshipStatus(userId);
+                        } else {
+                            const error = await response.json();
+                            console.error(`[ERROR] Failed to reject friend request:`, error);
+                            showNotification(error.error || 'Không thể từ chối lời mời', 'error');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] Error rejecting friend request:', error);
+                        showNotification('Lỗi kết nối máy chủ', 'error');
+                    }
+                }
+            });
+        }
+        
+        async function unfriend(userId) {
+            console.log(`[DEBUG] Unfriending user ${userId}`);
+            
+            showConfirmModal({
+                title: 'Hủy kết bạn',
+                message: 'Bạn có chắc chắn muốn hủy kết bạn với người dùng này? Hành động này không thể hoàn tác.',
+                confirmText: 'Hủy kết bạn',
+                type: 'danger',
+                onConfirm: async () => {
+                    try {
+                        const response = await fetchWithAuth(`${API_URL}/friends/${userId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            console.log(`[DEBUG] Unfriended successfully`);
+                            showNotification('Đã hủy kết bạn', 'success');
+                            await loadFriendshipStatus(userId);
+                        } else {
+                            const error = await response.json();
+                            console.error(`[ERROR] Failed to unfriend:`, error);
+                            showNotification(error.error || 'Không thể hủy kết bạn', 'error');
+                        }
+                    } catch (error) {
+                        console.error('[ERROR] Error unfriending:', error);
+                        showNotification('Lỗi kết nối máy chủ', 'error');
+                    }
+                }
+            });
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
+            // Always initialize header with current logged-in user's info first
+            initHeader();
+            
             loadUserProfile();
             setupSearch();
             
@@ -738,6 +1092,8 @@
             } else {
                 // Load my posts
                 loadMyPosts();
+                // Show edit button for own profile
+                loadFriendshipStatus(null);
             }
         });
         
