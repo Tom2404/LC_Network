@@ -581,7 +581,15 @@
 
         // Time ago helper
         function getTimeAgo(dateString) {
-            const date = new Date(dateString);
+            // Parse date as UTC (server trả về UTC time)
+            let utcDateString = dateString;
+            if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('T')) {
+                utcDateString = dateString.replace(' ', 'T') + 'Z';
+            } else if (!dateString.endsWith('Z') && dateString.includes('T')) {
+                utcDateString = dateString + 'Z';
+            }
+            
+            const date = new Date(utcDateString);
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
             
