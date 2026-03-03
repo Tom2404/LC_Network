@@ -42,6 +42,26 @@ def get_notifications():
         for notif in notifications.items:
             notif_dict = notif.to_dict()
             
+            # Add actor info if actor_id exists
+            if notif.actor_id:
+                actor = User.query.get(notif.actor_id)
+                if actor:
+                    notif_dict['actor'] = {
+                        'id': actor.id,
+                        'full_name': actor.full_name,
+                        'avatar_url': actor.avatar_url
+                    }
+            # Fallback: For friend requests, try getting actor from related_id
+            elif notif.type in ['friend_request', 'friend_accept']:
+                if notif.related_type == 'user' and notif.related_id:
+                    actor = User.query.get(notif.related_id)
+                    if actor:
+                        notif_dict['actor'] = {
+                            'id': actor.id,
+                            'full_name': actor.full_name,
+                            'avatar_url': actor.avatar_url
+                        }
+            
             # For post-related notifications, add post_id for frontend navigation
             if notif.type in ['like', 'comment', 'reply', 'share']:
                 if notif.related_type == 'post':
@@ -131,7 +151,7 @@ def mark_all_as_read():
         return jsonify({'error': str(e)}), 500
 
 
-def create_notification(user_id, notification_type, title, message, related_id=None, related_type=None):
+def create_notification(user_id, notification_type, title, message, related_id=None, related_type=None, actor_id=None):
     """Helper function to create a notification"""
     try:
         notification = Notification(
@@ -140,7 +160,8 @@ def create_notification(user_id, notification_type, title, message, related_id=N
             title=title,
             message=message,
             related_id=related_id,
-            related_type=related_type
+            related_type=related_type,
+            actor_id=actor_id
         )
         db.session.add(notification)
         db.session.commit()

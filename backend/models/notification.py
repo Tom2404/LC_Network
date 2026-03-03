@@ -29,6 +29,7 @@ class Notification(db.Model):
     title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
     
+    actor_id = db.Column(db.BigInteger, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)  # Who triggered this notification
     related_id = db.Column(db.BigInteger)  # post_id, user_id, etc.
     related_type = db.Column(db.String(50))
     

@@ -4,6 +4,7 @@ from datetime import datetime
 from models import db
 from models.friendship import Friendship
 from models.user import User
+from controllers.notification_controller import create_notification
 
 friend_bp = Blueprint('friend', __name__)
 
@@ -65,6 +66,19 @@ def send_friend_request(friend_id):
         db.session.add(friendship2)
         db.session.commit()
         
+        # Create notification for the recipient
+        current_user = User.query.get(current_user_id)
+        if current_user:
+            create_notification(
+                user_id=friend_id,
+                notification_type='friend_request',
+                title='Lời mời kết bạn mới',
+                message=f'{current_user.full_name} đã gửi lời mời kết bạn cho bạn',
+                related_id=current_user_id,
+                related_type='user',
+                actor_id=current_user_id
+            )
+        
         print(f"[DEBUG] Friend request created successfully: {current_user_id} -> {friend_id}")
         return jsonify({'message': 'Friend request sent successfully'}), 201
         
@@ -111,6 +125,19 @@ def accept_friend_request(other_user_id):
         friendship2.updated_at = datetime.utcnow()
         
         db.session.commit()
+        
+        # Create notification for the requester (the person who sent the request)
+        current_user = User.query.get(current_user_id)
+        if current_user:
+            create_notification(
+                user_id=other_user_id,
+                notification_type='friend_accept',
+                title='Đã chấp nhận lời mời kết bạn',
+                message=f'{current_user.full_name} đã chấp nhận lời mời kết bạn của bạn',
+                related_id=current_user_id,
+                related_type='user',
+                actor_id=current_user_id
+            )
         
         print(f"[DEBUG] Friend request accepted: {other_user_id} <-> {current_user_id}")
         return jsonify({'message': 'Friend request accepted'}), 200

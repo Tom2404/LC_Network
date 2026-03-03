@@ -111,6 +111,36 @@
             background: #152a28;
             color: #38a89d;
         }
+
+        /* Notification List Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-item {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        /* Pulse animation for unread notifications */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .unread-indicator {
+            animation: pulse 2s ease-in-out infinite;
+        }
     </style>
 </head>
 
@@ -317,6 +347,9 @@
             logout();
         }
 
+        // Track current tab for auto-refresh
+        let currentTab = 'account';
+
         // Tab switching
         function switchTab(tab) {
             // Reset all tabs
@@ -331,6 +364,9 @@
             const activeTab = document.getElementById(activeTabId);
             activeTab.classList.remove('text-slate-400', 'border-transparent');
             activeTab.classList.add('text-primary', 'border-primary');
+            
+            // Update current tab
+            currentTab = tab;
             
             loadNotifications(tab);
         }
@@ -387,6 +423,9 @@
             const div = document.createElement('div');
             const isUnread = !notif.is_read;
             
+            // Add animation class
+            div.classList.add('notification-item');
+            
             // Get icon and color based on type
             let icon = 'notifications';
             let iconColor = 'text-primary';
@@ -412,8 +451,13 @@
                         iconColor = 'text-red-600';
                         break;
                     case 'account_warning':
+                    case 'violation_warning':
                         icon = 'warning';
                         iconColor = 'text-yellow-500';
+                        break;
+                    case 'appeal_result':
+                        icon = 'mail';
+                        iconColor = 'text-blue-500';
                         break;
                     default:
                         icon = 'mail';
@@ -433,7 +477,7 @@
                         break;
                     case 'reply':
                         icon = 'reply';
-                        iconColor = 'text-blue-400';
+                        iconColor = 'text-sky-500';
                         break;
                     case 'share':
                         icon = 'share';
@@ -447,6 +491,9 @@
                         icon = 'group';
                         iconColor = 'text-green-500';
                         break;
+                    default:
+                        icon = 'notifications';
+                        iconColor = 'text-primary';
                 }
             }
             
@@ -461,16 +508,17 @@
             
             div.innerHTML = `
                 <div class="relative flex-shrink-0">
-                    <div class="w-12 h-12 rounded-full bg-cover bg-center" style="background-image: url('${actorAvatar}')"></div>
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center">
+                    <div class="w-12 h-12 rounded-full bg-cover bg-center border-2 border-slate-200 dark:border-slate-700" style="background-image: url('${actorAvatar}')"></div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
                         <span class="material-symbols-outlined text-sm ${iconColor}">${icon}</span>
                     </div>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm dark:text-white ${isUnread ? 'font-bold' : ''}">${notif.message}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${timeAgo}</p>
+                    <p class="text-sm dark:text-white font-semibold mb-1 ${isUnread ? 'text-slate-900' : 'text-slate-700'}">${notif.title || 'Thông báo'}</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mb-1">${notif.message}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-500">${timeAgo}</p>
                 </div>
-                ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>' : ''}
+                ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0 unread-indicator"></div>' : ''}
             `;
             
             return div;
@@ -570,6 +618,11 @@
             // Load account notifications by default
             loadNotifications('account');
             setupSearch();
+            
+            // Auto-refresh notifications every 15 seconds
+            setInterval(() => {
+                loadNotifications(currentTab);
+            }, 15000);
         });
     </script>
 </body>

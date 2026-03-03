@@ -429,7 +429,8 @@ def toggle_like(post_id):
                         title='Lượt thích mới',
                         message=f'{liker.full_name} đã thích bài viết của bạn',
                         related_id=post_id,  # Post ID for navigation
-                        related_type='post'
+                        related_type='post',
+                        actor_id=current_user_id
                     )
         
         db.session.commit()
