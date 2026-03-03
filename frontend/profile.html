@@ -723,6 +723,185 @@
             }
         }
 
+        // Render Profile Action Buttons
+        function renderProfileActionButtons(friendshipStatus, isRequester, userId) {
+            const container = document.getElementById('profileActionButtons');
+            container.innerHTML = '';
+            
+            if (friendshipStatus === 'self' || !userId) {
+                // Show Edit Profile button for own profile
+                container.innerHTML = `
+                    <button onclick="openEditModal()" class="px-6 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Chỉnh sửa trang cá nhân
+                    </button>
+                `;
+            } else if (friendshipStatus === null) {
+                // No friendship - show Add Friend button
+                container.innerHTML = `
+                    <button onclick="sendFriendRequest(${userId})" class="px-6 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">person_add</span>
+                        Thêm bạn bè
+                    </button>
+                `;
+            } else if (friendshipStatus === 'pending') {
+                if (isRequester) {
+                    // Current user sent the request - show Cancel button
+                    container.innerHTML = `
+                        <button onclick="cancelFriendRequest(${userId})" class="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">person_remove</span>
+                            Hủy lời mời
+                        </button>
+                    `;
+                } else {
+                    // Current user received the request - show Accept/Reject buttons
+                    container.innerHTML = `
+                        <button onclick="acceptFriendRequest(${userId})" class="px-6 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">check</span>
+                            Chấp nhận
+                        </button>
+                        <button onclick="rejectFriendRequest(${userId})" class="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                            Từ chối
+                        </button>
+                    `;
+                }
+            } else if (friendshipStatus === 'accepted') {
+                // Already friends - show Unfriend button
+                container.innerHTML = `
+                    <button onclick="unfriend(${userId})" class="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg shadow-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">person_remove</span>
+                        Hủy kết bạn
+                    </button>
+                `;
+            }
+        }
+        
+        // Send Friend Request
+        async function sendFriendRequest(userId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã gửi lời mời kết bạn', 'success');
+                    // Reload profile to update buttons
+                    loadUserProfile();
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Không thể gửi lời mời kết bạn', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showNotification('Lỗi khi gửi lời mời', 'error');
+            }
+        }
+        
+        // Cancel Friend Request
+        async function cancelFriendRequest(userId) {
+            showConfirmModal({
+                title: 'Hủy lời mời',
+                message: 'Bạn có chắc chắn muốn hủy lời mời kết bạn này?',
+                confirmText: 'Hủy lời mời',
+                type: 'warning',
+                onConfirm: async () => {
+                    try {
+                        const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/reject`, {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            showNotification('Đã hủy lời mời', 'success');
+                            loadUserProfile();
+                        } else {
+                            const error = await response.json();
+                            showNotification(error.error || 'Không thể hủy lời mời', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling friend request:', error);
+                        showNotification('Lỗi khi hủy lời mời', 'error');
+                    }
+                }
+            });
+        }
+        
+        // Accept Friend Request
+        async function acceptFriendRequest(userId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/accept`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã chấp nhận lời mời kết bạn', 'success');
+                    loadUserProfile();
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Không thể chấp nhận lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showNotification('Lỗi khi chấp nhận lời mời', 'error');
+            }
+        }
+        
+        // Reject Friend Request
+        async function rejectFriendRequest(userId) {
+            showConfirmModal({
+                title: 'Từ chối lời mời',
+                message: 'Bạn có chắc chắn muốn từ chối lời mời kết bạn này?',
+                confirmText: 'Từ chối',
+                type: 'warning',
+                onConfirm: async () => {
+                    try {
+                        const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/reject`, {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            showNotification('Đã từ chối lời mời', 'success');
+                            loadUserProfile();
+                        } else {
+                            const error = await response.json();
+                            showNotification(error.error || 'Không thể từ chối lời mời', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error rejecting friend request:', error);
+                        showNotification('Lỗi khi từ chối lời mời', 'error');
+                    }
+                }
+            });
+        }
+        
+        // Unfriend
+        async function unfriend(userId) {
+            showConfirmModal({
+                title: 'Hủy kết bạn',
+                message: 'Bạn có chắc chắn muốn hủy kết bạn với người này?',
+                confirmText: 'Hủy kết bạn',
+                type: 'danger',
+                onConfirm: async () => {
+                    try {
+                        const response = await fetchWithAuth(`${API_URL}/friends/${userId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            showNotification('Đã hủy kết bạn', 'success');
+                            loadUserProfile();
+                        } else {
+                            const error = await response.json();
+                            showNotification(error.error || 'Không thể hủy kết bạn', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error unfriending:', error);
+                        showNotification('Lỗi khi hủy kết bạn', 'error');
+                    }
+                }
+            });
+        }
+
         // Initialize header with current logged-in user's info
         function initHeader() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -776,6 +955,9 @@
                     document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
                     document.getElementById('previewAvatar').src = avatarUrl;
                 }
+                
+                // Show edit button for own profile
+                renderProfileActionButtons('self', false, null);
             } else {
                 // Load other user's profile
                 try {
@@ -809,8 +991,8 @@
                             // NOTE: Do NOT update headerAvatar here - it should always show the current logged-in user's avatar
                         }
                         
-                        // Load friendship status for this user
-                        await loadFriendshipStatus(profileUserId);
+                        // Render action buttons based on friendship status
+                        renderProfileActionButtons(user.friendship_status, user.is_requester, profileUserId);
                     } else {
                         showNotification('Không thể tải thông tin người dùng', 'error');
                     }
@@ -836,8 +1018,6 @@
             } else {
                 // Load my posts
                 loadMyPosts();
-                // Show edit button for own profile
-                loadFriendshipStatus(null);
             }
         });
         
