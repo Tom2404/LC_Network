@@ -265,16 +265,16 @@
 
         <!-- Tabs -->
         <div class="flex gap-4 border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto">
-            <button onclick="switchTab('account')" id="tabAccount" class="px-6 py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap flex items-center gap-2">
+            <button onclick="switchTab('all')" id="tabAll" class="px-6 py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">
+                Tất cả
+            </button>
+            <button onclick="switchTab('account')" id="tabAccount" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap flex items-center gap-2">
                 <span class="material-symbols-outlined text-lg">mail</span>
                 Tài khoản
             </button>
             <button onclick="switchTab('post')" id="tabPost" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap flex items-center gap-2">
                 <span class="material-symbols-outlined text-lg">notifications</span>
                 Bài viết
-            </button>
-            <button onclick="switchTab('all')" id="tabAll" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">
-                Tất cả
             </button>
         </div>
 
@@ -348,7 +348,7 @@
         }
 
         // Track current tab for auto-refresh
-        let currentTab = 'account';
+        let currentTab = 'all';
 
         // Tab switching
         function switchTab(tab) {
@@ -497,14 +497,20 @@
                 }
             }
             
+            // Fix avatar URL construction
+            const baseURL = API_URL.replace('/api', '');
             const actorAvatar = notif.actor?.avatar_url 
-                ? `http://127.0.0.1:5000${notif.actor.avatar_url}` 
+                ? (notif.actor.avatar_url.startsWith('http') ? notif.actor.avatar_url : baseURL + notif.actor.avatar_url)
                 : 'images/default-avatar.png';
             
             const timeAgo = getTimeAgo(notif.created_at);
             
-            div.className = `flex gap-4 p-4 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${isUnread ? 'bg-primary/5' : ''}`;
-            div.onclick = () => markAsRead(notif.id);
+            div.className = `flex gap-4 p-4 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${notif.type === 'friend_request' ? '' : 'cursor-pointer'} ${isUnread ? 'bg-primary/5' : ''}`;
+            
+            // Only add click handler if not friend_request
+            if (notif.type !== 'friend_request') {
+                div.onclick = () => markAsRead(notif.id);
+            }
             
             div.innerHTML = `
                 <div class="relative flex-shrink-0">
@@ -517,6 +523,16 @@
                     <p class="text-sm dark:text-white font-semibold mb-1 ${isUnread ? 'text-slate-900' : 'text-slate-700'}">${notif.title || 'Thông báo'}</p>
                     <p class="text-xs text-slate-600 dark:text-slate-400 mb-1">${notif.message}</p>
                     <p class="text-xs text-slate-500 dark:text-slate-500">${timeAgo}</p>
+                    ${notif.type === 'friend_request' && notif.actor ? `
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="acceptFriendRequest(${notif.actor.id}, ${notif.id}); event.stopPropagation();" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-semibold text-xs hover:bg-primary/90 transition-colors">
+                                Chấp nhận
+                            </button>
+                            <button onclick="rejectFriendRequest(${notif.actor.id}, ${notif.id}); event.stopPropagation();" class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-semibold text-xs hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                Từ chối
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
                 ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0 unread-indicator"></div>' : ''}
             `;
@@ -614,6 +630,48 @@
             }
         }
 
+        // Accept friend request
+        async function acceptFriendRequest(userId, notificationId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/accept/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã chấp nhận lời mời kết bạn', 'success');
+                    // Mark notification as read
+                    await markAsRead(notificationId);
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể chấp nhận lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
+        // Reject friend request
+        async function rejectFriendRequest(userId, notificationId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/reject/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã từ chối lời mời kết bạn', 'success');
+                    // Mark notification as read
+                    await markAsRead(notificationId);
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể từ chối lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -621,8 +679,8 @@
                 const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
                 document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
             }
-            // Load account notifications by default
-            loadNotifications('account');
+            // Load all notifications by default
+            loadNotifications('all');
             setupSearch();
             
             // Auto-refresh notifications every 15 seconds

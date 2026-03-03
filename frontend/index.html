@@ -1853,6 +1853,8 @@
             
             if (notif.category === 'account') {
                 switch(notif.type) {
+                    case 'friend_request': icon = 'person_add'; iconColor = 'text-purple-500'; break;
+                    case 'friend_accept': icon = 'group'; iconColor = 'text-green-500'; break;
                     case 'post_approved': icon = 'check_circle'; iconColor = 'text-green-500'; break;
                     case 'post_rejected': icon = 'block'; iconColor = 'text-red-500'; break;
                     case 'post_flagged': icon = 'flag'; iconColor = 'text-orange-500'; break;
@@ -1868,10 +1870,14 @@
                     case 'comment': icon = 'chat_bubble'; iconColor = 'text-blue-500'; break;
                     case 'reply': icon = 'reply'; iconColor = 'text-sky-500'; break;
                     case 'share': icon = 'share'; iconColor = 'text-green-500'; break;
-                    case 'friend_request': icon = 'person_add'; iconColor = 'text-purple-500'; break;
-                    case 'friend_accept': icon = 'group'; iconColor = 'text-green-500'; break;
                 }
             }
+            
+            // Fix avatar URL construction
+            const baseURL = API_URL.replace('/api', '');
+            const actorAvatar = notif.actor?.avatar_url 
+                ? (notif.actor.avatar_url.startsWith('http') ? notif.actor.avatar_url : baseURL + notif.actor.avatar_url)
+                : 'images/default-avatar.png';
             
             const timeAgo = getTimeAgo(notif.created_at);
             const unreadClass = notif.is_read ? 'bg-white dark:bg-[#152a28]' : 'bg-[#f0f5f4] dark:bg-[#1a3330]';
@@ -1879,14 +1885,32 @@
             // Encode notification data for onclick
             const notifData = encodeURIComponent(JSON.stringify(notif));
             
+            // Don't add onclick for friend_request (buttons will handle it)
+            const clickHandler = notif.type === 'friend_request' ? '' : `onclick="handleNotificationClick('${notifData}', '${notif.category}')"`;
+            
             return `
-                <div class="${unreadClass} p-3 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] cursor-pointer transition-colors" onclick="handleNotificationClick('${notifData}', '${notif.category}')">
+                <div class="${unreadClass} p-3 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] transition-colors ${notif.type === 'friend_request' ? '' : 'cursor-pointer'}" ${clickHandler}>
                     <div class="flex gap-3">
-                        <span class="material-symbols-outlined ${iconColor} text-2xl shrink-0">${icon}</span>
+                        <div class="relative flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-slate-200 dark:border-slate-700" style="background-image: url('${actorAvatar}')"></div>
+                            <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+                                <span class="material-symbols-outlined text-xs ${iconColor}">${icon}</span>
+                            </div>
+                        </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm dark:text-white font-semibold mb-1">${notif.title || 'Thông báo'}</p>
                             <p class="text-xs text-[#5e8d89] dark:text-gray-400 line-clamp-2">${notif.message}</p>
                             <p class="text-xs text-[#5e8d89] dark:text-gray-500 mt-1">${timeAgo}</p>
+                            ${notif.type === 'friend_request' && notif.actor ? `
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="acceptFriendRequestDropdown(${notif.actor.id}, ${notif.id}, '${notif.category}'); event.stopPropagation();" class="flex-1 px-3 py-1.5 bg-primary text-white rounded-lg font-semibold text-xs hover:bg-primary/90 transition-colors">
+                                        Chấp nhận
+                                    </button>
+                                    <button onclick="rejectFriendRequestDropdown(${notif.actor.id}, ${notif.id}, '${notif.category}'); event.stopPropagation();" class="flex-1 px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-semibold text-xs hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                        Từ chối
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                         ${!notif.is_read ? '<div class="w-2 h-2 bg-primary rounded-full shrink-0 mt-1"></div>' : ''}
                     </div>
@@ -1924,6 +1948,50 @@
             } catch (error) {
                 console.error('Error handling notification click:', error);
                 showNotification('Không thể thực hiện thao tác', 'error');
+            }
+        }
+
+        // Accept friend request from dropdown
+        async function acceptFriendRequestDropdown(userId, notificationId, category) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/accept/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã chấp nhận lời mời kết bạn', 'success');
+                    // Reload dropdown and update counts
+                    await loadDropdownNotifications(category);
+                    await loadNotificationCounts();
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể chấp nhận lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
+        // Reject friend request from dropdown
+        async function rejectFriendRequestDropdown(userId, notificationId, category) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/reject/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã từ chối lời mời kết bạn', 'success');
+                    // Reload dropdown and update counts
+                    await loadDropdownNotifications(category);
+                    await loadNotificationCounts();
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể từ chối lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
             }
         }
 
