@@ -174,9 +174,14 @@ function displaySearchResults(postsData, usersData, query) {
         // Show maximum 5 users in dropdown
         const displayUsers = usersData.users.slice(0, 5);
         displayUsers.forEach(user => {
+            // Get base URL without /api suffix for avatar
+            const baseURL = API_URL.replace('/api', '');
             const avatarUrl = user.avatar_url 
-                ? (user.avatar_url.startsWith('http') ? user.avatar_url : `${API_URL}${user.avatar_url}`)
+                ? (user.avatar_url.startsWith('http') ? user.avatar_url : `${baseURL}${user.avatar_url}`)
                 : 'images/default-avatar.png';
+            
+            // Display username or fallback to email if available
+            const displayEmail = user.username ? `@${user.username}` : (user.email || '');
             
             let friendButton = '';
             if (user.friendship_status === 'accepted') {
@@ -195,7 +200,7 @@ function displaySearchResults(postsData, usersData, query) {
                         style='background-image: url("${avatarUrl}");'></div>
                     <div class="flex-1 min-w-0">
                         <h4 class="font-semibold text-sm text-[#101818] dark:text-white truncate">${user.full_name}</h4>
-                        <p class="text-xs text-[#5e8d89] truncate">${user.email}</p>
+                        <p class="text-xs text-[#5e8d89] truncate">${displayEmail}</p>
                     </div>
                     <div onclick="event.stopPropagation()">
                         ${friendButton}
@@ -224,7 +229,11 @@ function displaySearchResults(postsData, usersData, query) {
         // Show maximum 5 posts in dropdown
         const displayPosts = postsData.posts.slice(0, 5);
         displayPosts.forEach(post => {
-            const authorAvatar = post.author?.avatar_url ? `${API_URL}${post.author.avatar_url}` : 'images/default-avatar.png';
+            // Get base URL without /api suffix for avatar
+            const baseURL = API_URL.replace('/api', '');
+            const authorAvatar = post.author?.avatar_url 
+                ? (post.author.avatar_url.startsWith('http') ? post.author.avatar_url : `${baseURL}${post.author.avatar_url}`)
+                : 'images/default-avatar.png';
             const timeAgo = getTimeAgo ? getTimeAgo(post.created_at) : 'Vừa xong';
             const caption = post.caption || '';
             const truncatedCaption = caption.length > 80 ? caption.substring(0, 80) + '...' : caption;

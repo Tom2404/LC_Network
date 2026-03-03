@@ -245,8 +245,9 @@
             <button onclick="switchTab('all')" id="tabAll" class="px-6 py-3 text-sm font-bold text-primary border-b-2 border-primary whitespace-nowrap">
                 Tất cả bạn bè
             </button>
-            <button onclick="switchTab('requests')" id="tabRequests" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">
+            <button onclick="switchTab('requests')" id="tabRequests" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap flex items-center gap-2">
                 Lời mời kết bạn
+                <span id="requestsBadge" class="hidden px-2 py-0.5 bg-red-500 text-white text-xs rounded-full"></span>
             </button>
             <button onclick="switchTab('suggestions')" id="tabSuggestions" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-b-2 border-transparent whitespace-nowrap">
                 Gợi ý kết bạn
@@ -362,22 +363,25 @@
             document.getElementById('tabSuggestions').classList.remove('text-primary', 'border-primary');
             document.getElementById('tabSuggestions').classList.add('text-slate-400', 'border-transparent');
             
-            // Show selected tab
+            // Show selected tab and load data
             if (tab === 'all') {
                 document.getElementById('allFriends').classList.remove('hidden');
                 document.getElementById('allFriends').classList.add('grid');
                 document.getElementById('tabAll').classList.remove('text-slate-400', 'border-transparent');
                 document.getElementById('tabAll').classList.add('text-primary', 'border-primary');
+                loadFriends();
             } else if (tab === 'requests') {
                 document.getElementById('friendRequests').classList.remove('hidden');
                 document.getElementById('friendRequests').classList.add('grid');
                 document.getElementById('tabRequests').classList.remove('text-slate-400', 'border-transparent');
                 document.getElementById('tabRequests').classList.add('text-primary', 'border-primary');
+                loadFriendRequests();
             } else if (tab === 'suggestions') {
                 document.getElementById('friendSuggestions').classList.remove('hidden');
                 document.getElementById('friendSuggestions').classList.add('grid');
                 document.getElementById('tabSuggestions').classList.remove('text-slate-400', 'border-transparent');
                 document.getElementById('tabSuggestions').classList.add('text-primary', 'border-primary');
+                loadFriendSuggestions();
             }
         }
 
@@ -388,12 +392,294 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Friends loaded:', data);
-                    // TODO: Render friends when API is ready
+                    renderFriends(data.friends);
                 } else {
                     console.error('Failed to load friends');
+                    document.getElementById('allFriends').innerHTML = `
+                        <div class="text-center py-12 text-red-500 col-span-full">
+                            <span class="material-symbols-outlined text-6xl mb-3">error</span>
+                            <p>Không thể tải danh sách bạn bè</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading friends:', error);
+            }
+        }
+
+        // Render friends list
+        function renderFriends(friends) {
+            const container = document.getElementById('allFriends');
+            
+            if (!friends || friends.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 col-span-full">
+                        <span class="material-symbols-outlined text-6xl mb-3">group</span>
+                        <p>Bạn chưa có bạn bè nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = friends.map(friend => {
+                const avatarUrl = friend.avatar_url 
+                    ? (friend.avatar_url.startsWith('http') ? friend.avatar_url : `http://127.0.0.1:5000${friend.avatar_url}`)
+                    : 'images/default-avatar.png';
+                
+                return `
+                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 border-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-24 h-24 rounded-full bg-cover bg-center mb-4 border-4 border-primary" style="background-image: url('${avatarUrl}')"></div>
+                            <h3 class="font-bold text-lg mb-1 dark:text-white">${friend.full_name}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">@${friend.username || friend.email.split('@')[0]}</p>
+                            <div class="flex gap-2 w-full">
+                                <a href="profile.html?id=${friend.id}" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors text-center">
+                                    Xem trang cá nhân
+                                </a>
+                                <button onclick="unfriend(${friend.id}, '${friend.full_name}')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                                    <span class="material-symbols-outlined text-xl">person_remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load friend requests
+        async function loadFriendRequests() {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/requests`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Friend requests loaded:', data);
+                    renderFriendRequests(data.requests);
+                } else {
+                    console.error('Failed to load friend requests');
+                }
+            } catch (error) {
+                console.error('Error loading friend requests:', error);
+            }
+        }
+
+        // Render friend requests
+        function renderFriendRequests(requests) {
+            const container = document.getElementById('friendRequests');
+            const badge = document.getElementById('requestsBadge');
+            
+            // Update badge
+            if (requests && requests.length > 0) {
+                badge.textContent = requests.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+            
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 col-span-full">
+                        <span class="material-symbols-outlined text-6xl mb-3">person_add</span>
+                        <p>Chưa có lời mời kết bạn nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = requests.map(request => {
+                const friend = request.user;
+                const avatarUrl = friend.avatar_url 
+                    ? (friend.avatar_url.startsWith('http') ? friend.avatar_url : `http://127.0.0.1:5000${friend.avatar_url}`)
+                    : 'images/default-avatar.png';
+                
+                const timeAgo = getTimeAgo(request.created_at);
+                
+                return `
+                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 border-2 border-slate-200 dark:border-slate-700">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-24 h-24 rounded-full bg-cover bg-center mb-4 border-4 border-purple-500" style="background-image: url('${avatarUrl}')"></div>
+                            <h3 class="font-bold text-lg mb-1 dark:text-white">${friend.full_name}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">@${friend.username || friend.email.split('@')[0]}</p>
+                            <p class="text-xs text-slate-400 mb-4">${timeAgo}</p>
+                            <div class="flex gap-2 w-full">
+                                <button onclick="acceptFriendRequest(${friend.id}, '${friend.full_name}')" class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm hover:bg-green-600 transition-colors">
+                                    Chấp nhận
+                                </button>
+                                <button onclick="rejectFriendRequest(${friend.id})" class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                                    Từ chối
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load friend suggestions
+        async function loadFriendSuggestions() {
+            try {
+                // Search with a common letter to get random users
+                const queries = ['a', 'n', 't', 'h', 'm'];
+                const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+                
+                const response = await fetchWithAuth(`${API_URL}/users/search?q=${randomQuery}&per_page=12`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Friend suggestions loaded:', data);
+                    // Filter out friends and pending requests
+                    const suggestions = data.users.filter(user => 
+                        user.friendship_status === null
+                    );
+                    renderFriendSuggestions(suggestions);
+                } else {
+                    console.error('Failed to load friend suggestions');
+                    document.getElementById('friendSuggestions').innerHTML = `
+                        <div class="text-center py-12 text-slate-400 col-span-full">
+                            <span class="material-symbols-outlined text-6xl mb-3">recommend</span>
+                            <p>Không thể tải gợi ý kết bạn</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading friend suggestions:', error);
+            }
+        }
+
+        // Render friend suggestions
+        function renderFriendSuggestions(suggestions) {
+            const container = document.getElementById('friendSuggestions');
+            
+            if (!suggestions || suggestions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 col-span-full">
+                        <span class="material-symbols-outlined text-6xl mb-3">recommend</span>
+                        <p>Chưa có gợi ý kết bạn</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = suggestions.map(user => {
+                const avatarUrl = user.avatar_url 
+                    ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`)
+                    : 'images/default-avatar.png';
+                
+                return `
+                    <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 border-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-24 h-24 rounded-full bg-cover bg-center mb-4 border-4 border-slate-200 dark:border-slate-600" style="background-image: url('${avatarUrl}')"></div>
+                            <h3 class="font-bold text-lg mb-1 dark:text-white">${user.full_name}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">@${user.username || user.email.split('@')[0]}</p>
+                            <button onclick="sendFriendRequest(${user.id}, '${user.full_name}')" class="w-full px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-lg">person_add</span>
+                                Kết bạn
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Time ago helper
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'Vừa xong';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} phút trước`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} giờ trước`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days} ngày trước`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `${months} tháng trước`;
+            const years = Math.floor(days / 365);
+            return `${years} năm trước`;
+        }
+
+        // Send friend request
+        async function sendFriendRequest(userId, userName) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification(`Đã gửi lời mời kết bạn đến ${userName}`, 'success');
+                    loadFriendSuggestions(); // Reload suggestions
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể gửi lời mời kết bạn', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
+        // Accept friend request
+        async function acceptFriendRequest(userId, userName) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/accept`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification(`Đã chấp nhận lời mời kết bạn từ ${userName}`, 'success');
+                    loadFriendRequests(); // Reload requests
+                    loadFriends(); // Reload friends list
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể chấp nhận lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error accepting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
+        // Reject friend request
+        async function rejectFriendRequest(userId) {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/reject`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã từ chối lời mời kết bạn', 'success');
+                    loadFriendRequests(); // Reload requests
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể từ chối lời mời', 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting friend request:', error);
+                showNotification('Lỗi kết nối', 'error');
+            }
+        }
+
+        // Unfriend
+        async function unfriend(userId, userName) {
+            if (!confirm(`Bạn có chắc muốn hủy kết bạn với ${userName}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/friends/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showNotification(`Đã hủy kết bạn với ${userName}`, 'success');
+                    loadFriends(); // Reload friends list
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Không thể hủy kết bạn', 'error');
+                }
+            } catch (error) {
+                console.error('Error unfriending:', error);
+                showNotification('Lỗi kết nối', 'error');
             }
         }
 
@@ -401,9 +687,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.avatar_url) {
-                document.getElementById('headerAvatar').style.backgroundImage = `url('${user.avatar_url}')`;
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
             }
+            
+            // Load initial data
             loadFriends();
+            loadFriendRequests(); // Load requests to update badge
             setupSearch();
         });
     </script>
