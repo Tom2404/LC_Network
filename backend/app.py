@@ -1,5 +1,6 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
+from flask_session import Session
 import os
 
 from config import config
@@ -12,6 +13,7 @@ from controllers.comment_controller import comment_bp
 from controllers.friend_controller import friend_bp
 from controllers.moderation_controller import moderation_bp
 from controllers.notification_controller import notification_bp
+from controllers.admin_controller import admin_auth_bp
 
 def create_app(config_name='development'):
     """Application factory"""
@@ -32,7 +34,8 @@ def create_app(config_name='development'):
     bcrypt.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-    CORS(app, origins=[app.config.get('FRONTEND_URL', '*')])
+    Session(app)  # Initialize server-side session
+    CORS(app, origins=[app.config.get('FRONTEND_URL', '*')], supports_credentials=True)
     
     # Create tables
     with app.app_context():
@@ -67,6 +70,7 @@ def create_app(config_name='development'):
     app.register_blueprint(friend_bp, url_prefix='/api/friends')
     app.register_blueprint(moderation_bp, url_prefix='/api/moderation')
     app.register_blueprint(notification_bp, url_prefix='/api/notifications')
+    app.register_blueprint(admin_auth_bp)  # Admin authentication routes
     
     # Health check endpoint
     @app.route('/api/health')
@@ -116,9 +120,21 @@ def create_app(config_name='development'):
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'notifications.html')
     
+    @app.route('/admin/login')
+    @app.route('/admin/login.html')
+    def admin_login_page():
+        # If already logged in, redirect to admin dashboard
+        if 'admin_user_id' in session:
+            return redirect('/admin/')
+        admin_dir = os.path.join(frontend_dir, 'admin')
+        return send_from_directory(admin_dir, 'login.html')
+    
     @app.route('/admin')
     @app.route('/admin/')
     def admin_page():
+        # Check if admin is authenticated
+        if 'admin_user_id' not in session:
+            return redirect('/admin/login')
         admin_dir = os.path.join(frontend_dir, 'admin')
         return send_from_directory(admin_dir, 'index.html')
     

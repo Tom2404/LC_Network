@@ -8,6 +8,16 @@ class Config:
     """Base configuration"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
+    # Session Configuration
+    SESSION_TYPE = 'filesystem'
+    SESSION_PERMANENT = True
+    SESSION_USE_SIGNER = True
+    SESSION_COOKIE_NAME = 'admin_session'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=2)  # Admin session expires after 2 hours
+    
     # Database - MySQL
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',

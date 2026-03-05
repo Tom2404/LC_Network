@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, request, jsonify, session
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from models import db
 from models.moderation_queue import ModerationQueue
 from models.post import Post
@@ -7,18 +7,37 @@ from models.user import User
 from models.appeal import Appeal
 from models.violation_history import ViolationHistory
 from datetime import datetime, timedelta
+from functools import wraps
 
 moderation_bp = Blueprint('moderation', __name__)
 
+def get_current_user():
+    """Get current user from either session or JWT"""
+    # Try session first (for admin panel)
+    if 'admin_user_id' in session:
+        return User.query.get(session['admin_user_id'])
+    
+    # Try JWT (for API clients)
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+        if user_id:
+            return User.query.get(user_id)
+    except:
+        pass
+    
+    return None
+
 def requires_moderator(f):
-    """Decorator to check if user is moderator or admin"""
-    from functools import wraps
+    """Decorator to check if user is moderator or admin (supports both session and JWT)"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        current_user_id = get_jwt_identity()
-        user = User.query.get(current_user_id)
+        user = get_current_user()
         
-        if not user or not (user.has_role('moderator') or user.has_role('admin')):
+        if not user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        if not (user.has_role('moderator') or user.has_role('admin')):
             return jsonify({'error': 'Moderator access required'}), 403
         
         return f(*args, **kwargs)
@@ -26,7 +45,6 @@ def requires_moderator(f):
 
 
 @moderation_bp.route('/queue', methods=['GET'])
-@jwt_required()
 @requires_moderator
 def get_moderation_queue():
     """Lấy danh sách bài viết cần kiểm duyệt"""
@@ -63,12 +81,11 @@ def get_moderation_queue():
 
 
 @moderation_bp.route('/queue/<int:queue_id>/lock', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def lock_queue_item(queue_id):
     """Lock queue item để xử lý (tránh trùng lặp)"""
     try:
-        current_user_id = get_jwt_identity()
+        current_user = get_current_user(); current_user_id = current_user.id if current_user else None
         
         item = ModerationQueue.query.get(queue_id)
         if not item:
@@ -94,7 +111,6 @@ def lock_queue_item(queue_id):
 
 
 @moderation_bp.route('/review/<int:post_id>', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def review_post(post_id):
     """
@@ -102,7 +118,7 @@ def review_post(post_id):
     Body: {decision: 'approve'|'reject'|'flag', reason (optional)}
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user = get_current_user(); current_user_id = current_user.id if current_user else None
         
         post = Post.query.get(post_id)
         if not post:
@@ -155,7 +171,6 @@ def review_post(post_id):
 
 
 @moderation_bp.route('/appeals', methods=['GET'])
-@jwt_required()
 @requires_moderator
 def get_appeals():
     """Lấy danh sách kháng nghị"""
@@ -180,7 +195,6 @@ def get_appeals():
 
 
 @moderation_bp.route('/appeal/<int:appeal_id>/review', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def review_appeal(appeal_id):
     """
@@ -188,7 +202,7 @@ def review_appeal(appeal_id):
     Body: {decision: 'approve'|'reject', note}
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user = get_current_user(); current_user_id = current_user.id if current_user else None
         
         appeal = Appeal.query.get(appeal_id)
         if not appeal:
@@ -226,7 +240,6 @@ def review_appeal(appeal_id):
 
 
 @moderation_bp.route('/posts', methods=['GET'])
-@jwt_required()
 @requires_moderator
 def get_all_posts():
     """Lấy tất cả bài viết với filter cho admin"""
@@ -284,7 +297,6 @@ def get_all_posts():
 
 
 @moderation_bp.route('/posts/<int:post_id>/mute-user', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def mute_user_from_post(post_id):
     """
@@ -292,7 +304,7 @@ def mute_user_from_post(post_id):
     Body: {duration_hours: số giờ mute, reason: lý do}
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user = get_current_user(); current_user_id = current_user.id if current_user else None
         
         post = Post.query.get(post_id)
         if not post:
@@ -348,7 +360,6 @@ def mute_user_from_post(post_id):
 
 
 @moderation_bp.route('/users', methods=['GET'])
-@jwt_required()
 @requires_moderator
 def get_all_users():
     """Lấy danh sách tất cả users cho admin"""
@@ -390,7 +401,6 @@ def get_all_users():
 
 
 @moderation_bp.route('/users/<int:user_id>/ban', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def ban_user(user_id):
     """
@@ -398,7 +408,7 @@ def ban_user(user_id):
     Body: {duration_hours: số giờ (null = permanent), reason: lý do}
     """
     try:
-        current_user_id = get_jwt_identity()
+        current_user = get_current_user(); current_user_id = current_user.id if current_user else None
         
         user = User.query.get(user_id)
         if not user:
@@ -449,7 +459,6 @@ def ban_user(user_id):
 
 
 @moderation_bp.route('/users/<int:user_id>/unban', methods=['POST'])
-@jwt_required()
 @requires_moderator
 def unban_user(user_id):
     """Unban user"""

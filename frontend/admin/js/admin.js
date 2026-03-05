@@ -6,43 +6,95 @@ let currentQueuePage = 1;
 let selectedPost = null;
 let selectedUser = null;
 let searchTimeout = null;
+let currentAdminUser = null;
 
-// Check authentication on page load
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (!token) {
-        window.location.href = '/user/login.html';
-        return;
-    }
-    
-    // Check if user is admin
-    if (user.role !== 'admin' && user.role !== 'moderator') {
-        alert('Bạn không có quyền truy cập trang này');
-        window.location.href = '/user/index.html';
-        return;
-    }
-    
-    // Display admin info
-    if (document.getElementById('adminFullName')) {
-        document.getElementById('adminFullName').textContent = user.full_name || user.username || 'Quản trị viên';
-    }
-    if (document.getElementById('adminRole')) {
-        document.getElementById('adminRole').textContent = user.role === 'admin' ? 'Admin' : 'Moderator';
-    }
-    if (document.getElementById('adminInitials')) {
-        const name = user.full_name || user.username || 'A';
-        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        document.getElementById('adminInitials').textContent = initials;
+// Check authentication on page load - Now using session instead of JWT
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/check-session`, {
+            credentials: 'include' // Important for sending session cookie
+        });
+        
+        if (response.status === 401) {
+            // Not authenticated, redirect to login
+            window.location.href = '/admin/login';
+            return false;
+        }
+        
+        if (!response.ok) {
+            throw new Error('Session check failed');
+        }
+        
+        const data = await response.json();
+        currentAdminUser = data.user;
+        
+        // Display admin info
+        if (document.getElementById('adminFullName')) {
+            document.getElementById('adminFullName').textContent = data.user.full_name || data.user.username || 'Quản trị viên';
+        }
+        if (document.getElementById('adminRole')) {
+            document.getElementById('adminRole').textContent = 'Admin';
+        }
+        if (document.getElementById('adminInitials')) {
+            const name = data.user.full_name || data.user.username || 'A';
+            const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('adminInitials').textContent = initials;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        window.location.href = '/admin/login';
+        return false;
     }
 }
 
-function logout() {
+async function logout() {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        try {
+            await fetch(`${API_BASE_URL}/api/admin/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+        
+        // Also clear any JWT token if exists
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/user/login.html';
+        
+        window.location.href = '/admin/login';
+    }
+}
+
+// Helper function for authenticated fetch requests
+async function authenticatedFetch(url, options = {}) {
+    // Ensure credentials are included for session
+    const fetchOptions = {
+        ...options,
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    };
+    
+    try {
+        const response = await fetch(url, fetchOptions);
+        
+        // If unauthorized, redirect to login
+        if (response.status === 401) {
+            window.location.href = '/admin/login';
+            throw new Error('Unauthorized');
+        }
+        
+        return response;
+    } catch (error) {
+        // If error is not 401, rethrow
+        if (error.message !== 'Unauthorized') {
+            throw error;
+        }
     }
 }
 
