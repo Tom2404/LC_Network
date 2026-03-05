@@ -16,7 +16,11 @@ from controllers.notification_controller import notification_bp
 def create_app(config_name='development'):
     """Application factory"""
     # Set template and static folders to frontend directory
-    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
+    # Get absolute path of this file first to avoid CWD issues
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(backend_dir)
+    frontend_dir = os.path.join(project_root, 'frontend')
+    
     app = Flask(__name__, 
                 template_folder=frontend_dir,
                 static_folder=frontend_dir,
@@ -71,22 +75,69 @@ def create_app(config_name='development'):
     
     # Serve frontend files
     @app.route('/')
+    @app.route('/index.html')
     def index():
-        return send_from_directory(frontend_dir, 'index.html')
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'index.html')
     
     @app.route('/login')
+    @app.route('/login.html')
     def login_page():
-        return send_from_directory(frontend_dir, 'login.html')
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'login.html')
     
     @app.route('/register')
+    @app.route('/register.html')
     def register_page():
-        return send_from_directory(frontend_dir, 'register.html')
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'register.html')
+    
+    @app.route('/profile')
+    @app.route('/profile.html')
+    def profile_page():
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'profile.html')
+    
+    @app.route('/post')
+    @app.route('/post.html')
+    def post_page():
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'post.html')
+    
+    @app.route('/friends')
+    @app.route('/friends.html')
+    def friends_page():
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'friends.html')
+    
+    @app.route('/notifications')
+    @app.route('/notifications.html')
+    def notifications_page():
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, 'notifications.html')
+    
+    @app.route('/admin')
+    @app.route('/admin/')
+    def admin_page():
+        admin_dir = os.path.join(frontend_dir, 'admin')
+        return send_from_directory(admin_dir, 'index.html')
     
     # Serve uploaded files
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):
-        uploads_dir = app.config.get('UPLOAD_FOLDER', os.path.join(os.path.dirname(__file__), 'uploads'))
+        uploads_dir = app.config.get('UPLOAD_FOLDER', os.path.join(backend_dir, 'uploads'))
         return send_from_directory(uploads_dir, filename)
+    
+    # Serve static files (CSS, JS, images, components)
+    @app.route('/user/<path:path>')
+    def serve_user_static(path):
+        user_dir = os.path.join(frontend_dir, 'user')
+        return send_from_directory(user_dir, path)
+    
+    @app.route('/admin/<path:path>')
+    def serve_admin_static(path):
+        admin_dir = os.path.join(frontend_dir, 'admin')
+        return send_from_directory(admin_dir, path)
     
     # Serve static files (CSS, JS, images)
     @app.route('/<path:path>')
@@ -97,10 +148,12 @@ def create_app(config_name='development'):
     @app.errorhandler(404)
     def not_found(error):
         # If it's an API request, return JSON error
-        if error.description and 'api' in str(error.description).lower():
+        from flask import request
+        if request.path.startswith('/api/'):
             return {'error': 'Resource not found'}, 404
-        # Otherwise try to serve the default page
-        return send_from_directory(frontend_dir, 'index.html')
+        # For other 404s, return a proper error message instead of trying to serve index
+        # to avoid infinite loops
+        return {'error': 'Page not found', 'path': request.path}, 404
     
     @app.errorhandler(500)
     def internal_error(error):

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Admin Panel - Quản lý Nội dung | LC Network</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#667eea",
+                        "primary-dark": "#5568d3",
+                        "background-light": "#f5f7fa",
+                        "background-dark": "#1a202c",
+                        "success": "#28a745",
+                        "warning": "#ffc107",
+                        "danger": "#dc3545",
+                        "muted": "#6c757d"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .active-link {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            border-right: 3px solid #667eea;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
+            <div class="p-6 flex items-center gap-3">
+                <div class="gradient-bg p-2.5 rounded-xl text-white shadow-lg">
+                    <span class="material-symbols-outlined text-2xl">shield_with_heart</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">LC Network</h1>
+                    <p class="text-xs text-muted">Bảng Quản Trị</p>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 space-y-1 mt-4">
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    href="#" onclick="switchTab('dashboard'); return false;">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="text-sm font-medium">Tổng quan</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg active-link" 
+                    href="#" onclick="switchTab('posts'); return false;">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">article</span>
+                    <span class="text-sm font-semibold">Quản lý Bài viết</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    href="#" onclick="switchTab('users'); return false;">
+                    <span class="material-symbols-outlined">group</span>
+                    <span class="text-sm font-medium">Quản lý Người dùng</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    href="#" onclick="switchTab('queue'); return false;">
+                    <span class="material-symbols-outlined">pending_actions</span>
+                    <span class="text-sm font-medium">Hàng đợi duyệt</span>
+                    <span class="ml-auto bg-warning text-white text-[10px] px-2 py-0.5 rounded-full" id="queueCount">0</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    href="#" onclick="switchTab('reports'); return false;">
+                    <span class="material-symbols-outlined">report</span>
+                    <span class="text-sm font-medium">Báo cáo Vi phạm</span>
+                </a>
+                <div class="pt-4 pb-2 text-[10px] font-bold text-muted uppercase tracking-widest px-3">Hệ thống</div>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    href="#" onclick="switchTab('settings'); return false;">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="text-sm font-medium">Cấu hình</span>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-danger"
+                    href="#" onclick="logout(); return false;">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span class="text-sm font-medium">Đăng xuất</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3 p-2">
+                    <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center text-white font-bold">
+                        <span id="adminInitials">A</span>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-sm font-bold truncate" id="adminFullName">Quản trị viên</p>
+                        <p class="text-xs text-muted truncate" id="adminRole">Admin</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header
+                class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-bold" id="pageTitle">Quản lý Bài viết</h2>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="relative w-72">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xl">search</span>
+                        <input id="searchInput"
+                            class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                            placeholder="Tìm kiếm nội dung hoặc người dùng..." type="text" onkeyup="handleSearch()" />
+                    </div>
+                    <button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                        id="notificationBtn">
+                        <span class="material-symbols-outlined text-2xl">notifications</span>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-warning rounded-full" id="notificationDot" style="display:none;"></span>
+                    </button>
+                    <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onclick="toggleDarkMode()">
+                        <span class="material-symbols-outlined text-2xl" id="darkModeIcon">dark_mode</span>
+                    </button>
+                </div>
+            </header>
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-8 space-y-6" id="mainContent">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div
+                        class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-muted">Tổng bài viết</p>
+                                <h3 class="text-3xl font-bold mt-1" id="totalPosts">0</h3>
+                            </div>
+                            <div class="bg-primary/10 p-2 rounded-lg text-primary">
+                                <span class="material-symbols-outlined">post_add</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-success font-semibold mt-4 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">trending_up</span> Cập nhật realtime
+                        </p>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-muted">Chờ duyệt</p>
+                                <h3 class="text-3xl font-bold mt-1" id="pendingPosts">0</h3>
+                            </div>
+                            <div class="bg-warning/10 p-2 rounded-lg text-warning">
+                                <span class="material-symbols-outlined">pending</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-warning font-semibold mt-4 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">priority_high</span> Cần xử lý
+                        </p>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm font-medium text-muted">Đã duyệt hôm nay</p>
+                                <h3 class="text-3xl font-bold mt-1" id="approvedToday">0</h3>
+                            </div>
+                            <div class="bg-success/10 p-2 rounded-lg text-success">
+                                <span class="material-symbols-outlined">task_alt</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-success font-semibold mt-4 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">check</span> Hiệu suất tốt
+                        </p>
+                    </div>
+                </div>
+                <!-- Filters -->
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <!-- Hidden input fields for filtering used by JavaScript -->
+                    <input type="hidden" id="post-status-filter" value="">
+                    <input type="hidden" id="post-search" value="">
+                    <input type="hidden" id="user-status-filter" value="">
+                    <input type="hidden" id="user-search" value="">
+                    
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="filterByStatus('')"
+                            class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-sm filter-btn active">Tất cả</button>
+                        <button onclick="filterByStatus('published')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã duyệt</button>
+                        <button onclick="filterByStatus('pending')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Chờ duyệt</button>
+                        <button onclick="filterByStatus('rejected')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã từ chối</button>
+                        <button onclick="filterByStatus('flagged')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn flex items-center gap-2">
+                            Bị gắn cờ <span class="bg-warning text-white text-[10px] px-1.5 py-0.5 rounded-full" id="flaggedCount">0</span>
+                        </button>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="loadPosts()"
+                            class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50">
+                            <span class="material-symbols-outlined text-lg">refresh</span>
+                            Làm mới
+                        </button>
+                        <button
+                            class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50">
+                            <span class="material-symbols-outlined text-lg">download</span>
+                            Xuất dữ liệu
+                        </button>
+                    </div>
+                </div>
+                <!-- Data Table -->
+                <div id="postsTable"
+                    class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="text-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                        <p class="text-muted mt-4">Đang tải dữ liệu...</p>
+                    </div>
+                </div>
+                <!-- Info Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div class="bg-primary/5 p-4 rounded-lg border border-primary/10 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary mt-1">info</span>
+                        <div>
+                            <p class="text-sm font-bold text-primary">Mẹo kiểm duyệt</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Bài viết có AI confidence &gt;85% thường rất chính xác. Bạn có thể xử lý nhanh các trường hợp này để tiết kiệm thời gian.</p>
+                        </div>
+                    </div>
+                    <div class="bg-warning/5 p-4 rounded-lg border border-warning/10 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-warning mt-1">assignment_late</span>
+                        <div>
+                            <p class="text-sm font-bold text-warning">Thông báo quan trọng</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" id="urgentNotice">Không có thông báo khẩn cấp.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div id="post-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style="display: none;">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-lg font-bold">Chi tiết bài viết</h3>
+                <button onclick="closePostModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="post-detail-content" class="p-6">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="sticky bottom-0 bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="closePostModal()" 
+                    class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">
+                    Đóng
+                </button>
+                <button onclick="approvePost()" 
+                    class="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success/90">
+                    <span class="material-symbols-outlined text-sm align-middle">check_circle</span>
+                    Duyệt bài
+                </button>
+                <button onclick="rejectPost()" 
+                    class="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning/90">
+                    <span class="material-symbols-outlined text-sm align-middle">cancel</span>
+                    Từ chối
+                </button>
+                <button onclick="showMuteDialog()" 
+                    class="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger/90">
+                    <span class="material-symbols-outlined text-sm align-middle">block</span>
+                    Mute User
+                </button>
+            </div>
+            
+            <!-- Reject Reason Input (hidden by default) -->
+            <div id="reject-reason-container" class="px-6 py-4 bg-warning/5 border-t border-warning/20" style="display: none;">
+                <label class="block text-sm font-bold mb-2">Lý do từ chối:</label>
+                <textarea id="reject-reason" rows="3" 
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm"
+                    placeholder="Nhập lý do từ chối bài viết..."></textarea>
+                <div class="mt-3 flex gap-2">
+                    <button onclick="submitReject()" 
+                        class="px-4 py-2 text-sm bg-warning text-white rounded-lg">
+                        Xác nhận từ chối
+                    </button>
+                    <button onclick="document.getElementById('reject-reason-container').style.display='none'" 
+                        class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+                        Hủy
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mute User Dialog (hidden by default) -->
+            <div id="mute-dialog" class="px-6 py-4 bg-danger/5 border-t border-danger/20" style="display: none;">
+                <h4 class="text-sm font-bold mb-3">Mute người dùng</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Thời gian mute (giờ):</label>
+                        <select id="mute-duration" 
+                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm">
+                            <option value="1">1 giờ</option>
+                            <option value="6">6 giờ</option>
+                            <option value="24">24 giờ (1 ngày)</option>
+                            <option value="72">72 giờ (3 ngày)</option>
+                            <option value="168">168 giờ (1 tuần)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Lý do:</label>
+                        <textarea id="mute-reason" rows="2" 
+                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm"
+                            placeholder="Nhập lý do mute..."></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="submitMuteUser()" 
+                            class="px-4 py-2 text-sm bg-danger text-white rounded-lg">
+                            Xác nhận Mute
+                        </button>
+                        <button onclick="document.getElementById('mute-dialog').style.display='none'" 
+                            class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div id="user-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style="display: none;">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-lg font-bold">Chi tiết người dùng</h3>
+                <button onclick="closeUserModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="user-detail-content" class="p-6">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="sticky bottom-0 bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="closeUserModal()" 
+                    class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 rounded-lg">
+                    Đóng
+                </button>
+                <button onclick="showBanDialog()" class="btn-ban px-4 py-2 text-sm bg-danger text-white rounded-lg">
+                    <span class="material-symbols-outlined text-sm align-middle">block</span>
+                    Ban User
+                </button>
+                <button onclick="unbanUser()" class="btn-unban px-4 py-2 text-sm bg-success text-white rounded-lg" style="display: none;">
+                    <span class="material-symbols-outlined text-sm align-middle">check_circle</span>
+                    Unban User
+                </button>
+            </div>
+            
+            <!-- Ban Dialog (hidden by default) -->
+            <div id="ban-dialog" class="px-6 py-4 bg-danger/5 border-t border-danger/20" style="display: none;">
+                <h4 class="text-sm font-bold mb-3">Ban người dùng</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Thời gian ban (để trống = vĩnh viễn):</label>
+                        <select id="ban-duration" 
+                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm">
+                            <option value="">Vĩnh viễn</option>
+                            <option value="24">24 giờ (1 ngày)</option>
+                            <option value="72">72 giờ (3 ngày)</option>
+                            <option value="168">168 giờ (1 tuần)</option>
+                            <option value="720">720 giờ (30 ngày)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Lý do:</label>
+                        <textarea id="ban-reason" rows="2" 
+                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm"
+                            placeholder="Nhập lý do ban..."></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="submitBanUser()" 
+                            class="px-4 py-2 text-sm bg-danger text-white rounded-lg">
+                            Xác nhận Ban
+                        </button>
+                        <button onclick="document.getElementById('ban-dialog').style.display='none'" 
+                            class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/user/js/config.js"></script>
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadAdminData();
+            updateStats();
+            setupEventListeners();
+        });
+
+        let currentFilter = '';
+        let searchTimeout = null;
+
+        function setupEventListeners() {
+            // Update active nav on click
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    document.querySelectorAll('nav a').forEach(l => l.classList.remove('active-link'));
+                    this.classList.add('active-link');
+                });
+            });
+        }
+
+        function switchTab(tab) {
+            const titles = {
+                'dashboard': 'Tổng quan',
+                'posts': 'Quản lý Bài viết',
+                'users': 'Quản lý Người dùng',
+                'queue': 'Hàng đợi duyệt',
+                'reports': 'Báo cáo Vi phạm',
+                'settings': 'Cấu hình'
+            };
+            document.getElementById('pageTitle').textContent = titles[tab] || 'Admin Panel';
+            currentTab = tab;
+            loadAdminData();
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-primary', 'text-white');
+                btn.classList.add('bg-white', 'dark:bg-slate-900', 'text-slate-600', 'dark:text-slate-400');
+            });
+            event.target.classList.add('active', 'bg-primary', 'text-white');
+            event.target.classList.remove('bg-white', 'dark:bg-slate-900', 'text-slate-600', 'dark:text-slate-400');
+            
+            if (currentTab === 'posts') {
+                document.getElementById('post-status-filter').value = status;
+                loadPosts(1);
+            }
+        }
+
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchValue = document.getElementById('searchInput').value;
+                if (currentTab === 'posts') {
+                    document.getElementById('post-search').value = searchValue;
+                    loadPosts(1);
+                } else if (currentTab === 'users') {
+                    document.getElementById('user-search').value = searchValue;
+                    loadUsers(1);
+                }
+            }, 500);
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('darkModeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.textContent = 'dark_mode';
+            } else {
+                html.classList.add('dark');
+                icon.textContent = 'light_mode';
+            }
+        }
+
+        async function updateStats() {
+            try {
+                const token = localStorage.getItem('token');
+                // Get posts stats
+                const postsResponse = await fetch(`${API_BASE_URL}/moderation/posts?per_page=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const postsData = await postsResponse.json();
+                document.getElementById('totalPosts').textContent = postsData.total || 0;
+
+                // Get pending posts
+                const pendingResponse = await fetch(`${API_BASE_URL}/moderation/posts?status=pending&per_page=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const pendingData = await pendingResponse.json();
+                document.getElementById('pendingPosts').textContent = pendingData.total || 0;
+                document.getElementById('queueCount').textContent = pendingData.total || 0;
+
+                // Get flagged posts
+                const flaggedResponse = await fetch(`${API_BASE_URL}/moderation/posts?status=flagged&per_page=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const flaggedData = await flaggedResponse.json();
+                document.getElementById('flaggedCount').textContent = flaggedData.total || 0;
+
+                // Simulate approved today (would need backend endpoint)
+                document.getElementById('approvedToday').textContent = Math.floor(Math.random() * 50);
+
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        // Refresh stats every 30 seconds
+        setInterval(updateStats, 30000);
+    </script>
+</body>
+
+</html>

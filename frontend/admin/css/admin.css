@@ -1,0 +1,743 @@
+/* Admin Panel Styles */
+
+.admin-container {
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+/* Header */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-name {
+    font-weight: 500;
+    background: rgba(255,255,255,0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+}
+
+.btn-logout {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: white;
+    color: #667eea;
+}
+
+/* Navigation Tabs */
+.admin-nav {
+    background: white;
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.nav-tab {
+    background: transparent;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    color: #666;
+    font-weight: 500;
+}
+
+.nav-tab:hover {
+    background: #f8f9fa;
+    color: #667eea;
+}
+
+.nav-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+/* Main Content */
+.admin-content {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Tab Header */
+.tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.tab-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-controls select,
+.filter-controls input[type="text"] {
+    padding: 0.6rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.filter-controls input[type="text"] {
+    min-width: 250px;
+}
+
+.btn-refresh {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+}
+
+/* Post Cards */
+.posts-list,
+.users-list,
+.queue-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.post-card,
+.user-card,
+.queue-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.post-card:hover,
+.user-card:hover,
+.queue-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-medium {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-date {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-published {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-flagged {
+    background: #ff6b6b;
+    color: white;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-banned {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.priority-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.priority-high {
+    background: #ff6b6b;
+    color: white;
+}
+
+.priority-medium {
+    background: #ffa502;
+    color: white;
+}
+
+.priority-low {
+    background: #4ecdc4;
+    color: white;
+}
+
+/* Post Content */
+.post-content {
+    margin-bottom: 1rem;
+}
+
+.post-content p {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.post-media-preview {
+    margin-top: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-media-preview img,
+.post-media-preview video {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.post-stats {
+    display: flex;
+    gap: 1.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.post-stats .warning {
+    color: #ff6b6b;
+    font-weight: 500;
+}
+
+/* User Cards */
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-info h4 {
+    margin: 0 0 0.3rem 0;
+    color: #2c3e50;
+}
+
+.user-info p {
+    margin: 0.2rem 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.user-email {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.user-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.ban-until {
+    font-size: 0.85rem;
+    color: #ff6b6b;
+}
+
+/* Queue Cards */
+.queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.queue-date {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.queue-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+}
+
+.queue-content p {
+    margin: 0;
+    color: #666;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 2rem;
+}
+
+.pagination-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pagination-buttons button {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pagination-buttons button:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+}
+
+.pagination-buttons button.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #888;
+    font-size: 1.1rem;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background: white;
+    margin: 3% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s;
+}
+
+.modal-content.modal-large {
+    max-width: 900px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 1rem;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-large .modal-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+/* Post Detail */
+.post-detail-card,
+.user-detail-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.post-author-detail,
+.user-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #ddd;
+}
+
+.post-author-detail h4,
+.user-header h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.post-author-detail p,
+.user-header p {
+    margin: 0.3rem 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.post-content-detail {
+    margin-bottom: 1.5rem;
+}
+
+.post-content-detail h4 {
+    margin: 0 0 1rem 0;
+}
+
+.post-content-detail p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.post-media-full {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.post-media-full img,
+.post-media-full video {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.post-metadata,
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metadata-item,
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.metadata-item strong,
+.detail-item strong {
+    color: #2c3e50;
+}
+
+.metadata-item span,
+.detail-item span {
+    color: #666;
+    text-align: right;
+}
+
+.metadata-item ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+/* Post Actions */
+.post-actions,
+.user-actions {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+}
+
+.post-actions h3,
+.user-actions h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.action-buttons button {
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-approve {
+    background: #28a745;
+    color: white;
+}
+
+.btn-approve:hover {
+    background: #218838;
+}
+
+.btn-reject {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-reject:hover {
+    background: #c82333;
+}
+
+.btn-mute {
+    background: #ffc107;
+    color: #333;
+}
+
+.btn-mute:hover {
+    background: #e0a800;
+}
+
+.btn-ban {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-ban:hover {
+    background: #c82333;
+}
+
+.btn-unban {
+    background: #28a745;
+    color: white;
+}
+
+.btn-unban:hover {
+    background: #218838;
+}
+
+/* Input Sections */
+.reason-input,
+.mute-dialog,
+.ban-dialog {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.reason-input textarea,
+.mute-dialog textarea,
+.ban-dialog textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 0.8rem;
+}
+
+.mute-dialog select,
+.ban-dialog select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+}
+
+.mute-dialog label,
+.ban-dialog label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.btn-submit {
+    background: #667eea;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+}
+
+.btn-submit:hover {
+    background: #5568d3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .admin-nav {
+        flex-direction: column;
+        padding: 0;
+    }
+    
+    .nav-tab {
+        border-bottom: 1px solid #eee;
+        border-left: 3px solid transparent;
+    }
+    
+    .nav-tab.active {
+        border-left-color: #667eea;
+        border-bottom-color: #eee;
+    }
+    
+    .tab-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .filter-controls {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    
+    .filter-controls input[type="text"] {
+        min-width: 100%;
+    }
+    
+    .modal-large .modal-body {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .user-stats {
+        align-items: flex-start;
+    }
+}

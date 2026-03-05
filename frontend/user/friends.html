@@ -227,7 +227,7 @@
         <div class="flex flex-1 justify-end gap-2">
             <!-- User Avatar -->
             <div class="relative">
-                <div id="headerAvatar" onclick="openLogoutModal()" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("images/default-avatar.png");'></div>
+                <div id="headerAvatar" onclick="openLogoutModal()" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("/user/images/default-avatar.png");'></div>
                 <div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]"></div>
             </div>
         </div>
@@ -283,9 +283,9 @@
     </main>
 
     <!-- Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/search.js"></script>
+    <script src="/user/js/config.js"></script>
+    <script src="/user/js/auth.js"></script>
+    <script src="/user/js/search.js"></script>
     <script>
         // Notification System
         function showNotification(message, type = 'info') {
@@ -424,7 +424,7 @@
             container.innerHTML = friends.map(friend => {
                 const avatarUrl = friend.avatar_url 
                     ? (friend.avatar_url.startsWith('http') ? friend.avatar_url : `http://127.0.0.1:5000${friend.avatar_url}`)
-                    : 'images/default-avatar.png';
+                    : '/user/images/default-avatar.png';
                 
                 return `
                     <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 border-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">
@@ -489,7 +489,7 @@
                 const friend = request.user;
                 const avatarUrl = friend.avatar_url 
                     ? (friend.avatar_url.startsWith('http') ? friend.avatar_url : `http://127.0.0.1:5000${friend.avatar_url}`)
-                    : 'images/default-avatar.png';
+                    : '/user/images/default-avatar.png';
                 
                 const timeAgo = getTimeAgo(request.created_at);
                 
@@ -561,7 +561,7 @@
             container.innerHTML = suggestions.map(user => {
                 const avatarUrl = user.avatar_url 
                     ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`)
-                    : 'images/default-avatar.png';
+                    : '/user/images/default-avatar.png';
                 
                 return `
                     <div class="bg-white dark:bg-[#152a28] rounded-xl p-6 border-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-colors">

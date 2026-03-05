@@ -25,11 +25,62 @@ python start.py
 Sau khi chạy, truy cập:
 - **Ứng dụng web**: http://127.0.0.1:5000
 - **API Backend**: http://127.0.0.1:5000/api
+- **Admin Panel**: http://127.0.0.1:5000/admin (yêu cầu đăng nhập với role admin/moderator)
 
 *Giống như Django, bạn chỉ cần chạy 1 file để khởi động cả backend và frontend!*
 
 ### Dừng server
 Nhấn `Ctrl+C` trong terminal
+
+---
+
+## 📁 Cấu trúc Project
+
+Project được tổ chức theo mô hình **Frontend-Backend** rõ ràng:
+
+```
+Test/
+├── backend/                    # Backend API (Flask)
+│   ├── app.py                 # Main application
+│   ├── config.py              # Configuration
+│   ├── controllers/           # API endpoints
+│   ├── models/                # Database models
+│   ├── utils/                 # Utilities
+│   └── uploads/               # User uploaded files
+│
+├── frontend/
+│   ├── user/                  # 👤 User Interface
+│   │   ├── index.html        # Trang chủ
+│   │   ├── login.html        # Đăng nhập
+│   │   ├── register.html     # Đăng ký
+│   │   ├── profile.html      # Hồ sơ
+│   │   ├── post.html         # Chi tiết bài viết
+│   │   ├── friends.html      # Bạn bè
+│   │   ├── notifications.html # Thông báo
+│   │   ├── css/              # Styles
+│   │   ├── js/               # Scripts
+│   │   ├── components/       # Components
+│   │   └── images/           # Images
+│   │
+│   └── admin/                 # 🛡️ Admin Panel
+│       ├── index.html        # Dashboard
+│       ├── css/              # Admin styles
+│       └── js/               # Admin scripts
+│
+├── database_schema.sql        # Database schema
+└── start.py                   # Application launcher
+```
+
+### Lợi ích của cấu trúc này:
+
+✅ **Tách biệt rõ ràng** - User và Admin interface độc lập  
+✅ **Dễ bảo trì** - Mỗi module có thư mục riêng  
+✅ **Dễ mở rộng** - Thêm tính năng mới không ảnh hưởng code cũ  
+✅ **Team-friendly** - Nhiều người có thể làm việc song song  
+
+Chi tiết:
+- [User Interface Documentation](frontend/user/README.md)
+- [Admin Panel Documentation](frontend/admin/README.md)
 
 ---
 
@@ -102,15 +153,15 @@ Nhấn `Ctrl+C` trong terminal
 **Timeline: 2-3 tuần**
 
 #### Week 8-9: Moderator Dashboard
-- [ ] Moderation Queue (Priority-based)
-- [ ] Content Review Interface (Split View)
-- [ ] Moderator Actions (Approve, Reject, Ban)
+- [x] Moderation Queue (Priority-based)
+- [x] Content Review Interface (Split View)
+- [x] Moderator Actions (Approve, Reject, Ban)
 - [ ] Lock Mechanism (prevent duplicate reviews)
 - [ ] Batch Operations
 
 #### Week 9-10: User Management
-- [ ] User Action System (Warn, Mute, Ban)
-- [ ] Violation History Tracking
+- [x] User Action System (Warn, Mute, Ban)
+- [x] Violation History Tracking
 - [ ] Appeal System
 - [ ] Appeal Review Interface
 - [ ] Moderator Performance Metrics
@@ -141,8 +192,8 @@ Nhấn `Ctrl+C` trong terminal
 - [ ] False Positive/Negative Tracking
 
 #### Week 13-14: Admin Panel
-- [ ] User Management (CRUD, Role Assignment)
-- [ ] Moderator Management
+- [x] User Management (CRUD, Role Assignment)
+- [x] Moderator Management
 - [ ] Blacklist Keyword Management
 - [ ] AI Threshold Configuration
 - [ ] System Settings Panel
@@ -344,6 +395,32 @@ User submits → Status: PENDING
 ## 📝 API Documentation
 
 (Coming soon - Swagger/OpenAPI)
+
+---
+
+## 🛡️ Admin Panel
+
+Admin Panel được tổ chức riêng trong thư mục `frontend/admin/` để dễ dàng quản lý và phát triển.
+
+### Cấu trúc
+```
+frontend/admin/
+├── index.html        # Giao diện chính
+├── css/
+│   └── admin.css    # Styles riêng cho admin
+└── js/
+    └── admin.js     # Logic xử lý admin
+```
+
+### Tính năng
+- 📝 **Quản lý Bài viết**: Duyệt/từ chối bài, mute user vi phạm
+- 👥 **Quản lý Người dùng**: Ban/unban, xem lịch sử vi phạm
+- ⏳ **Hàng đợi duyệt**: Xử lý bài viết chờ kiểm duyệt
+
+### Truy cập
+URL: http://127.0.0.1:5000/admin
+
+Chi tiết xem: [frontend/admin/README.md](frontend/admin/README.md)
 
 ---
 

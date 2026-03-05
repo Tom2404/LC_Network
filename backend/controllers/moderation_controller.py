@@ -5,7 +5,8 @@ from models.moderation_queue import ModerationQueue
 from models.post import Post
 from models.user import User
 from models.appeal import Appeal
-from datetime import datetime
+from models.violation_history import ViolationHistory
+from datetime import datetime, timedelta
 
 moderation_bp = Blueprint('moderation', __name__)
 
@@ -222,3 +223,253 @@ def review_appeal(appeal_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/posts', methods=['GET'])
+@jwt_required()
+@requires_moderator
+def get_all_posts():
+    """Lấy tất cả bài viết với filter cho admin"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        status = request.args.get('status', None)
+        search = request.args.get('search', None)
+        
+        # Build query
+        query = Post.query.filter_by(is_deleted=False)
+        
+        # Filter by status
+        if status:
+            query = query.filter_by(status=status)
+        
+        # Search by caption or username
+        if search:
+            query = query.join(User).filter(
+                db.or_(
+                    Post.caption.ilike(f'%{search}%'),
+                    User.username.ilike(f'%{search}%')
+                )
+            )
+        
+        # Order by created_at desc
+        posts = query.order_by(Post.created_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+        
+        items = []
+        for post in posts.items:
+            post_dict = post.to_dict()
+            # Add author info
+            author = User.query.get(post.user_id)
+            if author:
+                post_dict['author'] = {
+                    'id': author.id,
+                    'username': author.username,
+                    'full_name': author.full_name,
+                    'avatar_url': author.avatar_url,
+                    'account_status': author.account_status,
+                    'warning_count': author.warning_count
+                }
+            items.append(post_dict)
+        
+        return jsonify({
+            'posts': items,
+            'total': posts.total,
+            'pages': posts.pages,
+            'current_page': page
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/posts/<int:post_id>/mute-user', methods=['POST'])
+@jwt_required()
+@requires_moderator
+def mute_user_from_post(post_id):
+    """
+    Mute user khi phát hiện vi phạm từ bài viết
+    Body: {duration_hours: số giờ mute, reason: lý do}
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        
+        post = Post.query.get(post_id)
+        if not post:
+            return jsonify({'error': 'Post not found'}), 404
+        
+        user = User.query.get(post.user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        data = request.get_json()
+        duration_hours = data.get('duration_hours', 24)  # Default 24h
+        reason = data.get('reason', 'Vi phạm nội dung')
+        
+        # Cập nhật trạng thái user
+        user.account_status = 'banned'
+        user.ban_reason = reason
+        user.ban_until = datetime.utcnow() + timedelta(hours=duration_hours)
+        user.warning_count += 1
+        
+        # Reject post nếu chưa bị reject
+        if post.status not in ['rejected', 'deleted']:
+            post.status = 'rejected'
+            post.moderator_id = current_user_id
+            post.moderator_decision = 'reject'
+            post.moderator_reason = reason
+            post.moderated_at = datetime.utcnow()
+        
+        # Thêm vào violation history
+        violation = ViolationHistory(
+            user_id=user.id,
+            violation_type='other',
+            severity='moderate',
+            post_id=post.id,
+            description=reason,
+            action_taken='temporary_ban',
+            action_by=current_user_id,
+            expires_at=datetime.utcnow() + timedelta(hours=duration_hours),
+            created_at=datetime.utcnow()
+        )
+        db.session.add(violation)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'User muted for {duration_hours} hours',
+            'user': user.to_dict(),
+            'ban_until': user.ban_until.isoformat()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/users', methods=['GET'])
+@jwt_required()
+@requires_moderator
+def get_all_users():
+    """Lấy danh sách tất cả users cho admin"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        status = request.args.get('status', None)
+        search = request.args.get('search', None)
+        
+        # Build query
+        query = User.query
+        
+        # Filter by status
+        if status:
+            query = query.filter_by(account_status=status)
+        
+        # Search by username or email
+        if search:
+            query = query.filter(
+                db.or_(
+                    User.username.ilike(f'%{search}%'),
+                    User.email.ilike(f'%{search}%'),
+                    User.full_name.ilike(f'%{search}%')
+                )
+            )
+        
+        users = query.order_by(User.created_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+        
+        return jsonify({
+            'users': [user.to_dict(include_sensitive=True) for user in users.items],
+            'total': users.total,
+            'pages': users.pages,
+            'current_page': page
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/users/<int:user_id>/ban', methods=['POST'])
+@jwt_required()
+@requires_moderator
+def ban_user(user_id):
+    """
+    Ban user
+    Body: {duration_hours: số giờ (null = permanent), reason: lý do}
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        data = request.get_json()
+        duration_hours = data.get('duration_hours', None)
+        reason = data.get('reason', 'Vi phạm chính sách')
+        
+        # Cập nhật trạng thái user
+        user.account_status = 'banned'
+        user.ban_reason = reason
+        
+        if duration_hours:
+            user.ban_until = datetime.utcnow() + timedelta(hours=duration_hours)
+            ban_type = 'temporary'
+        else:
+            user.ban_until = None
+            ban_type = 'permanent'
+        
+        user.warning_count += 1
+        
+        # Thêm vào violation history
+        action_type = 'temporary_ban' if duration_hours else 'permanent_ban'
+        violation = ViolationHistory(
+            user_id=user.id,
+            violation_type='other',
+            severity='severe',
+            description=f"{ban_type}: {reason}",
+            action_taken=action_type,
+            action_by=current_user_id,
+            expires_at=user.ban_until,
+            created_at=datetime.utcnow()
+        )
+        db.session.add(violation)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'User banned ({ban_type})',
+            'user': user.to_dict(),
+            'ban_until': user.ban_until.isoformat() if user.ban_until else None
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/users/<int:user_id>/unban', methods=['POST'])
+@jwt_required()
+@requires_moderator
+def unban_user(user_id):
+    """Unban user"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        user.account_status = 'active'
+        user.ban_reason = None
+        user.ban_until = None
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'User unbanned successfully',
+            'user': user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+

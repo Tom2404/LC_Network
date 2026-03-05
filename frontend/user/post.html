@@ -61,9 +61,9 @@
             color: #38a89d;
         }
     </style>
-    <script src="js/config.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/search.js"></script>
+    <script src="/user/js/config.js"></script>
+    <script src="/user/js/auth.js"></script>
+    <script src="/user/js/search.js"></script>
 </head>
 
 <body class="bg-[#e8f1f0] dark:bg-[#0d1918] text-[#101818] dark:text-white transition-colors duration-200">
@@ -132,7 +132,7 @@
         <div class="flex flex-1 justify-end gap-2">
             <!-- User Avatar -->
             <div class="relative">
-                <div id="headerAvatar" onclick="window.location.href='profile.html'" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("images/default-avatar.png");'></div>
+                <div id="headerAvatar" onclick="window.location.href='profile.html'" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("/user/images/default-avatar.png");'></div>
                 <div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white dark:border-[#152a28]"></div>
             </div>
         </div>
@@ -156,7 +156,7 @@
                     <!-- Post Header -->
                     <div class="p-4 flex items-center justify-between border-b border-[#dae7e6] dark:border-[#2a3d3b]">
                         <div class="flex items-center gap-3">
-                            <img id="postAuthorAvatar" src="images/default-avatar.png" class="size-12 rounded-full border-2 border-[#dae7e6] object-cover" onerror="this.src='images/default-avatar.png'" />
+                            <img id="postAuthorAvatar" src="/user/images/default-avatar.png" class="size-12 rounded-full border-2 border-[#dae7e6] object-cover" onerror="this.src='/user/images/default-avatar.png'" />
                             <div>
                                 <h3 id="postAuthorName" class="text-[#101818] dark:text-white font-bold text-base">Đang tải...</h3>
                                 <p id="postTime" class="text-[#5e8d89] dark:text-[#8faeaa] text-sm">Vừa xong</p>
@@ -196,7 +196,7 @@
                         <!-- Comment Input -->
                         <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b]">
                             <div class="flex items-start gap-3">
-                                <div id="currentUserAvatar" class="size-10 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('images/default-avatar.png');"></div>
+                                <div id="currentUserAvatar" class="size-10 rounded-full bg-cover bg-center border-2 border-[#dae7e6] shrink-0" style="background-image: url('/user/images/default-avatar.png');"></div>
                                 <div class="flex-1">
                                     <textarea id="commentInput" placeholder="Viết bình luận..." class="w-full px-4 py-2 rounded-lg border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] text-[#101818] dark:text-white placeholder:text-[#5e8d89] focus:outline-none focus:border-primary resize-none" rows="2"></textarea>
                                     <div class="flex items-center justify-between mt-2">
@@ -353,7 +353,7 @@
             const authorAvatarPath = post.author?.avatar_url || null;
             const authorAvatar = authorAvatarPath 
                 ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : 'images/default-avatar.png';
+                : '/user/images/default-avatar.png';
             
             console.log('Author name:', authorName);
             console.log('Author avatar:', authorAvatar);
@@ -509,7 +509,7 @@
             const authorAvatarPath = comment.author?.avatar_url || null;
             const authorAvatar = authorAvatarPath
                 ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : 'images/default-avatar.png';
+                : '/user/images/default-avatar.png';
             
             const timeAgo = comment.created_at ? getTimeAgo(comment.created_at) : 'Không rõ thời gian';
             
@@ -535,12 +535,12 @@
             const currentUserAvatarPath = currentUser.avatar_url || null;
             const currentUserAvatar = currentUserAvatarPath
                 ? (currentUserAvatarPath.startsWith('http') ? currentUserAvatarPath : `${API_URL}${currentUserAvatarPath}`)
-                : 'images/default-avatar.png';
+                : '/user/images/default-avatar.png';
 
             return `
                 <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#e8f1f0] dark:hover:bg-[#1a332f] transition-colors">
                     <div class="flex gap-3">
-                        <img src="${authorAvatar}" class="size-10 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='images/default-avatar.png'" />
+                        <img src="${authorAvatar}" class="size-10 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='/user/images/default-avatar.png'" />
                         <div class="flex-1">
                             <div class="bg-[#e8f1f0] dark:bg-[#1a332f] rounded-2xl px-4 py-3">
                                 <p class="font-bold text-[#101818] dark:text-white text-sm">${authorName}</p>
@@ -561,7 +561,7 @@
                             <!-- Reply Form -->
                             <div id="replyForm-${comment.id}" class="mt-3 ml-4 hidden">
                                 <div class="flex items-start gap-2">
-                                    <img src="${currentUserAvatar}" class="size-8 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='images/default-avatar.png'" />
+                                    <img src="${currentUserAvatar}" class="size-8 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='/user/images/default-avatar.png'" />
                                     <div class="flex-1">
                                         <textarea id="replyInput-${comment.id}" placeholder="Viết trả lời..." class="w-full px-3 py-2 rounded-lg border border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] text-[#101818] dark:text-white text-sm placeholder:text-[#5e8d89] focus:outline-none focus:border-primary resize-none" rows="2"></textarea>
                                         <div class="flex items-center justify-end gap-2 mt-2">
@@ -596,7 +596,7 @@
             const authorAvatarPath = reply.author?.avatar_url || null;
             const authorAvatar = authorAvatarPath
                 ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : 'images/default-avatar.png';
+                : '/user/images/default-avatar.png';
             
             const timeAgo = reply.created_at ? getTimeAgo(reply.created_at) : 'Không rõ thời gian';
 
@@ -607,7 +607,7 @@
 
             return `
                 <div class="flex gap-2">
-                    <img src="${authorAvatar}" class="size-8 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='images/default-avatar.png'" />
+                    <img src="${authorAvatar}" class="size-8 rounded-full border-2 border-[#dae7e6] shrink-0 object-cover" onerror="this.src='/user/images/default-avatar.png'" />
                     <div class="flex-1">
                         <div class="bg-[#e8f1f0] dark:bg-[#1a332f] rounded-2xl px-3 py-2">
                             <p class="font-bold text-[#101818] dark:text-white text-xs">${authorName}</p>
