@@ -254,16 +254,35 @@ def login():
         # Log activity
         log_activity(user.id, 'login', request)
         
+        # Get user roles
+        from models.user_role import UserRole
+        from flask import session
+        roles = [role.role for role in UserRole.query.filter_by(user_id=user.id).all()]
+        is_admin = 'admin' in roles
+        
+        # For admin users, also create session for admin panel
+        if is_admin:
+            session.permanent = True
+            session['admin_user_id'] = user.id
+            session['admin_username'] = user.username
+            session['admin_email'] = user.email
+            session['admin_login_time'] = datetime.utcnow().isoformat()
+        
         # Create tokens
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
         
-        print(f"[LOGIN] Login successful for user: {user.username}")
+        # Prepare user data with roles
+        user_data = user.to_dict(include_sensitive=True)
+        user_data['roles'] = roles
+        user_data['is_admin'] = is_admin
+        
+        print(f"[LOGIN] Login successful for user: {user.username} (admin: {is_admin})")
         return jsonify({
             'message': 'Login successful',
             'access_token': access_token,
             'refresh_token': refresh_token,
-            'user': user.to_dict(include_sensitive=True)
+            'user': user_data
         }), 200
         
     except Exception as e:

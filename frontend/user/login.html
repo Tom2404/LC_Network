@@ -366,10 +366,15 @@
 
                         showSuccess('Đăng nhập thành công! Đang chuyển hướng...');
 
-                        // Redirect to home page
+                        // Redirect based on user role
                         setTimeout(() => {
-                            console.log('Redirecting to index.html...');
-                            window.location.href = 'index.html';
+                            if (data.user.is_admin) {
+                                console.log('Admin user detected, redirecting to admin dashboard...');
+                                window.location.href = '/admin/';
+                            } else {
+                                console.log('Regular user, redirecting to index.html...');
+                                window.location.href = 'index.html';
+                            }
                         }, 1000);
                     } else {
                         showError(data.error || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');
