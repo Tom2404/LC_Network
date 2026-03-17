@@ -296,6 +296,36 @@ def get_all_posts():
         return jsonify({'error': str(e)}), 500
 
 
+@moderation_bp.route('/posts/<int:post_id>', methods=['GET'])
+@requires_moderator
+def get_post_detail_for_moderation(post_id):
+    """Lấy chi tiết bài viết cho admin/moderator (hỗ trợ session auth)."""
+    try:
+        post = Post.query.get(post_id)
+
+        if not post or post.is_deleted:
+            return jsonify({'error': 'Post not found'}), 404
+
+        post_dict = post.to_dict()
+
+        author = User.query.get(post.user_id)
+        if author:
+            post_dict['author'] = {
+                'id': author.id,
+                'username': author.username,
+                'full_name': author.full_name,
+                'email': author.email,
+                'avatar_url': author.avatar_url,
+                'account_status': author.account_status,
+                'warning_count': author.warning_count
+            }
+
+        return jsonify({'post': post_dict}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @moderation_bp.route('/posts/<int:post_id>/mute-user', methods=['POST'])
 @requires_moderator
 def mute_user_from_post(post_id):

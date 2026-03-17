@@ -136,7 +136,7 @@ def create_app(config_name='development'):
         if 'admin_user_id' not in session:
             return redirect('/admin/login')
         admin_dir = os.path.join(frontend_dir, 'admin')
-        return send_from_directory(admin_dir, 'index.html')
+        return send_from_directory(admin_dir, 'PostManager.html')
     
     # Serve uploaded files
     @app.route('/uploads/<path:filename>')

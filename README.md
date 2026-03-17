@@ -63,7 +63,8 @@ Test/
 │   │   └── images/           # Images
 │   │
 │   └── admin/                 # 🛡️ Admin Panel
-│       ├── index.html        # Dashboard
+│       ├── PostManager.html  # Dashboard
+│       ├── login.html        # Login redirect page
 │       ├── css/              # Admin styles
 │       └── js/               # Admin scripts
 │

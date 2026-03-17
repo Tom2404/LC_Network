@@ -1,4 +1,8 @@
 // Admin Panel JavaScript
+const API_BASE_URL = (typeof API_URL !== 'undefined' && API_URL)
+    ? API_URL
+    : `${window.location.protocol}//${window.location.hostname}:5000/api`;
+
 let currentTab = 'posts';
 let currentPostPage = 1;
 let currentUserPage = 1;
@@ -11,7 +15,7 @@ let currentAdminUser = null;
 // Check authentication on page load - Now using session instead of JWT
 async function checkAuth() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/check-session`, {
+        const response = await fetch(`${API_BASE_URL}/admin/check-session`, {
             credentials: 'include' // Important for sending session cookie
         });
         
@@ -50,9 +54,9 @@ async function checkAuth() {
 }
 
 async function logout() {
-    if (confirm('Bạn có chắc muốn đăng xuất?')) {
+    confirmAction('Bạn có chắc muốn đăng xuất?', async () => {
         try {
-            await fetch(`${API_BASE_URL}/api/admin/logout`, {
+            await fetch(`${API_BASE_URL}/admin/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -65,7 +69,7 @@ async function logout() {
         localStorage.removeItem('user');
         
         window.location.href = '/admin/login';
-    }
+    });
 }
 
 // Helper function for authenticated fetch requests
@@ -247,14 +251,14 @@ function handlePostSearch() {
     }, 500);
 }
 
-function showPostDetail(postId) {
-    // Load post detail
+function showPostDetail(postId, options = {}) {
+    // Load post detail via moderation endpoint (supports admin session)
     const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/posts/${postId}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    fetch(`${API_BASE_URL}/moderation/posts/${postId}`, {
+        credentials: 'include',
+        headers
     })
     .then(response => response.json())
     .then(data => {
@@ -262,10 +266,14 @@ function showPostDetail(postId) {
             showError(data.error);
             return;
         }
-        
-        selectedPost = data;
-        displayPostDetail(data);
+
+        const postData = data.post || data;
+        selectedPost = postData;
+        displayPostDetail(postData);
         document.getElementById('post-modal').style.display = 'flex';
+        if (options.openReject === true) {
+            document.getElementById('reject-reason-container').style.display = 'block';
+        }
     })
     .catch(error => {
         console.error('Error loading post detail:', error);
@@ -358,35 +366,34 @@ function closePostModal() {
 
 function approvePost() {
     if (!selectedPost) return;
-    
-    if (!confirm('Bạn có chắc muốn duyệt bài viết này?')) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/review/${selectedPost.id}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            decision: 'approve'
+    confirmAction('Bạn có chắc muốn duyệt bài viết này?', () => {
+        const token = localStorage.getItem('token');
+
+        fetch(`${API_BASE_URL}/moderation/review/${selectedPost.id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                decision: 'approve'
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        
-        showSuccess('Đã duyệt bài viết thành công');
-        closePostModal();
-        loadPosts(currentPostPage);
-    })
-    .catch(error => {
-        console.error('Error approving post:', error);
-        showError('Không thể duyệt bài viết');
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            showSuccess('Đã duyệt bài viết thành công');
+            closePostModal();
+            loadPosts(currentPostPage);
+        })
+        .catch(error => {
+            console.error('Error approving post:', error);
+            showError('Không thể duyệt bài viết');
+        });
     });
 }
 
@@ -400,7 +407,7 @@ function submitReject() {
     const reason = document.getElementById('reject-reason').value.trim();
     
     if (!reason) {
-        alert('Vui lòng nhập lý do từ chối');
+        showError('Vui lòng nhập lý do từ chối');
         return;
     }
     
@@ -445,39 +452,39 @@ function submitMuteUser() {
     const reason = document.getElementById('mute-reason').value.trim();
     
     if (!reason) {
-        alert('Vui lòng nhập lý do mute');
+        showError('Vui lòng nhập lý do mute');
         return;
     }
-    
-    if (!confirm(`Bạn có chắc muốn mute user này trong ${duration} giờ?`)) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/posts/${selectedPost.id}/mute-user`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            duration_hours: duration,
-            reason: reason
+
+    confirmAction(`Bạn có chắc muốn mute user này trong ${duration} giờ?`, () => {
+        const token = localStorage.getItem('token');
+
+        fetch(`${API_BASE_URL}/moderation/posts/${selectedPost.id}/mute-user`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                duration_hours: duration,
+                reason: reason
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        
-        showSuccess(`Đã mute user thành công đến ${formatDate(data.ban_until)}`);
-        closePostModal();
-        loadPosts(currentPostPage);
-    })
-    .catch(error => {
-        console.error('Error muting user:', error);
-        showError('Không thể mute user');
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            showSuccess(`Đã mute user thành công đến ${formatDate(data.ban_until)}`);
+            closePostModal();
+            loadPosts(currentPostPage);
+        })
+        .catch(error => {
+            console.error('Error muting user:', error);
+            showError('Không thể mute user');
+        });
     });
 }
 
@@ -611,7 +618,7 @@ function handleUserSearch() {
     }, 500);
 }
 
-function showUserDetail(userId) {
+function showUserDetail(userId, options = {}) {
     const token = localStorage.getItem('token');
     
     fetch(`${API_BASE_URL}/users/${userId}`, {
@@ -637,6 +644,10 @@ function showUserDetail(userId) {
         } else {
             document.querySelector('.btn-ban').style.display = 'block';
             document.querySelector('.btn-unban').style.display = 'none';
+        }
+
+        if (options.openBan === true && data.account_status !== 'banned') {
+            showBanDialog();
         }
     })
     .catch(error => {
@@ -729,77 +740,77 @@ function submitBanUser() {
     const reason = document.getElementById('ban-reason').value.trim();
     
     if (!reason) {
-        alert('Vui lòng nhập lý do ban');
+        showError('Vui lòng nhập lý do ban');
         return;
     }
     
     const durationText = duration ? `${duration} giờ` : 'vĩnh viễn';
-    
-    if (!confirm(`Bạn có chắc muốn ban user này ${durationText}?`)) return;
-    
-    const token = localStorage.getItem('token');
-    
-    const body = {
-        reason: reason
-    };
-    
-    if (duration) {
-        body.duration_hours = parseInt(duration);
-    }
-    
-    fetch(`${API_BASE_URL}/moderation/users/${selectedUser.id}/ban`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
+
+    confirmAction(`Bạn có chắc muốn ban user này ${durationText}?`, () => {
+        const token = localStorage.getItem('token');
+
+        const body = {
+            reason: reason
+        };
+
+        if (duration) {
+            body.duration_hours = parseInt(duration);
         }
-        
-        showSuccess(`Đã ban user thành công ${durationText}`);
-        closeUserModal();
-        loadUsers(currentUserPage);
-    })
-    .catch(error => {
-        console.error('Error banning user:', error);
-        showError('Không thể ban user');
+
+        fetch(`${API_BASE_URL}/moderation/users/${selectedUser.id}/ban`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            showSuccess(`Đã ban user thành công ${durationText}`);
+            closeUserModal();
+            loadUsers(currentUserPage);
+        })
+        .catch(error => {
+            console.error('Error banning user:', error);
+            showError('Không thể ban user');
+        });
     });
 }
 
 function unbanUser() {
     if (!selectedUser) return;
-    
-    if (!confirm('Bạn có chắc muốn unban user này?')) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/users/${selectedUser.id}/unban`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        
-        showSuccess('Đã unban user thành công');
-        closeUserModal();
-        loadUsers(currentUserPage);
-    })
-    .catch(error => {
-        console.error('Error unbanning user:', error);
-        showError('Không thể unban user');
+
+    confirmAction('Bạn có chắc muốn unban user này?', () => {
+        const token = localStorage.getItem('token');
+
+        fetch(`${API_BASE_URL}/moderation/users/${selectedUser.id}/unban`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            showSuccess('Đã unban user thành công');
+            closeUserModal();
+            loadUsers(currentUserPage);
+        })
+        .catch(error => {
+            console.error('Error unbanning user:', error);
+            showError('Không thể unban user');
+        });
     });
 }
 
@@ -1028,143 +1039,276 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+function ensureNoticeHost() {
+    let host = document.getElementById('admin-notice-host');
+    if (!host) {
+        host = document.createElement('div');
+        host.id = 'admin-notice-host';
+        host.className = 'fixed top-4 right-4 z-[1100] space-y-3 max-w-sm w-[90vw]';
+        document.body.appendChild(host);
+    }
+    return host;
+}
+
+function showNotice(message, type = 'info', durationMs = 3500) {
+    const host = ensureNoticeHost();
+    const toneClass = {
+        success: 'border-green-200 bg-green-50 text-green-800',
+        error: 'border-red-200 bg-red-50 text-red-800',
+        warning: 'border-amber-200 bg-amber-50 text-amber-800',
+        info: 'border-sky-200 bg-sky-50 text-sky-800'
+    };
+
+    const box = document.createElement('div');
+    box.className = `rounded-lg border px-4 py-3 shadow-sm ${toneClass[type] || toneClass.info}`;
+    box.innerHTML = `
+        <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-base">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info'}</span>
+            <p class="text-sm font-medium leading-5">${escapeHtml(message)}</p>
+        </div>
+    `;
+    host.appendChild(box);
+
+    setTimeout(() => {
+        box.remove();
+    }, durationMs);
+}
+
 function showError(message) {
-    alert('❌ Lỗi: ' + message);
+    showNotice(message, 'error');
 }
 
 function showSuccess(message) {
-    alert('✅ ' + message);
+    showNotice(message, 'success');
+}
+
+function confirmAction(message, onConfirm) {
+    let overlay = document.getElementById('admin-confirm-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+
+    overlay = document.createElement('div');
+    overlay.id = 'admin-confirm-overlay';
+    overlay.className = 'fixed inset-0 bg-black/40 z-[1200] flex items-center justify-center p-4';
+    overlay.innerHTML = `
+        <div class="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-amber-500">help</span>
+                <div class="flex-1">
+                    <h4 class="text-base font-bold">Xác nhận thao tác</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">${escapeHtml(message)}</p>
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-2">
+                <button id="confirm-cancel-btn" class="px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600">Hủy</button>
+                <button id="confirm-ok-btn" class="px-3 py-2 text-sm rounded-lg bg-primary text-white">Xác nhận</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeConfirm = () => overlay.remove();
+    overlay.querySelector('#confirm-cancel-btn').addEventListener('click', closeConfirm);
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeConfirm();
+    });
+
+    overlay.querySelector('#confirm-ok-btn').addEventListener('click', () => {
+        closeConfirm();
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    });
 }
 
 // Quick action functions
 function quickApprovePost(postId) {
-    if (!confirm('Bạn có chắc muốn duyệt bài viết này?')) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/review/${postId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ decision: 'approve' })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        showSuccess('Đã duyệt bài viết thành công');
-        loadPosts(currentPostPage);
-    })
-    .catch(error => {
-        console.error('Error approving post:', error);
-        showError('Không thể duyệt bài viết');
+    confirmAction('Bạn có chắc muốn duyệt bài viết này?', () => {
+        const token = localStorage.getItem('token');
+
+        fetch(`${API_BASE_URL}/moderation/review/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ decision: 'approve' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            showSuccess('Đã duyệt bài viết thành công');
+            loadPosts(currentPostPage);
+        })
+        .catch(error => {
+            console.error('Error approving post:', error);
+            showError('Không thể duyệt bài viết');
+        });
     });
 }
 
 function quickRejectPost(postId) {
-    const reason = prompt('Nhập lý do từ chối:');
-    if (!reason) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/review/${postId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            decision: 'reject',
-            reason: reason 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        showSuccess('Đã từ chối bài viết thành công');
-        loadPosts(currentPostPage);
-    })
-    .catch(error => {
-        console.error('Error rejecting post:', error);
-        showError('Không thể từ chối bài viết');
-    });
+    showPostDetail(postId, { openReject: true });
 }
 
 function quickBanUser(userId) {
-    const reason = prompt('Nhập lý do ban user (để trống = vĩnh viễn):');
-    if (reason === null) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/users/${userId}/ban`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            reason: reason || 'Vi phạm quy định',
-            duration_hours: 168 // Default 1 week
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        showSuccess('Đã ban user thành công');
-        loadUsers(currentUserPage);
-    })
-    .catch(error => {
-        console.error('Error banning user:', error);
-        showError('Không thể ban user');
-    });
+    showUserDetail(userId, { openBan: true });
 }
 
 function quickUnbanUser(userId) {
-    if (!confirm('Bạn có chắc muốn unban user này?')) return;
-    
-    const token = localStorage.getItem('token');
-    
-    fetch(`${API_BASE_URL}/moderation/users/${userId}/unban`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            showError(data.error);
-            return;
-        }
-        showSuccess('Đã unban user thành công');
-        loadUsers(currentUserPage);
-    })
-    .catch(error => {
-        console.error('Error unbanning user:', error);
-        showError('Không thể unban user');
+    confirmAction('Bạn có chắc muốn unban user này?', () => {
+        const token = localStorage.getItem('token');
+
+        fetch(`${API_BASE_URL}/moderation/users/${userId}/unban`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+            showSuccess('Đã unban user thành công');
+            loadUsers(currentUserPage);
+        })
+        .catch(error => {
+            console.error('Error unbanning user:', error);
+            showError('Không thể unban user');
+        });
     });
 }
 
 // Dashboard functions
 function loadDashboard() {
     document.getElementById('mainContent').innerHTML = `
-        <div class="text-center py-12">
-            <span class="material-symbols-outlined text-6xl text-primary">dashboard</span>
-            <h2 class="text-2xl font-bold mt-4">Dashboard đang được phát triển</h2>
-            <p class="text-muted mt-2">Vui lòng chọn chức năng khác từ menu bên trái</p>
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <p class="text-sm text-muted font-medium">Tổng bài viết</p>
+                    <h3 id="overviewTotalPosts" class="text-3xl font-bold mt-2">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <p class="text-sm text-muted font-medium">Bài chờ duyệt</p>
+                    <h3 id="overviewPendingPosts" class="text-3xl font-bold mt-2">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <p class="text-sm text-muted font-medium">Bài bị gắn cờ</p>
+                    <h3 id="overviewFlaggedPosts" class="text-3xl font-bold mt-2">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <p class="text-sm text-muted font-medium">Người dùng bị ban</p>
+                    <h3 id="overviewBannedUsers" class="text-3xl font-bold mt-2">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold">Hoạt động kiểm duyệt gần đây</h3>
+                    <button onclick="loadDashboard()" class="text-sm text-primary font-semibold hover:underline">Làm mới</button>
+                </div>
+                <div id="overviewRecentActivity" class="space-y-3">
+                    <p class="text-sm text-muted">Đang tải dữ liệu...</p>
+                </div>
+            </div>
         </div>
     `;
+
+    loadDashboardData();
+}
+
+async function loadDashboardData() {
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    try {
+        const [postsRes, pendingRes, flaggedRes, usersRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/moderation/posts?per_page=1`, { headers, credentials: 'include' }),
+            fetch(`${API_BASE_URL}/moderation/posts?status=pending&per_page=1`, { headers, credentials: 'include' }),
+            fetch(`${API_BASE_URL}/moderation/posts?status=flagged&per_page=1`, { headers, credentials: 'include' }),
+            fetch(`${API_BASE_URL}/moderation/users?status=banned&per_page=1`, { headers, credentials: 'include' })
+        ]);
+
+        const [postsData, pendingData, flaggedData, usersData] = await Promise.all([
+            postsRes.json(),
+            pendingRes.json(),
+            flaggedRes.json(),
+            usersRes.json()
+        ]);
+
+        const totalPostsEl = document.getElementById('overviewTotalPosts');
+        const pendingPostsEl = document.getElementById('overviewPendingPosts');
+        const flaggedPostsEl = document.getElementById('overviewFlaggedPosts');
+        const bannedUsersEl = document.getElementById('overviewBannedUsers');
+
+        if (totalPostsEl) totalPostsEl.textContent = postsData.total || 0;
+        if (pendingPostsEl) pendingPostsEl.textContent = pendingData.total || 0;
+        if (flaggedPostsEl) flaggedPostsEl.textContent = flaggedData.total || 0;
+        if (bannedUsersEl) bannedUsersEl.textContent = usersData.total || 0;
+
+        renderRecentActivity(pendingData.posts || [], flaggedData.posts || []);
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        const activityEl = document.getElementById('overviewRecentActivity');
+        if (activityEl) {
+            activityEl.innerHTML = '<p class="text-sm text-danger">Không thể tải dữ liệu tổng quan.</p>';
+        }
+    }
+}
+
+function renderRecentActivity(pendingPosts, flaggedPosts) {
+    const activityEl = document.getElementById('overviewRecentActivity');
+    if (!activityEl) return;
+
+    const activityRows = [];
+
+    pendingPosts.slice(0, 3).forEach(post => {
+        activityRows.push({
+            type: 'pending',
+            postId: post.id,
+            title: `Bài viết chờ duyệt #${post.id}`,
+            subtitle: `@${post.author?.username || 'unknown'} • ${formatDateShort(post.created_at)}`
+        });
+    });
+
+    flaggedPosts.slice(0, 3).forEach(post => {
+        activityRows.push({
+            type: 'flagged',
+            postId: post.id,
+            title: `Bài viết bị gắn cờ #${post.id}`,
+            subtitle: `@${post.author?.username || 'unknown'} • AI: ${post.ai_confidence_score || 0}%`
+        });
+    });
+
+    if (activityRows.length === 0) {
+        activityEl.innerHTML = '<p class="text-sm text-muted">Hiện chưa có hoạt động đáng chú ý.</p>';
+        return;
+    }
+
+    activityEl.innerHTML = activityRows
+        .slice(0, 6)
+        .map(item => `
+            <div class="flex items-start justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40">
+                <div class="flex-1">
+                    <p class="text-sm font-semibold">${item.title}</p>
+                    <p class="text-xs text-muted mt-1">${item.subtitle}</p>
+                </div>
+                <div class="flex items-center gap-2 ml-4">
+                    <span class="text-[10px] px-2 py-1 rounded-full ${item.type === 'flagged' ? 'bg-warning/15 text-warning' : 'bg-primary/15 text-primary'}">
+                        ${item.type === 'flagged' ? 'Flagged' : 'Pending'}
+                    </span>
+                    <button onclick="showPostDetail(${item.postId})" class="text-xs px-2 py-1 rounded bg-primary text-white hover:bg-primary/90">Xem bài</button>
+                </div>
+            </div>
+        `)
+        .join('');
 }
 
 function loadReports() {
