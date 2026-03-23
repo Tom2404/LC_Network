@@ -151,6 +151,10 @@ def verify_otp():
             print(f"Failed to log activity: {log_error}")
         
         # Create tokens for auto-login
+        from flask import session
+        session['active_user_id'] = str(user.id)
+        session['user_last_activity_ts'] = int(datetime.utcnow().timestamp())
+
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
         
@@ -259,6 +263,10 @@ def login():
         from flask import session
         roles = [role.role for role in UserRole.query.filter_by(user_id=user.id).all()]
         is_admin = 'admin' in roles
+
+        # Track user inactivity window for JWT-protected APIs.
+        session['active_user_id'] = str(user.id)
+        session['user_last_activity_ts'] = int(datetime.utcnow().timestamp())
         
         # For admin users, also create session for admin panel
         if is_admin:
@@ -267,6 +275,7 @@ def login():
             session['admin_username'] = user.username
             session['admin_email'] = user.email
             session['admin_login_time'] = datetime.utcnow().isoformat()
+            session['admin_last_activity_ts'] = int(datetime.utcnow().timestamp())
         
         # Create tokens
         access_token = create_access_token(identity=str(user.id))
@@ -334,6 +343,10 @@ def logout():
     try:
         current_user_id = get_jwt_identity()
         log_activity(current_user_id, 'logout', request)
+
+        from flask import session
+        session.pop('active_user_id', None)
+        session.pop('user_last_activity_ts', None)
         
         return jsonify({'message': 'Logout successful'}), 200
         

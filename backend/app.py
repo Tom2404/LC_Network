@@ -1,7 +1,9 @@
-from flask import Flask, send_from_directory, session, redirect, url_for
+from flask import Flask, send_from_directory, session, redirect, url_for, request, jsonify
 from flask_cors import CORS
 from flask_session import Session
 import os
+from datetime import datetime
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 
 from config import config
 from models import db
@@ -61,6 +63,67 @@ def create_app(config_name='development'):
     def revoked_token_callback(jwt_header, jwt_payload):
         print("JWT REVOKED!")
         return {'error': 'Token has been revoked', 'code': 'token_revoked'}, 401
+
+    @app.before_request
+    def enforce_inactivity_timeout():
+        if request.method == 'OPTIONS' or not request.path.startswith('/api/'):
+            return None
+
+        now_ts = int(datetime.utcnow().timestamp())
+
+        if request.path.startswith('/api/admin/') and request.path != '/api/admin/login':
+            admin_user_id = session.get('admin_user_id')
+            if admin_user_id:
+                last_activity = session.get('admin_last_activity_ts')
+                timeout_seconds = int(app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+
+                if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+                    session.clear()
+                    return jsonify({
+                        'error': 'Session expired due to inactivity',
+                        'code': 'session_timeout'
+                    }), 401
+
+                session['admin_last_activity_ts'] = now_ts
+            return None
+
+        if request.path in {
+            '/api/auth/login',
+            '/api/auth/register',
+            '/api/auth/verify-otp',
+            '/api/auth/resend-otp'
+        } or request.path.startswith('/api/auth/verify-email') or request.path == '/api/health':
+            return None
+
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return None
+
+        try:
+            verify_jwt_in_request(optional=False)
+            current_user_id = str(get_jwt_identity())
+        except Exception:
+            return None
+
+        timeout_seconds = int(app.config.get('USER_INACTIVITY_TIMEOUT_SECONDS', 900))
+        tracked_user_id = session.get('active_user_id')
+        last_activity = session.get('user_last_activity_ts')
+
+        if tracked_user_id is None or str(tracked_user_id) != current_user_id:
+            session['active_user_id'] = current_user_id
+            session['user_last_activity_ts'] = now_ts
+            return None
+
+        if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+            session.pop('active_user_id', None)
+            session.pop('user_last_activity_ts', None)
+            return jsonify({
+                'error': 'Session expired due to inactivity',
+                'code': 'session_timeout'
+            }), 401
+
+        session['user_last_activity_ts'] = now_ts
+        return None
     
     # Register blueprints (controllers)
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -135,6 +198,13 @@ def create_app(config_name='development'):
         # Check if admin is authenticated
         if 'admin_user_id' not in session:
             return redirect('/admin/login')
+        now_ts = int(datetime.utcnow().timestamp())
+        last_activity = session.get('admin_last_activity_ts')
+        timeout_seconds = int(app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+        if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+            session.clear()
+            return redirect('/admin/login')
+        session['admin_last_activity_ts'] = now_ts
         admin_dir = os.path.join(frontend_dir, 'admin')
         return send_from_directory(admin_dir, 'PostManager.html')
     

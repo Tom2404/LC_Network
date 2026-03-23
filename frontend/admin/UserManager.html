@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>User Management - ModGuard Admin</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#f1f3f5",
+                        "secondary-container": "#e2e8f0",
+                        "on-secondary-fixed-variant": "#2b4d48",
+                        "secondary-fixed": "#c5eae3",
+                        "surface": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#00201d",
+                        "surface-container-highest": "#dee2e6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#0f172a",
+                        "on-tertiary-fixed": "#380d00",
+                        "tertiary-fixed": "#ffdbcf",
+                        "on-surface-variant": "#64748b",
+                        "secondary-fixed-dim": "#a9cec7",
+                        "outline": "#e2e8f0",
+                        "surface-container-high": "#e9ecef",
+                        "primary-fixed-dim": "#76d7ca",
+                        "tertiary-container": "#ffedd5",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#005049",
+                        "error": "#ef4444",
+                        "on-primary-container": "#00201d",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f8fafc",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#f1f5f9",
+                        "background": "#f8f9fa",
+                        "outline-variant": "#cbd5e1",
+                        "surface-bright": "#ffffff",
+                        "surface-tint": "#008075",
+                        "surface-dim": "#f8f9fa",
+                        "tertiary": "#e36414",
+                        "on-secondary-container": "#0f172a",
+                        "on-tertiary-container": "#7c2d12",
+                        "error-container": "#fee2e2",
+                        "primary": "#008075",
+                        "inverse-primary": "#76d7ca",
+                        "on-background": "#0f172a",
+                        "secondary": "#475569",
+                        "surface-container-low": "#f8f9fa",
+                        "inverse-surface": "#1e293b",
+                        "on-primary-fixed": "#00201d",
+                        "on-error-container": "#7f1d1d",
+                        "primary-container": "#ccf1ee",
+                        "primary-fixed": "#93f4e6",
+                        "on-tertiary-fixed-variant": "#75341a"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface flex min-h-screen">
+    <!-- SideNavBar Shell -->
+    <aside
+        class="fixed left-0 top-0 h-full flex flex-col py-4 bg-slate-50 border-r border-slate-200 w-64 z-50 font-manrope text-sm font-medium">
+        <div class="px-6 mb-8">
+            <h1 class="text-lg font-black text-slate-900">ModGuard</h1>
+            <p class="text-xs text-slate-500">Network Admin</p>
+        </div>
+        <nav class="flex-1 px-3 space-y-1">
+            <a class="flex items-center px-3 py-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 ease-in-out rounded-lg"
+                href="#">
+                <span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+            <!-- Active State: User Management -->
+            <a class="flex items-center px-3 py-2 bg-emerald-50 text-emerald-700 border-r-4 border-emerald-600 transition-all duration-200 ease-in-out"
+                href="#">
+                <span class="material-symbols-outlined mr-3 text-emerald-600" data-icon="group">group</span>
+                User Management
+            </a>
+            <a class="flex items-center px-3 py-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 ease-in-out rounded-lg"
+                href="#">
+                <span class="material-symbols-outlined mr-3" data-icon="fact_check">fact_check</span>
+                Content Queue
+            </a>
+            <a class="flex items-center px-3 py-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 ease-in-out rounded-lg"
+                href="#">
+                <span class="material-symbols-outlined mr-3" data-icon="gavel">gavel</span>
+                Policy Config
+            </a>
+            <a class="flex items-center px-3 py-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 ease-in-out rounded-lg"
+                href="#">
+                <span class="material-symbols-outlined mr-3" data-icon="analytics">analytics</span>
+                Reports
+            </a>
+        </nav>
+        <div class="px-3 pt-4 border-t border-slate-200">
+            <a class="flex items-center px-3 py-2 text-slate-600 hover:bg-slate-100 transition-all duration-200 ease-in-out rounded-lg"
+                href="#">
+                <span class="material-symbols-outlined mr-3" data-icon="logout">logout</span>
+                Logout
+            </a>
+        </div>
+    </aside>
+    <main class="flex-1 ml-64 flex flex-col min-h-screen">
+        <!-- TopNavBar Shell -->
+        <header
+            class="sticky top-0 z-40 w-full flex items-center justify-between px-6 h-16 bg-white border-b border-slate-200 shadow-sm font-manrope antialiased">
+            <div class="flex items-center gap-4 flex-1">
+                <div class="relative w-full max-w-md">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                        data-icon="search">search</span>
+                    <input
+                        class="w-full bg-slate-50 border-none rounded-full py-2 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500/20 text-sm"
+                        placeholder="Global search..." type="text" />
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button
+                    class="p-2 text-slate-500 hover:bg-slate-50 transition-colors rounded-full cursor-pointer active:opacity-80">
+                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                </button>
+                <button
+                    class="p-2 text-slate-500 hover:bg-slate-50 transition-colors rounded-full cursor-pointer active:opacity-80">
+                    <span class="material-symbols-outlined" data-icon="help">help</span>
+                </button>
+                <button
+                    class="p-2 text-slate-500 hover:bg-slate-50 transition-colors rounded-full cursor-pointer active:opacity-80">
+                    <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                </button>
+                <div class="h-8 w-px bg-slate-200 mx-2"></div>
+                <div class="flex items-center gap-3 ml-2">
+                    <img class="h-8 w-8 rounded-full object-cover" data-alt="Admin Profile Avatar"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAhJSYQAQnsjw0CIQ5Rciw-aH6fV6vGLWIhk22APr2UHLdkMh9amjG2Lvb-Furr7YGmHTzFLdA5VoCkpN-hJNNhMlBmIu3_1KrJY-tV3xfgAgG_XXuo2r6SpOj2W7wJPGhktUG8pHrSx9R137J-fgUAof_YzJ0R6adJFy_nad_28iKWGn_MvB5LcX0MxhY1UgQLY72DM8IPxRoen7jWclyA5RFSL-QwqStckavxA8KyDCki_RG6nmMjhiYHmKzx8h9OihAvFoBtVA" />
+                    <div class="hidden lg:block text-left">
+                        <p class="text-sm font-bold text-emerald-700 leading-none">Admin Profile</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Super Admin</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Page Content -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Table Section -->
+            <section class="flex-1 p-8 overflow-y-auto">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-extrabold text-on-surface">User Management</h2>
+                    <p class="text-on-surface-variant mt-1">Review system access and manage community health.</p>
+                </div>
+                <!-- Filters and Search Bar -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div class="flex bg-surface-container p-1 rounded-xl">
+                        <button class="px-4 py-2 text-sm font-semibold bg-white shadow-sm rounded-lg text-primary">All
+                            Users</button>
+                        <button
+                            class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Active</button>
+                        <button
+                            class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Warned</button>
+                        <button
+                            class="px-4 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Banned</button>
+                    </div>
+                    <div class="relative w-full md:w-80">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                            data-icon="search">search</span>
+                        <input
+                            class="w-full bg-surface border-outline rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary/20 text-sm"
+                            placeholder="Search by username, email or ID..." type="text" />
+                    </div>
+                </div>
+                <!-- Data Table -->
+                <div class="bg-surface rounded-xl border border-outline overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline">
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    User</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Violations</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Last Active</th>
+                                <th
+                                    class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline">
+                            <!-- Active User -->
+                            <tr
+                                class="hover:bg-surface-variant transition-colors cursor-pointer bg-primary/5 border-l-4 border-primary">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img class="h-10 w-10 rounded-full object-cover"
+                                            data-alt="User profile avatar synth_wave"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB02_TnVX4Gbbz8PlhjFCs7LeTyLwDDSDrDpNjOppQsSE63WcN5xi7aTh-Ei2oAuz1oMFgOmFndn78yviqtMZatnwXok_Ui5DMuyBe4RDRwa-yTzNwbEO1nRzYS9yQLCX294ZJAJC0bEtA7p9wGx9dMQUuDsgoHjOq8KYGqipEThk2JgpDIowBa6YPYokSd3AQUZ4Ohr5rzKVVlQ8-ydX8UruM61zXT-agEog0g6UTd90MIkQ_toSzcRy-CEuwLU0C7pm0ozw5elQA" />
+                                        <div>
+                                            <p class="text-sm font-bold text-on-surface">@synth_wave</p>
+                                            <p class="text-xs text-on-surface-variant">synth.wave@example.com</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-error-container text-on-error-container">Warned</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold text-on-surface">14</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">2 mins ago</td>
+                                <td class="px-6 py-4">
+                                    <button
+                                        class="text-primary font-bold text-xs hover:underline uppercase tracking-tight">Manage</button>
+                                </td>
+                            </tr>
+                            <!-- Another User -->
+                            <tr class="hover:bg-surface-variant transition-colors cursor-pointer">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img class="h-10 w-10 rounded-full object-cover"
+                                            data-alt="User profile avatar neon_dreamer"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI6ccjsMlGhn3y4H3gBdpqcLZQfR9zWqBYJnQyOPf1OS2S4OV7QpVUNxvKKVnEPPcB2_Dx_rgu3wrIyWuEcQZbOWbKcofycD3Fo0xRqVLNZfAnFxXQBvs8FBOj3l9jW7I4JIhg5w7Ir-wivgqVom9slb5RQ3CW5qRnLjajzR9GgJZ2mmyYTY3jZ0t-JvHuJGIQjsNmx-uL0RJlFm_JFT9zI-UCeyE4rVtUYAbMoAhwToAfIrk-KYObwrJyL2QIkpw3zFUeeEm9Q5k" />
+                                        <div>
+                                            <p class="text-sm font-bold text-on-surface">@neon_dreamer</p>
+                                            <p class="text-xs text-on-surface-variant">neon.d@provider.net</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary-container text-on-primary-container">Active</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold text-on-surface">0</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">1 hour ago</td>
+                                <td class="px-6 py-4">
+                                    <button
+                                        class="text-primary font-bold text-xs hover:underline uppercase tracking-tight">Manage</button>
+                                </td>
+                            </tr>
+                            <!-- Banned User -->
+                            <tr class="hover:bg-surface-variant transition-colors cursor-pointer opacity-60">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img class="h-10 w-10 rounded-full object-cover"
+                                            data-alt="User profile avatar shadow_walker"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-6OkFigz8INXpe8OcP2BJIAXDOrOFuBO6WBhTlgT6xXipkBIEIPJewKl1DXFqgOm0hcf2PuWWheX6d58nWBc_fhOmELoKLh9ynghBAnWhd6pZfnUIAYGtR2ehqY6qX5bMmh-wNl--_gg2Af3_d3-yZGqKQxdtmc06VIgsg7y_kZD3k2Yr_s8N4b-XiNmTwRjuci-BXZBoB51O1FkyegtKMMl0hd8OEz7GcAuhbF87PkKrrT30KDwcDoPhha3eezr1PfI4dBLesxc" />
+                                        <div>
+                                            <p class="text-sm font-bold text-on-surface">@shadow_walker</p>
+                                            <p class="text-xs text-on-surface-variant">shadow@vault.io</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary-container text-on-secondary-container">Banned</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold text-on-surface">32</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">3 days ago</td>
+                                <td class="px-6 py-4">
+                                    <button
+                                        class="text-primary font-bold text-xs hover:underline uppercase tracking-tight">Manage</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- Detail Sidebar -->
+            <aside class="w-96 bg-white border-l border-outline flex flex-col overflow-y-auto">
+                <div class="p-6 border-b border-outline">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="relative mb-4">
+                            <img class="h-24 w-24 rounded-full border-4 border-primary-container object-cover shadow-lg"
+                                data-alt="Profile summary avatar"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7u58fV_bQgj2X1sBRneaiW4Voxpv7TXD3On56uUeEvaf92o40fMtX8SE0yxWgEbuzfpFg4s77y2xUYDvrEqW9HjTsGe1imPdizDDUBhlfDq-U3KFEjyhpJ_EsFth8VE5drBYX6Q3fY1b3AxXqPkUi9tT47--QFEOafdUx2uDsvxN3QeZLn_4MW2a5NuxtLA1LnIYL4odLnVCKUKZoPiWd3o0yImRQ0ybaeF7PMjjme69BctSQlq_IG2GnofdMgFRotnGL1ri5BI0" />
+                            <div class="absolute bottom-1 right-1 h-5 w-5 bg-error rounded-full border-2 border-white">
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-on-surface">@synth_wave</h3>
+                        <p class="text-sm text-on-surface-variant">Joined May 2023 • ID: MG-8829</p>
+                    </div>
+                </div>
+                <!-- Stats Cards -->
+                <div class="p-6 grid grid-cols-2 gap-4">
+                    <div class="bg-error-container p-4 rounded-xl border border-error/10">
+                        <p class="text-xs font-bold text-on-error-container uppercase tracking-wider mb-1">Flags</p>
+                        <p class="text-2xl font-black text-on-error-container">14</p>
+                    </div>
+                    <div class="bg-primary-container p-4 rounded-xl border border-primary/10">
+                        <p class="text-xs font-bold text-on-primary-container uppercase tracking-wider mb-1">AI Conf.
+                        </p>
+                        <p class="text-2xl font-black text-on-primary-container">94%</p>
+                    </div>
+                </div>
+                <!-- Violation History -->
+                <div class="px-6 flex-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xs font-black text-on-surface uppercase tracking-widest">Violation History</h4>
+                        <span
+                            class="text-[10px] bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-bold">RECENT</span>
+                    </div>
+                    <div
+                        class="space-y-6 relative before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-outline">
+                        <div class="relative pl-8">
+                            <div
+                                class="absolute left-0 top-1.5 h-4 w-4 rounded-full bg-error border-2 border-white shadow-sm">
+                            </div>
+                            <p class="text-xs font-bold text-on-surface">May 12: AI-Detected Hate Speech</p>
+                            <div
+                                class="mt-2 p-3 bg-surface-container-low border border-outline rounded-lg text-xs italic text-on-surface-variant">
+                                "The flagged message text will appear here as a snippet for the admin to review..."
+                            </div>
+                        </div>
+                        <div class="relative pl-8">
+                            <div
+                                class="absolute left-0 top-1.5 h-4 w-4 rounded-full bg-tertiary border-2 border-white shadow-sm">
+                            </div>
+                            <p class="text-xs font-bold text-on-surface">May 10: User Report: Spamming</p>
+                            <div
+                                class="mt-2 p-3 bg-surface-container-low border border-outline rounded-lg text-xs italic text-on-surface-variant">
+                                "Multiple reports of repetitive content in the community channel #general."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Management Actions -->
+                <div class="p-6 mt-auto border-t border-outline bg-surface-container-lowest">
+                    <h4 class="text-xs font-black text-on-surface uppercase tracking-widest mb-4">Management Actions
+                    </h4>
+                    <div class="space-y-3">
+                        <button
+                            class="w-full py-2.5 px-4 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-surface-tint transition-all active:scale-[0.98]">
+                            Dismiss All Flags
+                        </button>
+                        <button
+                            class="w-full py-2.5 px-4 bg-white border border-outline text-on-surface font-bold rounded-xl hover:bg-surface-container transition-all">
+                            Issue Formal Warning
+                        </button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button
+                                class="py-2.5 px-2 bg-white border border-error/30 text-error font-bold text-xs rounded-xl hover:bg-error-container transition-all">
+                                Ban (3 Days)
+                            </button>
+                            <button
+                                class="py-2.5 px-2 bg-error text-white font-bold text-xs rounded-xl hover:opacity-90 transition-all">
+                                Permanent Ban
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+</body>
+
+</html>

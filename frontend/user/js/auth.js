@@ -105,6 +105,7 @@ async function refreshAccessToken() {
     try {
         const response = await fetch(`${API_URL}/auth/refresh`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${refreshToken}`
@@ -130,18 +131,45 @@ async function refreshAccessToken() {
     }
 }
 
+async function isInactivityTimeoutResponse(response) {
+    if (!response || response.status !== 401) {
+        return false;
+    }
+
+    try {
+        const payload = await response.clone().json();
+        return payload && payload.code === 'session_timeout';
+    } catch (error) {
+        return false;
+    }
+}
+
 // Fetch with auto token refresh
 async function fetchWithAuth(url, options = {}) {
     console.log('[Auth] Fetching with auth:', url);
-    
-    options.headers = {
-        ...options.headers,
-        ...getAuthHeaders()
+
+    const isFormDataRequest = options.body instanceof FormData;
+    const headers = {
+        ...(options.headers || {}),
+        'Authorization': `Bearer ${getAuthToken()}`
     };
-    
+
+    if (!isFormDataRequest && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    options.headers = headers;
+    options.credentials = 'include';
+
     let response = await fetch(url, options);
     
     console.log('[Auth] Response status:', response.status);
+
+    if (await isInactivityTimeoutResponse(response)) {
+        console.warn('[Auth] Session timeout due to inactivity, logging out...');
+        logout(true);
+        return response;
+    }
     
     // If unauthorized, try refreshing token
     if (response.status === 401) {
@@ -152,6 +180,11 @@ async function fetchWithAuth(url, options = {}) {
             options.headers['Authorization'] = `Bearer ${newToken}`;
             response = await fetch(url, options);
             console.log('[Auth] Retry response status:', response.status);
+
+            if (await isInactivityTimeoutResponse(response)) {
+                console.warn('[Auth] Session timeout due to inactivity after retry, logging out...');
+                logout(true);
+            }
         }
     }
     

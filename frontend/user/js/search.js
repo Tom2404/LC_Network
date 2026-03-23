@@ -96,32 +96,22 @@ async function performSearch(query) {
     `;
     
     try {
-        const token = localStorage.getItem('accessToken');
-        
         // Search based on filter
         if (currentSearchFilter === 'people') {
             // Only search users
-            const usersResponse = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(query)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const usersResponse = await fetchWithAuth(`${API_URL}/users/search?q=${encodeURIComponent(query)}`);
             const usersData = await usersResponse.json();
             displaySearchResults(null, usersData, query);
         } else if (currentSearchFilter === 'posts') {
             // Only search posts
-            const postsResponse = await fetch(`${API_URL}/posts/search?q=${encodeURIComponent(query)}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const postsResponse = await fetchWithAuth(`${API_URL}/posts/search?q=${encodeURIComponent(query)}`);
             const postsData = await postsResponse.json();
             displaySearchResults(postsData, null, query);
         } else {
             // Search both posts and users in parallel
             const [postsResponse, usersResponse] = await Promise.all([
-                fetch(`${API_URL}/posts/search?q=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }),
-                fetch(`${API_URL}/users/search?q=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
+                fetchWithAuth(`${API_URL}/posts/search?q=${encodeURIComponent(query)}`),
+                fetchWithAuth(`${API_URL}/users/search?q=${encodeURIComponent(query)}`)
             ]);
             
             const postsData = await postsResponse.json();
@@ -277,11 +267,9 @@ function viewPost(postId) {
 
 async function sendFriendRequest(userId) {
     try {
-        const token = localStorage.getItem('accessToken');
-        const response = await fetch(`${API_URL}/friends/request/${userId}`, {
+        const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -312,13 +300,11 @@ async function sendFriendRequest(userId) {
 
 async function respondToFriendRequest(userId, action) {
     try {
-        const token = localStorage.getItem('accessToken');
         const endpoint = action === 'accept' ? 'accept' : 'reject';
         
-        const response = await fetch(`${API_URL}/friends/request/${userId}/${endpoint}`, {
+        const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/${endpoint}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
         });

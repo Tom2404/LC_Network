@@ -140,11 +140,8 @@ async function uploadMediaFile(file, type) {
         formData.append('file', file);
         formData.append('type', type);
         
-        const response = await fetch(`${API_URL}/posts/upload-media`, {
+        const response = await fetchWithAuth(`${API_URL}/posts/upload-media`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
             body: formData
         });
         

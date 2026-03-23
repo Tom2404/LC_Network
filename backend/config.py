@@ -17,6 +17,8 @@ class Config:
     SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = timedelta(hours=2)  # Admin session expires after 2 hours
+    USER_INACTIVITY_TIMEOUT_SECONDS = int(os.getenv('USER_INACTIVITY_TIMEOUT_SECONDS', 15 * 60))
+    ADMIN_INACTIVITY_TIMEOUT_SECONDS = int(os.getenv('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 15 * 60))
     
     # Database - MySQL
     SQLALCHEMY_DATABASE_URI = os.getenv(

@@ -2,7 +2,7 @@
 Admin Controller
 Handles admin authentication and session management
 """
-from flask import Blueprint, request, jsonify, session, redirect, url_for
+from flask import Blueprint, request, jsonify, session, redirect, url_for, current_app
 from functools import wraps
 from models import db
 from models.user import User
@@ -18,6 +18,16 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if 'admin_user_id' not in session:
             return jsonify({'error': 'Authentication required', 'code': 'auth_required'}), 401
+
+        now_ts = int(datetime.utcnow().timestamp())
+        last_activity = session.get('admin_last_activity_ts')
+        timeout_seconds = int(current_app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+
+        if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+            session.clear()
+            return jsonify({'error': 'Session expired due to inactivity', 'code': 'session_timeout'}), 401
+
+        session['admin_last_activity_ts'] = now_ts
         
         # Verify user still has admin role
         user = User.query.get(session['admin_user_id'])
@@ -65,6 +75,7 @@ def admin_login():
         session['admin_username'] = user.username
         session['admin_email'] = user.email
         session['admin_login_time'] = datetime.utcnow().isoformat()
+        session['admin_last_activity_ts'] = int(datetime.utcnow().timestamp())
         
         # Update last login
         user.last_login_at = datetime.utcnow()
@@ -96,6 +107,14 @@ def check_session():
     """Check if admin session is active"""
     if 'admin_user_id' not in session:
         return jsonify({'authenticated': False}), 401
+
+    now_ts = int(datetime.utcnow().timestamp())
+    last_activity = session.get('admin_last_activity_ts')
+    timeout_seconds = int(current_app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+    if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+        session.clear()
+        return jsonify({'authenticated': False, 'error': 'Session expired due to inactivity', 'code': 'session_timeout'}), 401
+    session['admin_last_activity_ts'] = now_ts
     
     user = User.query.get(session['admin_user_id'])
     if not user or not user.has_role('admin'):
