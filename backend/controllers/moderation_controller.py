@@ -6,6 +6,8 @@ from models.post import Post
 from models.user import User
 from models.appeal import Appeal
 from models.violation_history import ViolationHistory
+from models.comment import Comment
+from models.friendship import Friendship
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -485,6 +487,52 @@ def ban_user(user_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/users/<int:user_id>/profile-summary', methods=['GET'])
+@requires_moderator
+def get_user_profile_summary(user_id):
+    """Lấy bản tóm tắt trang cá nhân của user cho admin"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        post_count = Post.query.filter_by(user_id=user.id).count()
+        comment_count = Comment.query.filter_by(user_id=user.id).count()
+        friend_count = Friendship.query.filter(
+            db.or_(
+                Friendship.user_id == user.id,
+                Friendship.friend_id == user.id
+            ),
+            Friendship.status == 'accepted'
+        ).count()
+
+        summary = {
+            'id': user.id,
+            'username': user.username,
+            'full_name': user.full_name,
+            'email': user.email,
+            'phone_number': user.phone_number,
+            'avatar_url': user.avatar_url,
+            'account_status': user.account_status,
+            'warning_count': user.warning_count,
+            'ban_reason': user.ban_reason,
+            'ban_until': user.ban_until.isoformat() if user.ban_until else None,
+            'is_email_verified': user.is_email_verified,
+            'created_at': user.created_at.isoformat() if user.created_at else None,
+            'last_login_at': user.last_login_at.isoformat() if user.last_login_at else None,
+            'stats': {
+                'posts': post_count,
+                'comments': comment_count,
+                'friends': friend_count
+            }
+        }
+
+        return jsonify({'summary': summary}), 200
+
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 

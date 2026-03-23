@@ -207,6 +207,23 @@ def create_app(config_name='development'):
         session['admin_last_activity_ts'] = now_ts
         admin_dir = os.path.join(frontend_dir, 'admin')
         return send_from_directory(admin_dir, 'PostManager.html')
+
+    @app.route('/admin/users')
+    @app.route('/admin/users.html')
+    @app.route('/admin/UserManagement.html')
+    @app.route('/admin/PostManagement.html')
+    def admin_users_page():
+        if 'admin_user_id' not in session:
+            return redirect('/admin/login')
+        now_ts = int(datetime.utcnow().timestamp())
+        last_activity = session.get('admin_last_activity_ts')
+        timeout_seconds = int(app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+        if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+            session.clear()
+            return redirect('/admin/login')
+        session['admin_last_activity_ts'] = now_ts
+        admin_dir = os.path.join(frontend_dir, 'admin')
+        return send_from_directory(admin_dir, 'UserManager.html')
     
     # Serve uploaded files
     @app.route('/uploads/<path:filename>')
