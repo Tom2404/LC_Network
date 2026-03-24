@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db
 from models.post import Post
 from models.post_media import PostMedia
+from models.moderation_queue import ModerationQueue
 from models.user import User
 from models.like import Like
 from utils.file_upload import upload_file, allowed_file
@@ -34,7 +35,8 @@ def create_post():
             caption=data.get('caption'),
             content_type='text',  # Will update based on media
             visibility=data.get('visibility', 'public'),
-            status='pending'  # Chờ kiểm duyệt
+            status='pending',  # Chờ kiểm duyệt
+            moderation_status='not_checked'
         )
         
         db.session.add(new_post)
@@ -57,17 +59,21 @@ def create_post():
                 new_post.content_type = data['media'][0]['type']
             else:
                 new_post.content_type = 'mixed'
+
+        # Push post to moderation queue (manual/admin or AI-assisted review)
+        queue_item = ModerationQueue(
+            target_type='post',
+            target_id=new_post.id,
+            source='manual_review',
+            priority=0,
+            status='pending'
+        )
+        db.session.add(queue_item)
         
-        db.session.commit()
-        
-        # TODO: Trigger AI moderation (Phase 5)
-        # For now, auto-publish for development
-        new_post.status = 'published'
-        new_post.published_at = datetime.utcnow()
         db.session.commit()
         
         return jsonify({
-            'message': 'Post created successfully.',
+            'message': 'Post created successfully and is pending moderation approval.',
             'post': new_post.to_dict()
         }), 201
         
@@ -341,6 +347,23 @@ def update_post(post_id):
         post.status = 'pending'
         post.moderation_status = 'not_checked'
         post.updated_at = datetime.utcnow()
+
+        # Ensure there is a pending moderation queue item for re-review
+        existing_queue_item = ModerationQueue.query.filter(
+            ModerationQueue.target_type == 'post',
+            ModerationQueue.target_id == post.id,
+            ModerationQueue.status.in_(['pending', 'locked'])
+        ).first()
+
+        if not existing_queue_item:
+            queue_item = ModerationQueue(
+                target_type='post',
+                target_id=post.id,
+                source='manual_review',
+                priority=0,
+                status='pending'
+            )
+            db.session.add(queue_item)
         
         db.session.commit()
         

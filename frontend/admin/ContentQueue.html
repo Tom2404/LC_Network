@@ -263,8 +263,16 @@
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
                 const data = await response.json();
+                if (data.error) {
+                    return;
+                }
                 const queue = data.queue || [];
-                const highPriority = queue.filter(item => item.priority === 'high').length;
+                const highPriority = queue.filter(item => {
+                    if (typeof item.priority === 'number') {
+                        return item.priority >= 80;
+                    }
+                    return item.priority === 'high';
+                }).length;
 
                 document.getElementById('queuePendingCount').textContent = data.total || queue.length || 0;
                 document.getElementById('queueHighCount').textContent = highPriority;

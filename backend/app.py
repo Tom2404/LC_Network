@@ -188,9 +188,8 @@ def create_app(config_name='development'):
     def admin_login_page():
         # If already logged in, redirect to admin dashboard
         if 'admin_user_id' in session:
-            return redirect('/admin/')
-        admin_dir = os.path.join(frontend_dir, 'admin')
-        return send_from_directory(admin_dir, 'login.html')
+            return redirect('/admin/dashboard')
+        return redirect('/login')
     
     @app.route('/admin')
     @app.route('/admin/')

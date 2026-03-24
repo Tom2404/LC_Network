@@ -149,12 +149,12 @@ def review_post(post_id):
         elif decision == 'flag':
             post.status = 'flagged'
         
-        # Mark queue item as completed
-        queue_item = ModerationQueue.query.filter_by(
-            target_type='post',
-            target_id=post_id,
-            status='locked'
-        ).first()
+        # Mark queue item as completed (handle both locked and direct-review cases)
+        queue_item = ModerationQueue.query.filter(
+            ModerationQueue.target_type == 'post',
+            ModerationQueue.target_id == post_id,
+            ModerationQueue.status.in_(['locked', 'pending'])
+        ).order_by(ModerationQueue.created_at.desc()).first()
         
         if queue_item:
             queue_item.status = 'completed'

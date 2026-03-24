@@ -21,7 +21,7 @@ async function checkAuth() {
         
         if (response.status === 401) {
             // Not authenticated, redirect to login
-            window.location.href = '/admin/login';
+            window.location.href = '/login';
             return false;
         }
         
@@ -48,7 +48,7 @@ async function checkAuth() {
         return true;
     } catch (error) {
         console.error('Auth check error:', error);
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
         return false;
     }
 }
@@ -66,9 +66,11 @@ async function logout() {
         
         // Also clear any JWT token if exists
         localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
     });
 }
 
@@ -89,7 +91,7 @@ async function authenticatedFetch(url, options = {}) {
         
         // If unauthorized, redirect to login
         if (response.status === 401) {
-            window.location.href = '/admin/login';
+            window.location.href = '/login';
             throw new Error('Unauthorized');
         }
         
@@ -822,11 +824,11 @@ async function loadQueue(page = 1) {
     try {
         const token = localStorage.getItem('token');
         const url = `${API_BASE_URL}/moderation/queue?page=${page}&per_page=10`;
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
         const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include',
+            headers
         });
         
         if (response.status === 401 || response.status === 403) {
@@ -909,12 +911,16 @@ function displayQueue(queue) {
 }
 
 function getPriorityBadge(priority) {
+    const normalizedPriority = typeof priority === 'number'
+        ? (priority >= 80 ? 'high' : priority >= 40 ? 'medium' : 'low')
+        : priority;
+
     const badges = {
         'high': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger">Cao</span>',
         'medium': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">Trung bình</span>',
         'low': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">Thấp</span>'
     };
-    return badges[priority] || badges['low'];
+    return badges[normalizedPriority] || badges['low'];
 }
 
 // ============= PAGINATION =============
