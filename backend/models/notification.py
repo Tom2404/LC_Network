@@ -7,12 +7,14 @@ class Notification(db.Model):
     
     # Notification type categories
     ACCOUNT_TYPES = [
-        'violation_warning', 'post_approved', 'post_rejected', 'post_flagged',
-        'appeal_result', 'account_suspended', 'account_banned', 'account_warning'
+        'friend_request', 'friend_accept',
+        'violation_warning', 'appeal_result',
+        'account_suspended', 'account_banned', 'account_warning'
     ]
     
     POST_TYPES = [
-        'like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept'
+        'like', 'comment', 'reply', 'share',
+        'post_approved', 'post_rejected', 'post_flagged'
     ]
     
     id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)

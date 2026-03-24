@@ -80,29 +80,29 @@
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/">
                     <span class="material-symbols-outlined">article</span>
-                    <span class="text-sm font-medium">Quan ly Bai viet</span>
+                    <span class="text-sm font-medium">Quản lí bài viết</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/users">
                     <span class="material-symbols-outlined">group</span>
-                    <span class="text-sm font-medium">Quan ly Nguoi dung</span>
+                    <span class="text-sm font-medium">Quản lí người dùng</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/content-queue">
                     <span class="material-symbols-outlined">pending_actions</span>
-                    <span class="text-sm font-medium">Content Queue</span>
+                    <span class="text-sm font-medium">Quản lí bài viết</span>
                     <span class="ml-auto bg-warning text-white text-[10px] px-2 py-0.5 rounded-full" id="queueCount">0</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#" onclick="return false;">
                     <span class="material-symbols-outlined">report</span>
-                    <span class="text-sm font-medium">Bao cao Vi pham</span>
+                    <span class="text-sm font-medium">Báo cáo Vi phạm</span>
                 </a>
                 <div class="pt-4 pb-2 text-[10px] font-bold text-muted uppercase tracking-widest px-3">He thong</div>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#" onclick="return false;">
                     <span class="material-symbols-outlined">settings</span>
-                    <span class="text-sm font-medium">Cau hinh</span>
+                    <span class="text-sm font-medium">Cấu hình</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-danger" href="#" onclick="logout(); return false;">
                     <span class="material-symbols-outlined">logout</span>
-                    <span class="text-sm font-medium">Dang xuat</span>
+                    <span class="text-sm font-medium">Đăng xuất</span>
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -111,7 +111,7 @@
                         <span id="adminInitials">A</span>
                     </div>
                     <div class="flex-1 overflow-hidden">
-                        <p class="text-sm font-bold truncate" id="adminFullName">Quan tri vien</p>
+                        <p class="text-sm font-bold truncate" id="adminFullName">Quản trị viên</p>
                         <p class="text-xs text-muted truncate" id="adminRole">Admin</p>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
 
         <main class="flex-1 flex flex-col overflow-hidden">
             <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
-                <h2 class="text-xl font-bold">Tong quan</h2>
+                <h2 class="text-xl font-bold">Tổng quan</h2>
                 <div class="flex items-center gap-4">
                     <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onclick="loadDashboard()">
                         <span class="material-symbols-outlined text-2xl">refresh</span>
@@ -134,7 +134,7 @@
             <div class="flex-1 overflow-y-auto p-8" id="mainContent">
                 <div class="text-center py-16">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p class="text-muted mt-4">Dang tai du lieu tong quan...</p>
+                    <p class="text-muted mt-4">Đang tải dữ liệu tổng quan...</p>
                 </div>
             </div>
         </main>
@@ -143,57 +143,57 @@
     <div id="post-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style="display: none;">
         <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
-                <h3 class="text-lg font-bold">Chi tiet bai viet</h3>
+                <h3 class="text-lg font-bold">Chi tiết bài viết</h3>
                 <button onclick="closePostModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <div id="post-detail-content" class="p-6"></div>
             <div class="sticky bottom-0 bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
-                <button onclick="closePostModal()" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">Dong</button>
+                <button onclick="closePostModal()" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">Đóng</button>
                 <button onclick="approvePost()" class="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success/90">
                     <span class="material-symbols-outlined text-sm align-middle">check_circle</span>
-                    Duyet bai
+                    Duyệt bài
                 </button>
                 <button onclick="rejectPost()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning/90">
                     <span class="material-symbols-outlined text-sm align-middle">cancel</span>
-                    Tu choi
+                    Từ chối
                 </button>
                 <button onclick="showMuteDialog()" class="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger/90">
                     <span class="material-symbols-outlined text-sm align-middle">block</span>
-                    Mute User
+                    Mute người dùng
                 </button>
             </div>
 
             <div id="reject-reason-container" class="px-6 py-4 bg-warning/5 border-t border-warning/20" style="display: none;">
-                <label class="block text-sm font-bold mb-2">Ly do tu choi:</label>
+                <label class="block text-sm font-bold mb-2">Ly do từ chối:</label>
                 <textarea id="reject-reason" rows="3" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhap ly do tu choi bai viet..."></textarea>
                 <div class="mt-3 flex gap-2">
-                    <button onclick="submitReject()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg">Xac nhan tu choi</button>
+                    <button onclick="submitReject()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg">Xac nhận từ chối</button>
                     <button onclick="document.getElementById('reject-reason-container').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Huy</button>
                 </div>
             </div>
 
             <div id="mute-dialog" class="px-6 py-4 bg-danger/5 border-t border-danger/20" style="display: none;">
-                <h4 class="text-sm font-bold mb-3">Mute nguoi dung</h4>
+                <h4 class="text-sm font-bold mb-3">Mute người dùng</h4>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium mb-1">Thoi gian mute (gio):</label>
+                        <label class="block text-sm font-medium mb-1">Thời gian mute (gio):</label>
                         <select id="mute-duration" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm">
-                            <option value="1">1 gio</option>
-                            <option value="6">6 gio</option>
-                            <option value="24">24 gio (1 ngay)</option>
-                            <option value="72">72 gio (3 ngay)</option>
-                            <option value="168">168 gio (1 tuan)</option>
+                            <option value="1">1 giờ</option>
+                            <option value="6">6 giờ</option>
+                            <option value="24">24 giờ (1 ngày)</option>
+                            <option value="72">72 giờ (3 ngày)</option>
+                            <option value="168">168 giờ (1 tuần)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Ly do:</label>
-                        <textarea id="mute-reason" rows="2" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhap ly do mute..."></textarea>
+                        <textarea id="mute-reason" rows="2" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhap lí do mute..."></textarea>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="submitMuteUser()" class="px-4 py-2 text-sm bg-danger text-white rounded-lg">Xac nhan Mute</button>
-                        <button onclick="document.getElementById('mute-dialog').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Huy</button>
+                        <button onclick="document.getElementById('mute-dialog').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
                     </div>
                 </div>
             </div>

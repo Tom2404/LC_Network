@@ -1069,7 +1069,7 @@
                     const data = await response.json();
                     console.log('Post created:', data);
                     closeCreatePostModal();
-                    showNotification('Đăng bài thành công!', 'success');
+                    showNotification('Đã gửi bài viết, đang chờ đợi xét duyệt', 'success');
                     loadNewsfeed();
                 } else {
                     const error = await response.json();
@@ -1115,7 +1115,7 @@
                     document.getElementById('imagePreviewContainer').innerHTML = '';
                     document.getElementById('imagePreviewContainer').classList.add('hidden');
                     selectedImages = [];
-                    showNotification('Đăng bài thành công!', 'success');
+                    showNotification('Đã gửi bài viết, đang chờ đợi xét duyệt', 'success');
                     loadNewsfeed();
                 } else {
                     const error = await response.json();

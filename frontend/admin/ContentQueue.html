@@ -70,39 +70,39 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">LC Network</h1>
-                    <p class="text-xs text-muted">Content Queue</p>
+                    <p class="text-xs text-muted">Hàng đợi duyệt</p>
                 </div>
             </div>
             <nav class="flex-1 px-4 space-y-1 mt-4">
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/dashboard">
                     <span class="material-symbols-outlined">dashboard</span>
-                    <span class="text-sm font-medium">Tong quan</span>
+                    <span class="text-sm font-medium">Tổng quan</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/">
                     <span class="material-symbols-outlined">article</span>
-                    <span class="text-sm font-medium">Quan ly Bai viet</span>
+                    <span class="text-sm font-medium">Quản lý Bài viết</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="/admin/users">
                     <span class="material-symbols-outlined">group</span>
-                    <span class="text-sm font-medium">Quan ly Nguoi dung</span>
+                    <span class="text-sm font-medium">Quản lý Người dùng</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg active-link" href="/admin/content-queue">
                     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">pending_actions</span>
-                    <span class="text-sm font-semibold">Content Queue</span>
+                    <span class="text-sm font-semibold">Hàng đợi duyệt</span>
                     <span class="ml-auto bg-warning text-white text-[10px] px-2 py-0.5 rounded-full" id="queueCount">0</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#" onclick="return false;">
                     <span class="material-symbols-outlined">report</span>
-                    <span class="text-sm font-medium">Bao cao Vi pham</span>
+                    <span class="text-sm font-medium">Báo cáo vi phạm</span>
                 </a>
                 <div class="pt-4 pb-2 text-[10px] font-bold text-muted uppercase tracking-widest px-3">He thong</div>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#" onclick="return false;">
                     <span class="material-symbols-outlined">settings</span>
-                    <span class="text-sm font-medium">Cau hinh</span>
+                    <span class="text-sm font-medium">Cấu hình</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-danger" href="#" onclick="logout(); return false;">
                     <span class="material-symbols-outlined">logout</span>
-                    <span class="text-sm font-medium">Dang xuat</span>
+                    <span class="text-sm font-medium">Đăng xuất</span>
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -111,7 +111,7 @@
                         <span id="adminInitials">A</span>
                     </div>
                     <div class="flex-1 overflow-hidden">
-                        <p class="text-sm font-bold truncate" id="adminFullName">Quan tri vien</p>
+                        <p class="text-sm font-bold truncate" id="adminFullName">Quản trị viên</p>
                         <p class="text-xs text-muted truncate" id="adminRole">Admin</p>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
         <main class="flex-1 flex flex-col overflow-hidden">
             <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
                 <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-bold">Content Queue</h2>
+                    <h2 class="text-xl font-bold">Hàng đợi duyệt</h2>
                 </div>
                 <div class="flex items-center gap-4">
                     <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onclick="loadQueue(currentQueuePage)">
@@ -138,7 +138,7 @@
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Tong cho duyet</p>
+                                <p class="text-sm font-medium text-muted">Số lượng chờ duyệt</p>
                                 <h3 class="text-3xl font-bold mt-1" id="queuePendingCount">0</h3>
                             </div>
                             <div class="bg-warning/10 p-2 rounded-lg text-warning">
@@ -149,7 +149,7 @@
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Muc uu tien cao</p>
+                                <p class="text-sm font-medium text-muted">Mức ưu tiên cao</p>
                                 <h3 class="text-3xl font-bold mt-1" id="queueHighCount">0</h3>
                             </div>
                             <div class="bg-danger/10 p-2 rounded-lg text-danger">
@@ -160,7 +160,7 @@
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Dang xu ly trang</p>
+                                <p class="text-sm font-medium text-muted">Đang xử lý</p>
                                 <h3 class="text-3xl font-bold mt-1" id="queuePageCount">1</h3>
                             </div>
                             <div class="bg-primary/10 p-2 rounded-lg text-primary">
@@ -173,7 +173,7 @@
                 <div id="postsTable" class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
                     <div class="text-center py-12">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                        <p class="text-muted mt-4">Dang tai content queue...</p>
+                        <p class="text-muted mt-4">Đang tải hàng đợi duyệt...</p>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,7 @@
     <div id="post-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 flex items-center justify-center" style="display: none;">
         <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
-                <h3 class="text-lg font-bold">Chi tiet bai viet</h3>
+                <h3 class="text-lg font-bold">Chi tiết bài viết</h3>
                 <button onclick="closePostModal()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -193,47 +193,47 @@
                 <button onclick="closePostModal()" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">Dong</button>
                 <button onclick="approvePost()" class="px-4 py-2 text-sm bg-success text-white rounded-lg hover:bg-success/90">
                     <span class="material-symbols-outlined text-sm align-middle">check_circle</span>
-                    Duyet bai
+                    Duyệt bài
                 </button>
                 <button onclick="rejectPost()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning/90">
                     <span class="material-symbols-outlined text-sm align-middle">cancel</span>
-                    Tu choi
+                    Từ chối
                 </button>
                 <button onclick="showMuteDialog()" class="px-4 py-2 text-sm bg-danger text-white rounded-lg hover:bg-danger/90">
                     <span class="material-symbols-outlined text-sm align-middle">block</span>
-                    Mute User
+                    Mute người dùng
                 </button>
             </div>
 
             <div id="reject-reason-container" class="px-6 py-4 bg-warning/5 border-t border-warning/20" style="display: none;">
-                <label class="block text-sm font-bold mb-2">Ly do tu choi:</label>
-                <textarea id="reject-reason" rows="3" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhap ly do tu choi bai viet..."></textarea>
+                <label class="block text-sm font-bold mb-2">Lí do từ chối:</label>
+                <textarea id="reject-reason" rows="3" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhập lý do từ chối bài viết..."></textarea>
                 <div class="mt-3 flex gap-2">
-                    <button onclick="submitReject()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg">Xac nhan tu choi</button>
-                    <button onclick="document.getElementById('reject-reason-container').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Huy</button>
+                    <button onclick="submitReject()" class="px-4 py-2 text-sm bg-warning text-white rounded-lg">ác nhận từ chối</button>
+                    <button onclick="document.getElementById('reject-reason-container').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
                 </div>
             </div>
 
             <div id="mute-dialog" class="px-6 py-4 bg-danger/5 border-t border-danger/20" style="display: none;">
-                <h4 class="text-sm font-bold mb-3">Mute nguoi dung</h4>
+                <h4 class="text-sm font-bold mb-3">Mute người dùng</h4>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium mb-1">Thoi gian mute (gio):</label>
+                        <label class="block text-sm font-medium mb-1">Thời gian mute (giờ):</label>
                         <select id="mute-duration" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm">
-                            <option value="1">1 gio</option>
-                            <option value="6">6 gio</option>
-                            <option value="24">24 gio (1 ngay)</option>
-                            <option value="72">72 gio (3 ngay)</option>
-                            <option value="168">168 gio (1 tuan)</option>
+                            <option value="1">1 giờ</option>
+                            <option value="6">6 giờ</option>
+                            <option value="24">24 giờ (1 ngày)</option>
+                            <option value="72">72 giờ (3 ngày)</option>
+                            <option value="168">168 giờ (1 tuần)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">Ly do:</label>
-                        <textarea id="mute-reason" rows="2" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhap ly do mute..."></textarea>
+                        <label class="block text-sm font-medium mb-1">Lí do:</label>
+                        <textarea id="mute-reason" rows="2" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" placeholder="Nhập lý do mute..."></textarea>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="submitMuteUser()" class="px-4 py-2 text-sm bg-danger text-white rounded-lg">Xac nhan Mute</button>
-                        <button onclick="document.getElementById('mute-dialog').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Huy</button>
+                        <button onclick="submitMuteUser()" class="px-4 py-2 text-sm bg-danger text-white rounded-lg">Xác nhận Mute</button>
+                        <button onclick="document.getElementById('mute-dialog').style.display='none'" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">ủy</button>
                     </div>
                 </div>
             </div>

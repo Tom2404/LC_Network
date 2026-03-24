@@ -350,6 +350,14 @@
         // Track current tab for auto-refresh
         let currentTab = 'all';
 
+        function getNotificationsEndpoint(filter = 'all') {
+            // Use trailing slash to match Flask route and avoid redirect edge cases.
+            const base = `${API_URL}/notifications/`;
+            if (filter === 'account') return `${base}?category=account`;
+            if (filter === 'post') return `${base}?category=post`;
+            return base;
+        }
+
         // Tab switching
         function switchTab(tab) {
             // Reset all tabs
@@ -376,15 +384,7 @@
             const container = document.getElementById('notificationsContent');
             
             try {
-                // Map tab names to category values
-                let category = null;
-                if (filter === 'account') {
-                    category = 'account';
-                } else if (filter === 'post') {
-                    category = 'post';
-                }
-                
-                const url = category ? `${API_URL}/notifications?category=${category}` : `${API_URL}/notifications`;
+                const url = getNotificationsEndpoint(filter);
                 const response = await fetchWithAuth(url);
                 
                 if (response.ok) {
@@ -394,7 +394,7 @@
                     // Clear container
                     container.innerHTML = '';
                     
-                    if (data.notifications && data.notifications.length > 0) {
+                    if (Array.isArray(data.notifications) && data.notifications.length > 0) {
                         data.notifications.forEach(notif => {
                             container.appendChild(renderNotification(notif));
                         });
@@ -409,7 +409,14 @@
                         `;
                     }
                 } else {
-                    console.error('Failed to load notifications');
+                    let errorDetail = '';
+                    try {
+                        const errorData = await response.json();
+                        errorDetail = errorData?.error || '';
+                    } catch (err) {
+                        errorDetail = '';
+                    }
+                    console.error('Failed to load notifications:', response.status, errorDetail);
                     container.innerHTML = '<div class="text-center py-8 text-red-500 text-sm">Không thể tải thông báo</div>';
                 }
             } catch (error) {
@@ -542,6 +549,10 @@
         
         // Get time ago
         function getTimeAgo(dateString) {
+            if (!dateString || typeof dateString !== 'string') {
+                return 'Vừa xong';
+            }
+
             // Parse date as UTC (server trả về UTC time)
             let utcDateString = dateString;
             if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('T')) {
@@ -551,6 +562,10 @@
             }
             
             const date = new Date(utcDateString);
+            if (Number.isNaN(date.getTime())) {
+                return 'Vừa xong';
+            }
+
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
             
@@ -633,7 +648,7 @@
         // Accept friend request
         async function acceptFriendRequest(userId, notificationId) {
             try {
-                const response = await fetchWithAuth(`${API_URL}/friends/accept/${userId}`, {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/accept`, {
                     method: 'POST'
                 });
                 
@@ -654,7 +669,7 @@
         // Reject friend request
         async function rejectFriendRequest(userId, notificationId) {
             try {
-                const response = await fetchWithAuth(`${API_URL}/friends/reject/${userId}`, {
+                const response = await fetchWithAuth(`${API_URL}/friends/request/${userId}/reject`, {
                     method: 'POST'
                 });
                 
@@ -676,11 +691,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.avatar_url) {
-                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `http://127.0.0.1:5000${user.avatar_url}`;
+                const baseURL = API_URL.replace('/api', '');
+                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `${baseURL}${user.avatar_url}`;
                 document.getElementById('headerAvatar').style.backgroundImage = `url('${avatarUrl}')`;
             }
-            // Load all notifications by default
-            loadNotifications('all');
+
+            // Sync initial tab with query string used by links in other pages.
+            const tabParam = new URLSearchParams(window.location.search).get('tab');
+            const initialTab = ['all', 'account', 'post'].includes(tabParam) ? tabParam : 'all';
+            switchTab(initialTab);
+
             setupSearch();
             
             // Auto-refresh notifications every 15 seconds

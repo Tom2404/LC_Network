@@ -29,6 +29,8 @@ ENV/
 # Flask
 instance/
 .webassets-cache
+backend/flask_session/*
+!backend/flask_session/.gitkeep
 
 # Environment variables
 .env

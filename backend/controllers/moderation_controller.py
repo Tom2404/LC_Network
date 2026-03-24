@@ -8,6 +8,7 @@ from models.appeal import Appeal
 from models.violation_history import ViolationHistory
 from models.comment import Comment
 from models.friendship import Friendship
+from controllers.notification_controller import create_notification
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -143,9 +144,30 @@ def review_post(post_id):
             post.status = 'published'
             post.moderation_status = 'moderator_approved'
             post.published_at = datetime.utcnow()
+
+            create_notification(
+                user_id=post.user_id,
+                notification_type='post_approved',
+                title='Bài viết đã được duyệt',
+                message='Bài viết của bạn đã được kiểm duyệt và xuất bản.',
+                related_id=post.id,
+                related_type='post',
+                actor_id=current_user_id
+            )
         elif decision == 'reject':
             post.status = 'rejected'
             post.moderation_status = 'moderator_rejected'
+
+            reject_reason = reason.strip() if reason else 'Nội dung chưa phù hợp với tiêu chuẩn cộng đồng.'
+            create_notification(
+                user_id=post.user_id,
+                notification_type='post_rejected',
+                title='Bài viết bị từ chối',
+                message=f'Bài viết của bạn bị từ chối. Lý do: {reject_reason}',
+                related_id=post.id,
+                related_type='post',
+                actor_id=current_user_id
+            )
         elif decision == 'flag':
             post.status = 'flagged'
         

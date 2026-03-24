@@ -8,6 +8,7 @@ from datetime import datetime
 
 notification_bp = Blueprint('notification', __name__)
 
+@notification_bp.route('', methods=['GET'])
 @notification_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_notifications():
@@ -18,9 +19,9 @@ def get_notifications():
         per_page = request.args.get('per_page', 20, type=int)
         category = request.args.get('category', None)  # account, post, or None for all
         
-        # Define notification types by category
-        account_types = ['violation_warning', 'post_approved', 'post_rejected', 'appeal_result']
-        post_types = ['like', 'comment', 'reply', 'share', 'friend_request', 'friend_accept']
+        # Keep category filtering in sync with Notification model constants
+        account_types = Notification.ACCOUNT_TYPES
+        post_types = Notification.POST_TYPES
         
         # Base query
         query = Notification.query.filter_by(user_id=current_user_id)

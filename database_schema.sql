@@ -466,6 +466,7 @@ CREATE TABLE notifications (
     
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
+    actor_id BIGINT NULL, -- user that triggered this notification
     
     related_id BIGINT, -- post_id, user_id, etc.
     related_type VARCHAR(50),
@@ -475,8 +476,10 @@ CREATE TABLE notifications (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL,
     
-    INDEX idx_user_notifications (user_id, is_read, created_at)
+    INDEX idx_user_notifications (user_id, is_read, created_at),
+    INDEX idx_notification_actor (actor_id)
 );
 
 -- ============================================
