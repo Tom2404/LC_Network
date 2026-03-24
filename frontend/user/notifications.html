@@ -516,7 +516,7 @@
             
             // Only add click handler if not friend_request
             if (notif.type !== 'friend_request') {
-                div.onclick = () => markAsRead(notif.id);
+                div.onclick = () => handleNotificationClick(notif);
             }
             
             div.innerHTML = `
@@ -583,13 +583,13 @@
         }
         
         // Mark notification as read
-        async function markAsRead(notificationId) {
+        async function markAsRead(notificationId, reloadAfterRead = true) {
             try {
                 const response = await fetchWithAuth(`${API_URL}/notifications/${notificationId}/read`, {
                     method: 'POST'
                 });
                 
-                if (response.ok) {
+                if (response.ok && reloadAfterRead) {
                     // Reload to update UI - determine current tab
                     const tabs = ['tabAccount', 'tabPost', 'tabAll'];
                     let currentTab = 'account'; // default
@@ -608,6 +608,30 @@
                 }
             } catch (error) {
                 console.error('Error marking as read:', error);
+            }
+        }
+
+        async function handleNotificationClick(notif) {
+            try {
+                await markAsRead(notif.id, false);
+
+                // Open related post for moderation notifications and all post-related notifications with post_id
+                const postRelatedTypes = ['post_approved', 'post_rejected', 'post_flagged', 'like', 'comment', 'reply', 'share'];
+                if (postRelatedTypes.includes(notif.type) && notif.post_id) {
+                    window.location.href = `post.html?id=${notif.post_id}`;
+                    return;
+                }
+
+                // Navigate to friends page for friend notifications
+                if (notif.type === 'friend_accept' || notif.type === 'friend_request') {
+                    window.location.href = 'friends.html';
+                    return;
+                }
+
+                loadNotifications(currentTab);
+            } catch (error) {
+                console.error('Error handling notification click:', error);
+                showNotification('Không thể thực hiện thao tác', 'error');
             }
         }
 

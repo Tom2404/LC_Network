@@ -1870,6 +1870,9 @@
                     case 'comment': icon = 'chat_bubble'; iconColor = 'text-blue-500'; break;
                     case 'reply': icon = 'reply'; iconColor = 'text-sky-500'; break;
                     case 'share': icon = 'share'; iconColor = 'text-green-500'; break;
+                    case 'post_approved': icon = 'check_circle'; iconColor = 'text-green-500'; break;
+                    case 'post_rejected': icon = 'block'; iconColor = 'text-red-500'; break;
+                    case 'post_flagged': icon = 'flag'; iconColor = 'text-orange-500'; break;
                 }
             }
             
@@ -1936,7 +1939,13 @@
                 
                 // Navigate to related content
                 if (notif.post_id) {
-                    // For like, comment, reply, share - open the post in comment modal
+                    // Open full post page for moderation notifications
+                    if (['post_approved', 'post_rejected', 'post_flagged'].includes(notif.type)) {
+                        window.location.href = `post.html?id=${notif.post_id}`;
+                        return;
+                    }
+
+                    // For like/comment/reply/share, keep existing quick-comment behavior
                     await openCommentModal(notif.post_id);
                 } else if (notif.type === 'friend_request' || notif.type === 'friend_accept') {
                     // Navigate to friends page

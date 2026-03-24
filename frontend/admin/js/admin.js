@@ -366,6 +366,18 @@ function closePostModal() {
     document.getElementById('mute-dialog').style.display = 'none';
 }
 
+function refreshAfterModerationAction() {
+    if (currentTab === 'queue') {
+        loadQueue(currentQueuePage);
+        if (typeof updateQueueSummary === 'function') {
+            updateQueueSummary();
+        }
+        return;
+    }
+
+    loadPosts(currentPostPage);
+}
+
 function approvePost() {
     if (!selectedPost) return;
     confirmAction('Bạn có chắc muốn duyệt bài viết này?', () => {
@@ -390,7 +402,7 @@ function approvePost() {
 
             showSuccess('Đã duyệt bài viết thành công');
             closePostModal();
-            loadPosts(currentPostPage);
+            refreshAfterModerationAction();
         })
         .catch(error => {
             console.error('Error approving post:', error);
@@ -435,7 +447,7 @@ function submitReject() {
         
         showSuccess('Đã từ chối bài viết thành công');
         closePostModal();
-        loadPosts(currentPostPage);
+        refreshAfterModerationAction();
     })
     .catch(error => {
         console.error('Error rejecting post:', error);
@@ -1148,7 +1160,7 @@ function quickApprovePost(postId) {
                 return;
             }
             showSuccess('Đã duyệt bài viết thành công');
-            loadPosts(currentPostPage);
+            refreshAfterModerationAction();
         })
         .catch(error => {
             console.error('Error approving post:', error);

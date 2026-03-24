@@ -64,7 +64,7 @@ def get_notifications():
                         }
             
             # For post-related notifications, add post_id for frontend navigation
-            if notif.type in ['like', 'comment', 'reply', 'share']:
+            if notif.type in ['like', 'comment', 'reply', 'share', 'post_approved', 'post_rejected', 'post_flagged']:
                 if notif.related_type == 'post':
                     # related_id is the post_id
                     notif_dict['post_id'] = notif.related_id

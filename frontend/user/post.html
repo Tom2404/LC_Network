@@ -14,7 +14,9 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#18a058",
+                        "primary": "#11d4c4",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#102220",
                     }
                 }
             }
@@ -66,7 +68,7 @@
     <script src="/user/js/search.js"></script>
 </head>
 
-<body class="bg-[#e8f1f0] dark:bg-[#0d1918] text-[#101818] dark:text-white transition-colors duration-200">
+<body class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white transition-colors duration-200">
     <!-- Search Dropdown -->
     <div id="searchDropdown" class="fixed top-16 left-1/2 -translate-x-1/2 z-[9997] hidden w-full max-w-2xl">
         <div class="bg-white dark:bg-[#152a28] rounded-xl shadow-2xl border-2 border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden max-h-[70vh] mx-4">
@@ -96,10 +98,6 @@
     <!-- Header -->
     <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#dae7e6] dark:border-[#2a3d3b] bg-white dark:bg-[#152a28] px-6 lg:px-10 py-3 sticky top-0 z-50">
         <div class="flex items-center gap-8">
-            <!-- Back Button -->
-            <button onclick="window.history.back()" class="text-[#101818] dark:text-white hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-2xl">arrow_back</span>
-            </button>
             <!-- Logo -->
             <a href="index.html" class="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
                 <div class="size-8">
@@ -112,7 +110,7 @@
             </a>
             <!-- Navigation Links -->
             <nav class="hidden lg:flex items-center gap-6">
-                <a class="text-sm font-semibold hover:text-primary transition-colors" href="index.html">Trang chủ</a>
+                <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="index.html">Trang chủ</a>
                 <a class="text-sm font-semibold hover:text-primary transition-colors" href="friends.html">Bạn bè</a>
                 <a class="text-sm font-semibold hover:text-primary transition-colors" href="notifications.html">Thông báo</a>
             </nav>
@@ -122,7 +120,7 @@
                     <div class="text-[#5e8d89] flex border-none bg-[#f0f5f4] dark:bg-[#1a3330] items-center justify-center pl-4 rounded-l-lg border-r-0">
                         <span class="material-symbols-outlined text-xl">search</span>
                     </div>
-                    <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm bạn bè, bài viết..." value="" />
+                    <input id="searchInput" class="form-input flex w-full min-w-0 flex-1 border-none bg-[#f0f5f4] dark:bg-[#1a3330] focus:outline-0 focus:ring-0 text-[#101818] dark:text-white placeholder:text-[#5e8d89] px-4 rounded-r-lg pl-2 text-base font-normal" placeholder="Tìm kiếm bài viết, bạn bè..." value="" />
                     <button id="clearSearchBtn" onclick="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 hidden text-[#5e8d89] hover:text-[#101818] dark:hover:text-white p-1 rounded-full hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
                         <span class="material-symbols-outlined text-lg">close</span>
                     </button>
@@ -130,6 +128,15 @@
             </label>
         </div>
         <div class="flex flex-1 justify-end gap-2">
+            <!-- Notification Buttons -->
+            <button onclick="toggleAccountNotifications()" id="accountNotifBtn" class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                <span class="material-symbols-outlined">mail</span>
+                <span id="accountNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+            </button>
+            <button onclick="togglePostNotifications()" id="postNotifBtn" class="relative flex items-center justify-center rounded-lg h-10 w-10 bg-[#f0f5f4] dark:bg-[#1a3330] text-[#101818] dark:text-white hover:bg-[#dae7e6] dark:hover:bg-[#2a3d3b] transition-colors">
+                <span class="material-symbols-outlined">notifications</span>
+                <span id="postNotifBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+            </button>
             <!-- User Avatar -->
             <div class="relative">
                 <div id="headerAvatar" onclick="window.location.href='profile.html'" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary cursor-pointer hover:opacity-80 transition-opacity" style='background-image: url("/user/images/default-avatar.png");'></div>
@@ -249,6 +256,18 @@
         let currentPost = null;
         let commentMediaFile = null;
 
+        function getAssetBaseURL() {
+            return API_URL.replace(/\/api\/?$/, '');
+        }
+
+        function buildAssetUrl(path) {
+            if (!path) return '/user/images/default-avatar.png';
+            if (path.startsWith('http://') || path.startsWith('https://')) return path;
+
+            const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+            return `${getAssetBaseURL()}${normalizedPath}`;
+        }
+
         // Get post ID from URL
         function getPostIdFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -300,7 +319,7 @@
         async function loadUserAvatar() {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.avatar_url) {
-                const avatarUrl = user.avatar_url.startsWith('http') ? user.avatar_url : `${API_URL}${user.avatar_url}`;
+                const avatarUrl = buildAssetUrl(user.avatar_url);
                 document.getElementById('headerAvatar').style.backgroundImage = `url(${avatarUrl})`;
                 const commentAvatar = document.getElementById('currentUserAvatar');
                 if (commentAvatar) {
@@ -351,9 +370,7 @@
             // Author info (backend returns post.author)
             const authorName = post.author?.full_name || post.author?.username || 'Người dùng';
             const authorAvatarPath = post.author?.avatar_url || null;
-            const authorAvatar = authorAvatarPath 
-                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : '/user/images/default-avatar.png';
+            const authorAvatar = buildAssetUrl(authorAvatarPath);
             
             console.log('Author name:', authorName);
             console.log('Author avatar:', authorAvatar);
@@ -382,7 +399,7 @@
             if (post.media && post.media.length > 0) {
                 const firstMedia = post.media[0];
                 const mediaPath = firstMedia.media_url;
-                const mediaUrl = mediaPath.startsWith('http') ? mediaPath : `${API_URL}${mediaPath}`;
+                const mediaUrl = buildAssetUrl(mediaPath);
                 
                 console.log('Media path:', mediaPath);
                 console.log('Media URL:', mediaUrl);
@@ -507,9 +524,7 @@
             // Author info (backend returns comment.author)
             const authorName = comment.author?.full_name || comment.author?.username || 'Người dùng';
             const authorAvatarPath = comment.author?.avatar_url || null;
-            const authorAvatar = authorAvatarPath
-                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : '/user/images/default-avatar.png';
+            const authorAvatar = buildAssetUrl(authorAvatarPath);
             
             const timeAgo = comment.created_at ? getTimeAgo(comment.created_at) : 'Không rõ thời gian';
             
@@ -518,7 +533,7 @@
             let mediaHTML = '';
             if (comment.media_url) {
                 const mediaPath = comment.media_url;
-                const mediaUrl = mediaPath.startsWith('http') ? mediaPath : `${API_URL}${mediaPath}`;
+                const mediaUrl = buildAssetUrl(mediaPath);
                 console.log('Comment media URL:', mediaUrl);
                 if (comment.media_type === 'video') {
                     mediaHTML = `<video src="${mediaUrl}" controls class="mt-2 max-h-48 rounded-lg border border-[#dae7e6]"></video>`;
@@ -533,9 +548,7 @@
             // Get current user avatar for reply form
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
             const currentUserAvatarPath = currentUser.avatar_url || null;
-            const currentUserAvatar = currentUserAvatarPath
-                ? (currentUserAvatarPath.startsWith('http') ? currentUserAvatarPath : `${API_URL}${currentUserAvatarPath}`)
-                : '/user/images/default-avatar.png';
+            const currentUserAvatar = buildAssetUrl(currentUserAvatarPath);
 
             return `
                 <div class="p-4 border-b border-[#dae7e6] dark:border-[#2a3d3b] hover:bg-[#e8f1f0] dark:hover:bg-[#1a332f] transition-colors">
@@ -594,9 +607,7 @@
             // Author info (backend returns reply.author)
             const authorName = reply.author?.full_name || reply.author?.username || 'Người dùng';
             const authorAvatarPath = reply.author?.avatar_url || null;
-            const authorAvatar = authorAvatarPath
-                ? (authorAvatarPath.startsWith('http') ? authorAvatarPath : `${API_URL}${authorAvatarPath}`)
-                : '/user/images/default-avatar.png';
+            const authorAvatar = buildAssetUrl(authorAvatarPath);
             
             const timeAgo = reply.created_at ? getTimeAgo(reply.created_at) : 'Không rõ thời gian';
 
@@ -756,6 +767,49 @@
             document.body.style.overflow = '';
         }
 
+        function toggleAccountNotifications() {
+            window.location.href = 'notifications.html?tab=account';
+        }
+
+        function togglePostNotifications() {
+            window.location.href = 'notifications.html?tab=post';
+        }
+
+        function updateBadge(badgeId, count) {
+            const badge = document.getElementById(badgeId);
+            if (!badge) return;
+
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        async function loadNotificationCounts() {
+            try {
+                const [accountRes, postRes] = await Promise.all([
+                    fetchWithAuth(`${API_URL}/notifications?category=account&per_page=100`),
+                    fetchWithAuth(`${API_URL}/notifications?category=post&per_page=100`)
+                ]);
+
+                if (accountRes.ok) {
+                    const accountData = await accountRes.json();
+                    const accountUnread = (accountData.notifications || []).filter(n => !n.is_read).length;
+                    updateBadge('accountNotifBadge', accountUnread);
+                }
+
+                if (postRes.ok) {
+                    const postData = await postRes.json();
+                    const postUnread = (postData.notifications || []).filter(n => !n.is_read).length;
+                    updateBadge('postNotifBadge', postUnread);
+                }
+            } catch (error) {
+                console.error('Error loading notification counts:', error);
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             currentPostId = getPostIdFromURL();
@@ -775,8 +829,13 @@
 
             setupSearch();
             loadUserAvatar();
+            await loadNotificationCounts();
             await loadPost(currentPostId);
             await loadComments(currentPostId);
+
+            setInterval(() => {
+                loadNotificationCounts();
+            }, 30000);
         });
     </script>
 </body>
