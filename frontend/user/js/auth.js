@@ -1,11 +1,26 @@
 // Check if user is logged in on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const publicPages = ['login.html', 'register.html', 'forgot-password.html'];
+    const storedUser = getStoredUser();
+    const isAdminUser = !!storedUser?.is_admin;
     
     console.log('[Auth] Current page:', currentPage);
     console.log('[Auth] Is logged in:', isLoggedIn());
     console.log('[Auth] Access token exists:', !!localStorage.getItem('accessToken'));
+
+    if (isAdminUser) {
+        const adminSessionActive = await hasActiveAdminSession();
+
+        if (adminSessionActive) {
+            console.log('[Auth] Admin session active, redirecting to admin dashboard...');
+            window.location.href = '/admin/dashboard';
+            return;
+        }
+
+        console.warn('[Auth] Stale admin credentials found, clearing localStorage...');
+        clearAuthStorage();
+    }
     
     if (!isLoggedIn() && !publicPages.includes(currentPage)) {
         console.log('[Auth] Not logged in, redirecting to login...');
@@ -22,6 +37,35 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserInfo();
     }
 });
+
+function getStoredUser() {
+    try {
+        return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch (error) {
+        return {};
+    }
+}
+
+function clearAuthStorage() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+}
+
+async function hasActiveAdminSession() {
+    try {
+        const response = await fetch(`${API_URL}/admin/check-session`, {
+            credentials: 'include'
+        });
+
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
+}
 
 // Load user info from localStorage
 function loadUserInfo() {
@@ -59,9 +103,7 @@ function logout(skipConfirm = false) {
         headers: getAuthHeaders()
     }).finally(() => {
         // Clear local storage
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        clearAuthStorage();
         
         console.log('[Auth] Redirecting to login.html');
         // Redirect to login

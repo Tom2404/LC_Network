@@ -141,45 +141,77 @@ def create_app(config_name='development'):
         return {'status': 'ok', 'message': 'Server is running'}
     
     # Serve frontend files
+    def has_active_admin_session(touch_activity=False):
+        admin_user_id = session.get('admin_user_id')
+        if not admin_user_id:
+            return False
+
+        now_ts = int(datetime.utcnow().timestamp())
+        last_activity = session.get('admin_last_activity_ts')
+        timeout_seconds = int(app.config.get('ADMIN_INACTIVITY_TIMEOUT_SECONDS', 900))
+
+        if last_activity and (now_ts - int(last_activity) > timeout_seconds):
+            session.clear()
+            return False
+
+        if touch_activity:
+            session['admin_last_activity_ts'] = now_ts
+
+        return True
+
     @app.route('/')
     @app.route('/index.html')
     def index():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'index.html')
     
     @app.route('/login')
     @app.route('/login.html')
     def login_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'login.html')
     
     @app.route('/register')
     @app.route('/register.html')
     def register_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'register.html')
     
     @app.route('/profile')
     @app.route('/profile.html')
     def profile_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'profile.html')
     
     @app.route('/post')
     @app.route('/post.html')
     def post_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'post.html')
     
     @app.route('/friends')
     @app.route('/friends.html')
     def friends_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'friends.html')
     
     @app.route('/notifications')
     @app.route('/notifications.html')
     def notifications_page():
+        if has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, 'notifications.html')
     
@@ -187,7 +219,7 @@ def create_app(config_name='development'):
     @app.route('/admin/login.html')
     def admin_login_page():
         # If already logged in, redirect to admin dashboard
-        if 'admin_user_id' in session:
+        if has_active_admin_session(touch_activity=True):
             return redirect('/admin/dashboard')
         return redirect('/login')
     
@@ -263,6 +295,8 @@ def create_app(config_name='development'):
     # Serve static files (CSS, JS, images, components)
     @app.route('/user/<path:path>')
     def serve_user_static(path):
+        if path.endswith('.html') and has_active_admin_session(touch_activity=True):
+            return redirect('/admin/dashboard')
         user_dir = os.path.join(frontend_dir, 'user')
         return send_from_directory(user_dir, path)
     

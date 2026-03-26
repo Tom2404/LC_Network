@@ -370,7 +370,7 @@
                         setTimeout(() => {
                             if (data.user.is_admin) {
                                 console.log('Admin user detected, redirecting to admin dashboard...');
-                                window.location.href = '/admin/';
+                                window.location.href = '/admin/dashboard';
                             } else {
                                 console.log('Regular user, redirecting to index.html...');
                                 window.location.href = 'index.html';
@@ -397,18 +397,44 @@
             }
 
             // Check if already logged in
-            if (localStorage.getItem('accessToken')) {
+            (async () => {
+                if (!localStorage.getItem('accessToken')) {
+                    return;
+                }
+
                 try {
                     const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
                     if (savedUser && savedUser.is_admin) {
-                        window.location.href = '/admin/dashboard';
-                    } else {
-                        window.location.href = 'index.html';
+                        const sessionRes = await fetch(`${API_URL}/admin/check-session`, {
+                            credentials: 'include'
+                        });
+
+                        if (sessionRes.ok) {
+                            window.location.href = '/admin/dashboard';
+                            return;
+                        }
+
+                        // Session cũ không còn hợp lệ sau khi server restart
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('refresh_token');
+                        localStorage.removeItem('user');
+                        return;
                     }
-                } catch (error) {
+
                     window.location.href = 'index.html';
+                } catch (error) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('user');
                 }
-            }
+            })();
         </script>
 </body>
 

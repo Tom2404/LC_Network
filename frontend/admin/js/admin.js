@@ -1227,6 +1227,23 @@ function loadDashboard() {
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">Xu hướng xử lý bài viết</h3>
+                        <span class="text-xs text-muted">Tổng hợp toàn hệ thống</span>
+                    </div>
+                    <div id="moderationOverviewChart" class="h-72 flex items-end gap-4 md:gap-6"></div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold mb-4">Tỷ lệ xử lý</h3>
+                    <div id="moderationOverviewSummary" class="space-y-3 text-sm">
+                        <p class="text-muted">Đang tải dữ liệu...</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold">Hoạt động kiểm duyệt gần đây</h3>
@@ -1271,6 +1288,10 @@ async function loadDashboardData() {
         if (flaggedPostsEl) flaggedPostsEl.textContent = flaggedData.total || 0;
         if (bannedUsersEl) bannedUsersEl.textContent = usersData.total || 0;
 
+        const moderationStats = await getModerationOverviewStats(headers);
+        renderModerationOverviewChart(moderationStats);
+        renderModerationOverviewSummary(moderationStats);
+
         renderRecentActivity(pendingData.posts || [], flaggedData.posts || []);
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -1279,6 +1300,129 @@ async function loadDashboardData() {
             activityEl.innerHTML = '<p class="text-sm text-danger">Không thể tải dữ liệu tổng quan.</p>';
         }
     }
+}
+
+async function getModerationOverviewStats(headers) {
+    const perPage = 100;
+    const firstRes = await fetch(`${API_BASE_URL}/moderation/posts?page=1&per_page=${perPage}`, {
+        headers,
+        credentials: 'include'
+    });
+
+    if (!firstRes.ok) {
+        throw new Error('Không thể tải dữ liệu bài viết để thống kê');
+    }
+
+    const firstData = await firstRes.json();
+    const pages = firstData.pages || 1;
+    const allPosts = [...(firstData.posts || [])];
+
+    if (pages > 1) {
+        const remainingRequests = [];
+        for (let page = 2; page <= pages; page += 1) {
+            remainingRequests.push(
+                fetch(`${API_BASE_URL}/moderation/posts?page=${page}&per_page=${perPage}`, {
+                    headers,
+                    credentials: 'include'
+                }).then(res => res.json())
+            );
+        }
+
+        const remainingPages = await Promise.all(remainingRequests);
+        remainingPages.forEach(pageData => {
+            if (Array.isArray(pageData.posts)) {
+                allPosts.push(...pageData.posts);
+            }
+        });
+    }
+
+    const stats = {
+        requested: 0,
+        approvedByAdmin: 0,
+        approvedByAI: 0,
+        rejected: 0
+    };
+
+    allPosts.forEach(post => {
+        if (post.status === 'pending' || post.status === 'under_review' || post.status === 'flagged') {
+            stats.requested += 1;
+        }
+
+        if (post.moderation_status === 'moderator_approved' || post.moderator_decision === 'approve') {
+            stats.approvedByAdmin += 1;
+        }
+
+        if (post.moderation_status === 'ai_approved') {
+            stats.approvedByAI += 1;
+        }
+
+        if (post.status === 'rejected' || post.moderation_status === 'moderator_rejected' || post.moderator_decision === 'reject') {
+            stats.rejected += 1;
+        }
+    });
+
+    return stats;
+}
+
+function renderModerationOverviewChart(stats) {
+    const chartEl = document.getElementById('moderationOverviewChart');
+    if (!chartEl) return;
+
+    const items = [
+        { key: 'requested', label: 'Yêu cầu đăng', value: stats.requested, color: 'bg-cyan-500', softColor: 'bg-cyan-200/40' },
+        { key: 'approvedByAdmin', label: 'Duyệt bởi Admin', value: stats.approvedByAdmin, color: 'bg-emerald-500', softColor: 'bg-emerald-200/40' },
+        { key: 'approvedByAI', label: 'Duyệt bởi AI', value: stats.approvedByAI, color: 'bg-indigo-500', softColor: 'bg-indigo-200/40' },
+        { key: 'rejected', label: 'Từ chối', value: stats.rejected, color: 'bg-rose-500', softColor: 'bg-rose-200/40' }
+    ];
+
+    const maxValue = Math.max(...items.map(item => item.value), 1);
+
+    chartEl.innerHTML = items
+        .map(item => {
+            const height = Math.max(12, Math.round((item.value / maxValue) * 220));
+            return `
+                <div class="flex-1 min-w-0 flex flex-col items-center justify-end">
+                    <p class="text-sm font-bold mb-2">${item.value}</p>
+                    <div class="w-full max-w-24 h-56 rounded-lg ${item.softColor} flex items-end overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <div class="w-full ${item.color}" style="height:${height}px"></div>
+                    </div>
+                    <p class="text-[11px] md:text-xs text-muted text-center mt-2 leading-tight">${item.label}</p>
+                </div>
+            `;
+        })
+        .join('');
+}
+
+function renderModerationOverviewSummary(stats) {
+    const summaryEl = document.getElementById('moderationOverviewSummary');
+    if (!summaryEl) return;
+
+    const totalHandled = stats.approvedByAdmin + stats.approvedByAI + stats.rejected;
+    const aiRate = totalHandled > 0 ? Math.round((stats.approvedByAI / totalHandled) * 100) : 0;
+    const adminRate = totalHandled > 0 ? Math.round((stats.approvedByAdmin / totalHandled) * 100) : 0;
+
+    summaryEl.innerHTML = `
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+            <span class="text-muted">Yêu cầu đang chờ</span>
+            <span class="font-bold text-cyan-600">${stats.requested}</span>
+        </div>
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+            <span class="text-muted">Duyệt bởi admin</span>
+            <span class="font-bold text-emerald-600">${stats.approvedByAdmin}</span>
+        </div>
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+            <span class="text-muted">Duyệt bởi AI</span>
+            <span class="font-bold text-indigo-600">${stats.approvedByAI}</span>
+        </div>
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+            <span class="text-muted">Bị từ chối</span>
+            <span class="font-bold text-rose-600">${stats.rejected}</span>
+        </div>
+        <div class="mt-2 pt-3 border-t border-slate-200 dark:border-slate-700 text-xs text-muted space-y-1">
+            <p>Tỉ lệ duyệt AI: <span class="font-semibold text-indigo-600">${aiRate}%</span></p>
+            <p>Tỉ lệ duyệt Admin: <span class="font-semibold text-emerald-600">${adminRate}%</span></p>
+        </div>
+    `;
 }
 
 function renderRecentActivity(pendingPosts, flaggedPosts) {

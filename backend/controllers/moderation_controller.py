@@ -308,6 +308,9 @@ def get_all_posts():
         items = []
         for post in posts.items:
             post_dict = post.to_dict()
+            post_dict['moderation_status'] = post.moderation_status
+            post_dict['moderator_decision'] = post.moderator_decision
+            post_dict['moderated_at'] = post.moderated_at.isoformat() if post.moderated_at else None
             # Add author info
             author = User.query.get(post.user_id)
             if author:

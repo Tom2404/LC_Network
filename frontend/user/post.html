@@ -437,9 +437,15 @@
             const likeButton = document.getElementById('likeButton');
             const likeIcon = likeButton.querySelector('.material-symbols-outlined');
             if (post.is_liked) {
-                likeIcon.classList.remove('material-symbols-outlined');
+                likeIcon.textContent = 'favorite';
                 likeIcon.classList.add('material-symbols-outlined-filled');
                 likeButton.classList.add('text-red-500');
+                likeButton.classList.remove('text-[#5e8d89]', 'dark:text-[#8faeaa]');
+            } else {
+                likeIcon.textContent = 'favorite_border';
+                likeIcon.classList.remove('material-symbols-outlined-filled');
+                likeButton.classList.remove('text-red-500');
+                likeButton.classList.add('text-[#5e8d89]', 'dark:text-[#8faeaa]');
             }
         }
 
