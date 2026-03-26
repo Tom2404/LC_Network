@@ -99,17 +99,6 @@
                     <span class="material-symbols-outlined">report</span>
                     <span class="text-sm font-medium">Báo cáo vi phạm</span>
                 </a>
-                <div class="pt-4 pb-2 text-[10px] font-bold text-muted uppercase tracking-widest px-3">Hệ thống</div>
-                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    href="#" onclick="return false;">
-                    <span class="material-symbols-outlined">settings</span>
-                    <span class="text-sm font-medium">Cấu hình</span>
-                </a>
-                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-danger"
-                    href="#" onclick="logout(); return false;">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span class="text-sm font-medium">Đăng xuất</span>
-                </a>
             </nav>
             <div class="p-4 border-t border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3 p-2">
@@ -134,6 +123,9 @@
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted text-xl">search</span>
                         <input id="searchInput" class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary" placeholder="Tìm kiếm tên, email hoặc ID người dùng..." type="text" />
                     </div>
+                    <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onclick="logout(); return false;" title="Đăng xuất">
+                        <span class="material-symbols-outlined text-2xl">logout</span>
+                    </button>
                     <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" onclick="toggleDarkMode()">
                         <span class="material-symbols-outlined text-2xl" id="darkModeIcon">dark_mode</span>
                     </button>
