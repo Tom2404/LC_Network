@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Quản lý Bài viết | LC Network</title>
+    <title>Quản lý Báo cáo | LC Network</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"
         rel="stylesheet" />
@@ -75,7 +75,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">LC Network</h1>
-                    <p class="text-xs text-muted">Quản lý Bài viết</p>
+                    <p class="text-xs text-muted">Quản lý Báo cáo</p>
                 </div>
             </div>
             <nav class="flex-1 px-4 space-y-1 mt-4">
@@ -84,10 +84,10 @@
                     <span class="material-symbols-outlined">dashboard</span>
                     <span class="text-sm font-medium">Tổng quan</span>
                 </a>
-                <a class="flex items-center gap-3 px-3 py-3 rounded-lg active-link" 
-                    href="#" onclick="switchTab('posts'); return false;">
-                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">article</span>
-                    <span class="text-sm font-semibold">Quản lý Bài viết</span>
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" 
+                    href="/admin/">
+                    <span class="material-symbols-outlined">article</span>
+                    <span class="text-sm font-medium">Quản lý Bài viết</span>
                 </a>
                 <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     href="/admin/users">
@@ -100,10 +100,10 @@
                     <span class="text-sm font-medium">Hàng đợi duyệt</span>
                     <span class="ml-auto bg-warning text-white text-[10px] px-2 py-0.5 rounded-full" id="queueCount">0</span>
                 </a>
-                <a class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                <a class="flex items-center gap-3 px-3 py-3 rounded-lg active-link"
                     href="/admin/reports">
-                    <span class="material-symbols-outlined">report</span>
-                    <span class="text-sm font-medium">Báo cáo vi phạm</span>
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">report</span>
+                    <span class="text-sm font-semibold">Báo cáo vi phạm</span>
                 </a>
             </nav>
             <div class="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -124,7 +124,7 @@
             <header
                 class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
                 <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-bold" id="pageTitle">Quản lý Bài viết</h2>
+                    <h2 class="text-xl font-bold" id="pageTitle">Báo cáo Vi phạm</h2>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="relative w-72">
@@ -150,37 +150,37 @@
                         class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Tổng bài viết</p>
+                                <p class="text-sm font-medium text-muted">Tổng báo cáo</p>
                                 <h3 class="text-3xl font-bold mt-1" id="totalPosts">0</h3>
                             </div>
                             <div class="bg-primary/10 p-2 rounded-lg text-primary">
-                                <span class="material-symbols-outlined">post_add</span>
+                                <span class="material-symbols-outlined">report</span>
                             </div>
                         </div>
                         <p class="text-xs text-success font-semibold mt-4 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs">trending_up</span> Cập nhật realtime
+                            <span class="material-symbols-outlined text-xs">trending_up</span> Theo dõi realtime
                         </p>
                     </div>
                     <div
                         class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Chờ duyệt</p>
+                                <p class="text-sm font-medium text-muted">Chờ xử lý</p>
                                 <h3 class="text-3xl font-bold mt-1" id="pendingPosts">0</h3>
                             </div>
                             <div class="bg-warning/10 p-2 rounded-lg text-warning">
-                                <span class="material-symbols-outlined">pending</span>
+                                <span class="material-symbols-outlined">schedule</span>
                             </div>
                         </div>
                         <p class="text-xs text-warning font-semibold mt-4 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs">priority_high</span> Cần xử lý
+                            <span class="material-symbols-outlined text-xs">priority_high</span> Cần admin xem
                         </p>
                     </div>
                     <div
                         class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-sm font-medium text-muted">Đã duyệt hôm nay</p>
+                                <p class="text-sm font-medium text-muted">Đã xử lý</p>
                                 <h3 class="text-3xl font-bold mt-1" id="approvedToday">0</h3>
                             </div>
                             <div class="bg-success/10 p-2 rounded-lg text-success">
@@ -188,7 +188,7 @@
                             </div>
                         </div>
                         <p class="text-xs text-success font-semibold mt-4 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs">check</span> Hiệu suất tốt
+                            <span class="material-symbols-outlined text-xs">check</span> Hoàn tất xử lý
                         </p>
                     </div>
                 </div>
@@ -201,21 +201,21 @@
                     <input type="hidden" id="user-search" value="">
                     
                     <div class="flex gap-2 flex-wrap">
-                        <button onclick="filterByStatus('')"
+                        <button onclick="filterByStatus('all')"
                             class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg shadow-sm filter-btn active">Tất cả</button>
-                        <button onclick="filterByStatus('published')"
-                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã duyệt</button>
                         <button onclick="filterByStatus('pending')"
-                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Chờ duyệt</button>
-                        <button onclick="filterByStatus('rejected')"
-                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã từ chối</button>
-                        <button onclick="filterByStatus('flagged')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Chờ xử lý</button>
+                        <button onclick="filterByStatus('resolved')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã chấp thuận</button>
+                        <button onclick="filterByStatus('dismissed')"
+                            class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn">Đã bác</button>
+                        <button onclick="filterByStatus('reviewing')"
                             class="px-4 py-2 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 transition-colors filter-btn flex items-center gap-2">
-                            Bị gắn cờ <span class="bg-warning text-white text-[10px] px-1.5 py-0.5 rounded-full" id="flaggedCount">0</span>
+                            Đang xem <span class="bg-warning text-white text-[10px] px-1.5 py-0.5 rounded-full" id="flaggedCount">0</span>
                         </button>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="loadPosts()"
+                        <button onclick="loadReports()"
                             class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50">
                             <span class="material-symbols-outlined text-lg">refresh</span>
                             Làm mới
@@ -240,15 +240,15 @@
                     <div class="bg-primary/5 p-4 rounded-lg border border-primary/10 flex items-start gap-3">
                         <span class="material-symbols-outlined text-primary mt-1">info</span>
                         <div>
-                            <p class="text-sm font-bold text-primary">Mẹo kiểm duyệt</p>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Bài viết có AI confidence &gt;85% thường rất chính xác. Bạn có thể xử lý nhanh các trường hợp này để tiết kiệm thời gian.</p>
+                            <p class="text-sm font-bold text-primary">Mẹo xử lý báo cáo</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Khi chấp thuận báo cáo, hãy ghi rõ lý do để người dùng hiểu nguyên nhân bài viết bị khóa.</p>
                         </div>
                     </div>
                     <div class="bg-warning/5 p-4 rounded-lg border border-warning/10 flex items-start gap-3">
                         <span class="material-symbols-outlined text-warning mt-1">assignment_late</span>
                         <div>
-                            <p class="text-sm font-bold text-warning">Thông báo quan trọng</p>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" id="urgentNotice">Không có thông báo khẩn cấp.</p>
+                            <p class="text-sm font-bold text-warning">Thông báo xử lý</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" id="urgentNotice">Ưu tiên xử lý báo cáo chờ lâu.</p>
                         </div>
                     </div>
                 </div>
@@ -413,6 +413,8 @@
     <script>
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            currentTab = 'reports';
+            document.getElementById('post-status-filter').value = 'all';
             checkAuth();
             loadAdminData();
             updateStats();
@@ -458,6 +460,9 @@
             if (currentTab === 'posts') {
                 document.getElementById('post-status-filter').value = status;
                 loadPosts(1);
+            } else if (currentTab === 'reports') {
+                document.getElementById('post-status-filter').value = status;
+                loadReports(1);
             }
         }
 
@@ -471,6 +476,9 @@
                 } else if (currentTab === 'users') {
                     document.getElementById('user-search').value = searchValue;
                     loadUsers(1);
+                } else if (currentTab === 'reports') {
+                    document.getElementById('post-search').value = searchValue;
+                    loadReports(1);
                 }
             }, 500);
         }
@@ -490,30 +498,34 @@
         async function updateStats() {
             try {
                 const token = localStorage.getItem('token');
-                // Get posts stats
-                const postsResponse = await fetch(`${API_BASE_URL}/moderation/posts?per_page=1`, {
+                // Get reports stats
+                const postsResponse = await fetch(`${API_BASE_URL}/moderation/reports?status=all&per_page=1`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const postsData = await postsResponse.json();
                 document.getElementById('totalPosts').textContent = postsData.total || 0;
 
-                // Get pending posts
-                const pendingResponse = await fetch(`${API_BASE_URL}/moderation/posts?status=pending&per_page=1`, {
+                // Get pending reports
+                const pendingResponse = await fetch(`${API_BASE_URL}/moderation/reports?status=pending&per_page=1`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const pendingData = await pendingResponse.json();
                 document.getElementById('pendingPosts').textContent = pendingData.total || 0;
                 document.getElementById('queueCount').textContent = pendingData.total || 0;
 
-                // Get flagged posts
-                const flaggedResponse = await fetch(`${API_BASE_URL}/moderation/posts?status=flagged&per_page=1`, {
+                // Get reviewing reports
+                const flaggedResponse = await fetch(`${API_BASE_URL}/moderation/reports?status=reviewing&per_page=1`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const flaggedData = await flaggedResponse.json();
                 document.getElementById('flaggedCount').textContent = flaggedData.total || 0;
 
-                // Simulate approved today (would need backend endpoint)
-                document.getElementById('approvedToday').textContent = Math.floor(Math.random() * 50);
+                // Get resolved reports
+                const resolvedResponse = await fetch(`${API_BASE_URL}/moderation/reports?status=resolved&per_page=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const resolvedData = await resolvedResponse.json();
+                document.getElementById('approvedToday').textContent = resolvedData.total || 0;
 
             } catch (error) {
                 console.error('Error updating stats:', error);

@@ -8,6 +8,7 @@ from models.appeal import Appeal
 from models.violation_history import ViolationHistory
 from models.comment import Comment
 from models.friendship import Friendship
+from models.report import Report
 from controllers.notification_controller import create_notification
 from datetime import datetime, timedelta
 from functools import wraps
@@ -593,6 +594,160 @@ def unban_user(user_id):
             'user': user.to_dict()
         }), 200
         
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/reports', methods=['GET'])
+@requires_moderator
+def get_reports():
+    """Lấy danh sách báo cáo bài viết cho admin/moderator."""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        status = request.args.get('status', 'pending')
+        search = (request.args.get('search') or '').strip()
+
+        query = Report.query.filter_by(target_type='post')
+        if status and status != 'all':
+            query = query.filter_by(status=status)
+
+        if search:
+            query = query.join(User, Report.reporter_id == User.id).outerjoin(
+                Post,
+                Report.target_id == Post.id
+            ).filter(
+                db.or_(
+                    Report.description.ilike(f'%{search}%'),
+                    Report.reason.ilike(f'%{search}%'),
+                    User.username.ilike(f'%{search}%'),
+                    User.full_name.ilike(f'%{search}%'),
+                    Post.caption.ilike(f'%{search}%')
+                )
+            )
+
+        reports = query.order_by(Report.created_at.desc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+
+        items = []
+        for report in reports.items:
+            report_dict = report.to_dict()
+
+            reporter = User.query.get(report.reporter_id)
+            if reporter:
+                report_dict['reporter'] = {
+                    'id': reporter.id,
+                    'username': reporter.username,
+                    'full_name': reporter.full_name,
+                    'avatar_url': reporter.avatar_url
+                }
+
+            post = Post.query.get(report.target_id)
+            if post:
+                report_dict['post'] = post.to_dict()
+                report_dict['post_author'] = {
+                    'id': post.author.id,
+                    'username': post.author.username,
+                    'full_name': post.author.full_name,
+                    'avatar_url': post.author.avatar_url
+                } if post.author else None
+
+            items.append(report_dict)
+
+        return jsonify({
+            'reports': items,
+            'total': reports.total,
+            'pages': reports.pages,
+            'current_page': page
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/reports/<int:report_id>/review', methods=['POST'])
+@requires_moderator
+def review_report(report_id):
+    """
+    Duyệt báo cáo vi phạm bài viết.
+    Body: {decision: 'approve'|'dismiss', note}
+    - approve: chấp thuận báo cáo và khóa bài viết (status='flagged')
+    - dismiss: bác báo cáo
+    """
+    try:
+        current_user = get_current_user()
+        current_user_id = current_user.id if current_user else None
+
+        report = Report.query.get(report_id)
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+
+        if report.target_type != 'post':
+            return jsonify({'error': 'Only post reports are supported'}), 400
+
+        if report.status in ['resolved', 'dismissed']:
+            return jsonify({'error': 'Report has already been reviewed'}), 400
+
+        data = request.get_json() or {}
+        decision = data.get('decision')
+        note = (data.get('note') or '').strip()
+
+        if decision not in ['approve', 'dismiss']:
+            return jsonify({'error': 'Invalid decision'}), 400
+
+        if decision == 'approve' and not note:
+            return jsonify({'error': 'Reason is required when approving a report'}), 400
+
+        post = Post.query.get(report.target_id)
+        if not post or post.is_deleted:
+            return jsonify({'error': 'Reported post not found'}), 404
+
+        report.status = 'resolved' if decision == 'approve' else 'dismissed'
+        report.resolved_by = current_user_id
+        report.resolution_note = note if note else 'Report dismissed by moderator'
+        report.resolved_at = datetime.utcnow()
+
+        if decision == 'approve':
+            post.status = 'flagged'
+            post.moderation_status = 'moderator_rejected'
+            post.moderator_id = current_user_id
+            post.moderator_decision = 'flag'
+            post.moderator_reason = note
+            post.moderated_at = datetime.utcnow()
+
+            queue_item = ModerationQueue.query.filter(
+                ModerationQueue.target_type == 'post',
+                ModerationQueue.target_id == post.id,
+                ModerationQueue.source == 'user_report',
+                ModerationQueue.status.in_(['pending', 'locked'])
+            ).order_by(ModerationQueue.created_at.desc()).first()
+
+            if queue_item:
+                queue_item.status = 'completed'
+                queue_item.completed_at = datetime.utcnow()
+
+            create_notification(
+                user_id=post.user_id,
+                notification_type='post_flagged',
+                title='Bài viết bị khóa',
+                message=f'Bài viết của bạn đã bị khóa vì: {note}',
+                related_id=post.id,
+                related_type='post',
+                actor_id=current_user_id
+            )
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Report reviewed successfully',
+            'report': report.to_dict(),
+            'post': post.to_dict()
+        }), 200
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

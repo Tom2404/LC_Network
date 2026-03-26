@@ -7,6 +7,7 @@ let currentTab = 'posts';
 let currentPostPage = 1;
 let currentUserPage = 1;
 let currentQueuePage = 1;
+let currentReportPage = 1;
 let selectedPost = null;
 let selectedUser = null;
 let searchTimeout = null;
@@ -1473,14 +1474,193 @@ function renderRecentActivity(pendingPosts, flaggedPosts) {
         .join('');
 }
 
-function loadReports() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="text-center py-12">
-            <span class="material-symbols-outlined text-6xl text-warning">report</span>
-            <h2 class="text-2xl font-bold mt-4">Báo cáo vi phạm đang được phát triển</h2>
-            <p class="text-muted mt-2">Chức năng này sẽ sớm được cập nhật</p>
+function loadReports(page = 1) {
+    return loadReportItems(page);
+}
+
+async function loadReportItems(page = 1) {
+    currentReportPage = page;
+
+    const statusFilter = document.getElementById('post-status-filter');
+    const rawStatus = statusFilter ? statusFilter.value : '';
+    const allowedStatuses = ['pending', 'reviewing', 'resolved', 'dismissed', 'all'];
+    const status = allowedStatuses.includes(rawStatus) ? rawStatus : '';
+    const searchInput = document.getElementById('post-search');
+    const search = searchInput ? (searchInput.value || '').trim() : '';
+
+    try {
+        const token = localStorage.getItem('token');
+        let url = `${API_BASE_URL}/moderation/reports?page=${page}&per_page=10`;
+        if (status) {
+            url += `&status=${encodeURIComponent(status)}`;
+        }
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await fetch(url, {
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            logout();
+            return;
+        }
+
+        const data = await response.json();
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+
+        displayReports(data.reports || []);
+        displayPagination('reports', data.current_page || 1, data.pages || 1);
+    } catch (error) {
+        console.error('Error loading reports:', error);
+        showError('Không thể tải danh sách báo cáo');
+    }
+}
+
+function displayReports(reports) {
+    const container = document.getElementById('postsTable');
+
+    if (!container) {
+        return;
+    }
+
+    if (!reports || reports.length === 0) {
+        container.innerHTML = '<div class="text-center py-12"><p class="text-muted">Không có báo cáo nào</p></div>';
+        return;
+    }
+
+    const tableHTML = `
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Người báo cáo</th>
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Bài viết</th>
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Lý do</th>
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Trạng thái</th>
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Ngày</th>
+                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider text-right">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${reports.map(report => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${report.reporter?.avatar_url || '/user/images/default-avatar.png'}" alt="Reporter" class="w-8 h-8 rounded-full bg-slate-100 object-cover"/>
+                                <div>
+                                    <p class="text-sm font-bold">${escapeHtml(report.reporter?.full_name || report.reporter?.username || 'Ẩn danh')}</p>
+                                    <p class="text-xs text-muted">ID: ${report.reporter_id}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate">${escapeHtml(report.post?.caption || 'Không có nội dung')}</p>
+                            <p class="text-xs text-muted">Post ID: ${report.target_id}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm max-w-xs break-words">${escapeHtml(report.description || 'Không có mô tả')}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            ${getReportStatusBadge(report.status)}
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-xs text-muted">${formatDateShort(report.created_at)}</p>
+                            <p class="text-[10px] text-muted">${formatTimeShort(report.created_at)}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="showPostDetail(${report.target_id})" class="p-1.5 text-primary hover:bg-primary/10 rounded-lg" title="Xem bài viết">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                </button>
+                                ${report.status === 'pending' || report.status === 'reviewing' ? `
+                                    <button onclick="approveReport(${report.id})" class="p-1.5 text-danger hover:bg-danger/10 rounded-lg" title="Chấp thuận báo cáo">
+                                        <span class="material-symbols-outlined">gpp_bad</span>
+                                    </button>
+                                    <button onclick="dismissReport(${report.id})" class="p-1.5 text-success hover:bg-success/10 rounded-lg" title="Bác báo cáo">
+                                        <span class="material-symbols-outlined">check_circle</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+            <p class="text-xs text-muted font-medium">Hiển thị ${reports.length} báo cáo</p>
+            <div id="reports-pagination"></div>
         </div>
     `;
+
+    container.innerHTML = tableHTML;
+}
+
+function getReportStatusBadge(status) {
+    const badges = {
+        pending: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">Chờ duyệt</span>',
+        reviewing: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">Đang xem</span>',
+        resolved: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger">Đã chấp thuận</span>',
+        dismissed: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">Đã bác</span>'
+    };
+
+    return badges[status] || `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">${escapeHtml(status || 'unknown')}</span>`;
+}
+
+function approveReport(reportId) {
+    const reason = window.prompt('Nhập lý do khóa bài viết khi chấp thuận báo cáo:');
+    if (!reason || !reason.trim()) {
+        showError('Bạn cần nhập lý do để chấp thuận báo cáo');
+        return;
+    }
+
+    submitReportReview(reportId, 'approve', reason.trim());
+}
+
+function dismissReport(reportId) {
+    confirmAction('Bạn có chắc muốn bác báo cáo này?', () => {
+        submitReportReview(reportId, 'dismiss', 'Report dismissed by admin');
+    });
+}
+
+function submitReportReview(reportId, decision, note) {
+    const token = localStorage.getItem('token');
+
+    fetch(`${API_BASE_URL}/moderation/reports/${reportId}/review`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ decision, note })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+
+        if (decision === 'approve') {
+            showSuccess('Đã chấp thuận báo cáo và khóa bài viết');
+        } else {
+            showSuccess('Đã bác báo cáo');
+        }
+
+        loadReportItems(currentReportPage);
+        updateStats();
+    })
+    .catch(error => {
+        console.error('Error reviewing report:', error);
+        showError('Không thể xử lý báo cáo');
+    });
 }
 
 function loadSettings() {

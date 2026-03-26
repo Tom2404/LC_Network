@@ -6,6 +6,7 @@ from models.post_media import PostMedia
 from models.moderation_queue import ModerationQueue
 from models.user import User
 from models.like import Like
+from models.report import Report
 from utils.file_upload import upload_file, allowed_file
 from datetime import datetime
 from controllers.notification_controller import create_notification
@@ -306,14 +307,98 @@ def get_user_posts(user_id):
 def get_post(post_id):
     """Xem chi tiết bài viết"""
     try:
+        current_user_id = int(get_jwt_identity())
         post = Post.query.get(post_id)
         
         if not post or post.is_deleted:
             return jsonify({'error': 'Post not found'}), 404
+
+        # Non-published posts are hidden from other users.
+        if post.status != 'published' and post.user_id != current_user_id:
+            return jsonify({'error': 'Post is not publicly available'}), 403
         
         return jsonify({'post': post.to_dict()}), 200
         
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@post_bp.route('/<int:post_id>/report', methods=['POST'])
+@jwt_required()
+def report_post(post_id):
+    """Report a post for moderator/admin review."""
+    try:
+        current_user_id = int(get_jwt_identity())
+        post = Post.query.get(post_id)
+
+        if not post or post.is_deleted:
+            return jsonify({'error': 'Post not found'}), 404
+
+        if post.user_id == current_user_id:
+            return jsonify({'error': 'You cannot report your own post'}), 400
+
+        if post.status != 'published':
+            return jsonify({'error': 'This post is already under moderation'}), 400
+
+        data = request.get_json() or {}
+        description = (data.get('description') or '').strip()
+        reason = (data.get('reason') or 'other').strip()
+        allowed_reasons = {'spam', 'violence', 'hate_speech', 'nudity', 'scam', 'terrorism', 'other'}
+
+        if not description:
+            return jsonify({'error': 'Report reason is required'}), 400
+
+        if reason not in allowed_reasons:
+            reason = 'other'
+
+        existing_pending_report = Report.query.filter_by(
+            reporter_id=current_user_id,
+            target_type='post',
+            target_id=post_id,
+            status='pending'
+        ).first()
+
+        if existing_pending_report:
+            return jsonify({'error': 'You already reported this post'}), 409
+
+        report = Report(
+            reporter_id=current_user_id,
+            target_type='post',
+            target_id=post_id,
+            reason=reason,
+            description=description,
+            status='pending'
+        )
+        db.session.add(report)
+
+        post.report_count = (post.report_count or 0) + 1
+
+        existing_queue_item = ModerationQueue.query.filter(
+            ModerationQueue.target_type == 'post',
+            ModerationQueue.target_id == post_id,
+            ModerationQueue.source == 'user_report',
+            ModerationQueue.status.in_(['pending', 'locked'])
+        ).first()
+
+        if not existing_queue_item:
+            queue_item = ModerationQueue(
+                target_type='post',
+                target_id=post_id,
+                source='user_report',
+                priority=min(100, 50 + post.report_count * 10),
+                status='pending'
+            )
+            db.session.add(queue_item)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Report submitted successfully. Admin will review it shortly.',
+            'report': report.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
 
