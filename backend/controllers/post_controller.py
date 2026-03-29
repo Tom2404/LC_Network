@@ -25,8 +25,22 @@ def create_post():
         current_user_id = int(get_jwt_identity())
         user = User.query.get(current_user_id)
         
-        if not user or not user.is_active():
-            return jsonify({'error': 'Account is restricted'}), 403
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_banned():
+            return jsonify({
+                'error': 'Your account has been banned',
+                'reason': user.ban_reason,
+                'ban_until': user.ban_until.isoformat() if user.ban_until else 'permanent'
+            }), 403
+
+        if user.is_muted():
+            return jsonify({
+                'error': 'Your account is temporarily muted. You cannot create posts at this time.',
+                'reason': user.ban_reason,
+                'mute_until': user.ban_until.isoformat() if user.ban_until else None
+            }), 403
         
         data = request.get_json()
         
@@ -88,6 +102,22 @@ def create_post():
 def upload_media():
     """Upload ảnh/video cho bài viết"""
     try:
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_banned():
+            return jsonify({'error': 'Your account has been banned'}), 403
+
+        if user.is_muted():
+            return jsonify({
+                'error': 'Your account is temporarily muted. You cannot upload post media at this time.',
+                'reason': user.ban_reason,
+                'mute_until': user.ban_until.isoformat() if user.ban_until else None
+            }), 403
+
         print(f"=== Upload Media Request ===")
         print(f"Request files: {request.files}")
         print(f"Request form: {request.form}")

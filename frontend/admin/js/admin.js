@@ -582,7 +582,7 @@ function displayUsers(users) {
                         </td>
                         <td class="px-6 py-4">
                             ${getStatusBadge(user.account_status)}
-                            ${user.account_status === 'banned' && user.ban_until ? 
+                            ${(user.account_status === 'banned' || user.account_status === 'warning') && user.ban_until ? 
                                 `<p class="text-xs text-muted mt-1">Đến: ${formatDateShort(user.ban_until)}</p>` : 
                                 ''}
                         </td>
@@ -1020,7 +1020,10 @@ function getStatusBadge(status) {
         'published': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">Đã duyệt</span>',
         'rejected': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger">Từ chối</span>',
         'flagged': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">Gắn cờ</span>',
-        'deleted': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-500">Đã xóa</span>'
+        'deleted': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-500">Đã xóa</span>',
+        'active': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">Hoạt động</span>',
+        'warning': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning">Muted tạm thời</span>',
+        'banned': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger">Bị cấm</span>'
     };
     return badges[status] || `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">${status}</span>`;
 }

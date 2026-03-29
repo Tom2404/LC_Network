@@ -43,12 +43,16 @@ class User(db.Model):
     
     def to_dict(self, include_sensitive=False):
         """Convert model to dictionary"""
+        is_muted = self.is_muted()
         data = {
             'id': self.id,
             'username': self.username,
             'full_name': self.full_name,
             'avatar_url': self.avatar_url,
             'account_status': self.account_status,
+            'is_muted': is_muted,
+            'mute_until': self.ban_until.isoformat() if is_muted and self.ban_until else None,
+            'mute_reason': self.ban_reason if is_muted else None,
             'warning_count': self.warning_count,
             'is_email_verified': self.is_email_verified,
             'created_at': self.created_at.isoformat() if self.created_at else None,
@@ -68,8 +72,8 @@ class User(db.Model):
         return UserRole.query.filter_by(user_id=self.id, role=role_name).first() is not None
     
     def is_active(self):
-        """Check if user account is active"""
-        return self.account_status == 'active'
+        """Check if user is allowed to access the platform"""
+        return not self.is_banned()
     
     def is_banned(self):
         """Check if user is banned"""
@@ -81,6 +85,23 @@ class User(db.Model):
                 return False
             return True
         return False
+
+    def is_muted(self):
+        """Check if user is temporarily muted (cannot create new content)."""
+        if self.account_status == 'warning' and self.ban_until:
+            if self.ban_until < datetime.utcnow():
+                # Mute expired
+                self.account_status = 'active'
+                self.ban_reason = None
+                self.ban_until = None
+                db.session.commit()
+                return False
+            return True
+        return False
+
+    def can_create_content(self):
+        """Check if user can post/comment/reply content."""
+        return not self.is_banned() and not self.is_muted()
     
     def __repr__(self):
         return f'<User {self.username}>'

@@ -23,8 +23,22 @@ def create_comment(post_id):
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
         
-        if not user or not user.is_active():
-            return jsonify({'error': 'Account is restricted'}), 403
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_banned():
+            return jsonify({
+                'error': 'Your account has been banned',
+                'reason': user.ban_reason,
+                'ban_until': user.ban_until.isoformat() if user.ban_until else 'permanent'
+            }), 403
+
+        if user.is_muted():
+            return jsonify({
+                'error': 'Your account is temporarily muted. You cannot comment or reply at this time.',
+                'reason': user.ban_reason,
+                'mute_until': user.ban_until.isoformat() if user.ban_until else None
+            }), 403
         
         post = Post.query.get(post_id)
         if not post or post.is_deleted or post.status != 'published':
@@ -200,8 +214,18 @@ def upload_comment_media():
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
         
-        if not user or not user.is_active():
-            return jsonify({'error': 'Account is restricted'}), 403
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_banned():
+            return jsonify({'error': 'Your account has been banned'}), 403
+
+        if user.is_muted():
+            return jsonify({
+                'error': 'Your account is temporarily muted. You cannot upload comment media at this time.',
+                'reason': user.ban_reason,
+                'mute_until': user.ban_until.isoformat() if user.ban_until else None
+            }), 403
         
         if 'file' not in request.files:
             print("ERROR: No file in request.files")
@@ -292,8 +316,11 @@ def like_comment(comment_id):
         current_user_id = get_jwt_identity()
         user = User.query.get(current_user_id)
         
-        if not user or not user.is_active():
-            return jsonify({'error': 'Account is restricted'}), 403
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_banned():
+            return jsonify({'error': 'Your account has been banned'}), 403
         
         comment = Comment.query.get(comment_id)
         if not comment or comment.is_blocked:

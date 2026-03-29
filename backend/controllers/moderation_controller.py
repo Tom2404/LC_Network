@@ -388,8 +388,8 @@ def mute_user_from_post(post_id):
         duration_hours = data.get('duration_hours', 24)  # Default 24h
         reason = data.get('reason', 'Vi phạm nội dung')
         
-        # Cập nhật trạng thái user
-        user.account_status = 'banned'
+        # Mute chỉ chặn tạo nội dung mới, không chặn đăng nhập/xem/like
+        user.account_status = 'warning'
         user.ban_reason = reason
         user.ban_until = datetime.utcnow() + timedelta(hours=duration_hours)
         user.warning_count += 1
@@ -402,6 +402,12 @@ def mute_user_from_post(post_id):
             post.moderator_reason = reason
             post.moderated_at = datetime.utcnow()
         
+        mute_action = 'mute_1d'
+        if duration_hours >= 168:
+            mute_action = 'mute_7d'
+        elif duration_hours >= 72:
+            mute_action = 'mute_3d'
+
         # Thêm vào violation history
         violation = ViolationHistory(
             user_id=user.id,
@@ -409,12 +415,22 @@ def mute_user_from_post(post_id):
             severity='moderate',
             post_id=post.id,
             description=reason,
-            action_taken='temporary_ban',
+            action_taken=mute_action,
             action_by=current_user_id,
             expires_at=datetime.utcnow() + timedelta(hours=duration_hours),
             created_at=datetime.utcnow()
         )
         db.session.add(violation)
+
+        create_notification(
+            user_id=user.id,
+            notification_type='account_warning',
+            title='Tài khoản của bạn đã bị mute tạm thời',
+            message=f'Bạn không thể đăng bài, bình luận hoặc trả lời trong {duration_hours} giờ. Lý do: {reason}',
+            related_id=post.id,
+            related_type='post',
+            actor_id=current_user_id
+        )
         
         db.session.commit()
         
