@@ -1089,6 +1089,22 @@
             
             return uploadedImages;
         }
+
+        function getVietnamesePostError(errorObj) {
+            const raw = (errorObj?.error || '').toString();
+            const reason = (errorObj?.reason || '').toString();
+            const message = `${raw} ${reason}`.toLowerCase();
+
+            if (message.includes('temporarily muted') || message.includes('muted')) {
+                return 'Bạn đang bị tạm khóa đăng bài/bình luận (mute). Vui lòng thử lại sau khi hết thời gian mute.';
+            }
+
+            if (message.includes('account has been banned') || message.includes('banned')) {
+                return 'Tài khoản của bạn đã bị khóa. Bạn không thể đăng bài vào lúc này.';
+            }
+
+            return errorObj?.error || 'Lỗi không xác định';
+        }
         
         async function createPostFromModal() {
             const content = document.getElementById('modalPostContent').value.trim();
@@ -1100,6 +1116,11 @@
 
             try {
                 showNotification('Đang đăng bài...', 'info');
+
+                // Close modal immediately to improve perceived responsiveness.
+                const modal = document.getElementById('createPostModal');
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
                 
                 // Upload images first
                 const media = await uploadPostImages();
@@ -1124,7 +1145,7 @@
                     loadNewsfeed();
                 } else {
                     const error = await response.json();
-                    showNotification('Đăng bài thất bại: ' + (error.error || 'Lỗi không xác định'), 'error');
+                    showNotification('Đăng bài thất bại: ' + getVietnamesePostError(error), 'error');
                 }
             } catch (error) {
                 console.error('Error creating post:', error);
@@ -1170,7 +1191,7 @@
                     loadNewsfeed();
                 } else {
                     const error = await response.json();
-                    showNotification('Đăng bài thất bại: ' + (error.error || 'Lỗi không xác định'), 'error');
+                    showNotification('Đăng bài thất bại: ' + getVietnamesePostError(error), 'error');
                 }
             } catch (error) {
                 console.error('Error creating post:', error);
