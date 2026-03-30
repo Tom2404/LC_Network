@@ -35,6 +35,8 @@ python-dotenv==1.0.0
 python-dateutil==2.8.2
 redis==5.0.1
 celery==5.3.4  # For async AI processing
+reportlab==4.2.2
+python-docx==1.1.2
 
 # Development
 pytest==7.4.3

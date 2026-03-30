@@ -1173,6 +1173,325 @@ function showSuccess(message) {
     showNotice(message, 'success');
 }
 
+function showExportFormatDialog() {
+    let overlay = document.getElementById('admin-export-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+
+    overlay = document.createElement('div');
+    overlay.id = 'admin-export-overlay';
+    overlay.className = 'fixed inset-0 bg-slate-950/45 z-[1200] flex items-center justify-center p-4 backdrop-blur-[2px]';
+    overlay.innerHTML = `
+        <div class="w-full max-w-5xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden">
+            <div class="px-6 py-5 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-emerald-500/10 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary">Workflow moi: Xem truoc truoc khi xuat</div>
+                        <h4 class="text-lg md:text-xl font-extrabold mt-2">Xem truoc du lieu xuat</h4>
+                        <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Bao cao se gom nguoi dung, bai viet, thoi gian dang, trang thai, diem AI, tuong tac, thong tin duyet va anh dau tien cua bai viet (neu co). Video se khong dua vao file xuat.</p>
+                    </div>
+                    <button id="export-close-top-btn" class="p-2 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-800" title="Dong">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-5 grid grid-cols-1 xl:grid-cols-12 gap-5 max-h-[76vh] overflow-auto">
+                <section class="xl:col-span-8 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <p class="text-sm font-semibold">Bang xem truoc (10 dong dau theo bo loc hien tai)</p>
+                        <button id="refresh-export-preview-btn" class="inline-flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <span class="material-symbols-outlined text-base">refresh</span>
+                            Lam moi xem truoc
+                        </button>
+                    </div>
+                    <div id="export-preview-wrap" class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                        <div class="text-center py-10 text-sm text-muted">Dang tai du lieu xem truoc...</div>
+                    </div>
+                </section>
+
+                <aside class="xl:col-span-4 space-y-4">
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40">
+                        <p class="text-xs uppercase tracking-wider text-muted font-semibold">Bo loc hien tai</p>
+                        <div class="mt-3 text-sm space-y-2">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-muted">Trang thai</span>
+                                <span id="export-filter-status" class="font-semibold">Tat ca</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-muted">Tu khoa</span>
+                                <span id="export-filter-search" class="font-semibold truncate max-w-[180px] text-right">Khong co</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs uppercase tracking-wider text-muted font-semibold">Dinh dang xuat</p>
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <button id="choose-pdf-btn" data-format="pdf" class="export-format-btn px-3 py-2 rounded-lg text-sm font-semibold bg-primary text-white">PDF</button>
+                            <button id="choose-docx-btn" data-format="docx" class="export-format-btn px-3 py-2 rounded-lg text-sm font-semibold border border-slate-300 dark:border-slate-600">DOCX</button>
+                        </div>
+                        <p class="text-xs text-muted mt-3" id="export-format-hint">PDF: de chia se nhanh, giu bo cuc dong bo va kem thumbnail anh.</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row xl:flex-col gap-2">
+                        <button id="run-export-btn" class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">Xuat file ngay</button>
+                        <button id="export-cancel-btn" class="px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 font-medium">Huy</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const statusEl = document.getElementById('post-status-filter');
+    const searchEl = document.getElementById('post-search') || document.getElementById('searchInput');
+    const status = statusEl ? (statusEl.value || '').trim() : '';
+    const search = searchEl ? (searchEl.value || '').trim() : '';
+    let selectedFormat = 'pdf';
+
+    const filterStatusNode = overlay.querySelector('#export-filter-status');
+    const filterSearchNode = overlay.querySelector('#export-filter-search');
+    if (filterStatusNode) {
+        filterStatusNode.textContent = status ? status : 'Tat ca';
+    }
+    if (filterSearchNode) {
+        filterSearchNode.textContent = search ? search : 'Khong co';
+    }
+
+    const closeDialog = () => overlay.remove();
+    const refreshPreview = async () => {
+        try {
+            await renderExportPreview(overlay, { status, search });
+        } catch (error) {
+            console.error('Export preview error:', error);
+            const previewWrap = overlay.querySelector('#export-preview-wrap');
+            if (previewWrap) {
+                previewWrap.innerHTML = '<div class="text-center py-10 text-sm text-danger">Khong the tai xem truoc. Vui long thu lai.</div>';
+            }
+            showError(error.message || 'Khong the tai du lieu xem truoc');
+        }
+    };
+
+    overlay.querySelector('#export-cancel-btn').addEventListener('click', closeDialog);
+    overlay.querySelector('#export-close-top-btn').addEventListener('click', closeDialog);
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) closeDialog();
+    });
+
+    overlay.querySelector('#refresh-export-preview-btn').addEventListener('click', refreshPreview);
+
+    const formatButtons = overlay.querySelectorAll('.export-format-btn');
+    const formatHint = overlay.querySelector('#export-format-hint');
+    const updateFormatUI = (format) => {
+        selectedFormat = format;
+        formatButtons.forEach(btn => {
+            const active = btn.dataset.format === format;
+            btn.classList.toggle('bg-primary', active);
+            btn.classList.toggle('text-white', active);
+            btn.classList.toggle('border', !active);
+            btn.classList.toggle('border-slate-300', !active);
+            btn.classList.toggle('dark:border-slate-600', !active);
+        });
+
+        if (formatHint) {
+            formatHint.textContent = format === 'pdf'
+                ? 'PDF: để chia sẻ nhanh, giữ bố cục đồng bộ và kèm thumbnail ảnh.'
+                : 'DOCX: để chỉnh sửa tiếp trong Word, có mục ảnh minh họa để đối chiếu.';
+        }
+    };
+
+    formatButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            updateFormatUI(btn.dataset.format || 'pdf');
+        });
+    });
+
+    overlay.querySelector('#run-export-btn').addEventListener('click', async () => {
+        const exportBtn = overlay.querySelector('#run-export-btn');
+        const originalText = exportBtn.textContent;
+        exportBtn.disabled = true;
+        exportBtn.textContent = 'Dang xuat...';
+
+        try {
+            await exportPostsData(selectedFormat);
+            closeDialog();
+        } finally {
+            exportBtn.disabled = false;
+            exportBtn.textContent = originalText;
+        }
+    });
+
+    updateFormatUI(selectedFormat);
+    refreshPreview();
+}
+
+async function renderExportPreview(overlay, filters = {}) {
+    const previewWrap = overlay.querySelector('#export-preview-wrap');
+    if (!previewWrap) return;
+
+    previewWrap.innerHTML = '<div class="text-center py-10 text-sm text-muted">Dang dong bo du lieu xem truoc...</div>';
+
+    const previewData = await fetchExportPreviewData(filters);
+    const rows = previewData.items || [];
+
+    if (!rows.length) {
+        previewWrap.innerHTML = '<div class="text-center py-10 text-sm text-muted">Khong co du lieu phu hop voi bo loc hien tai.</div>';
+        return;
+    }
+
+    previewWrap.innerHTML = `
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
+                        <th class="px-4 py-3 text-xs font-bold text-muted uppercase">Người dùng</th>
+                        <th class="px-4 py-3 text-xs font-bold text-muted uppercase">Nội dung</th>
+                        <th class="px-4 py-3 text-xs font-bold text-muted uppercase">Ngày đăng</th>
+                        <th class="px-4 py-3 text-xs font-bold text-muted uppercase">Trạng thái</th>
+                        <th class="px-4 py-3 text-xs font-bold text-muted uppercase">AI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    ${rows.map(post => `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                            <td class="px-4 py-3">
+                                <p class="text-sm font-semibold">${escapeHtml(post.author?.full_name || post.author?.username || 'Unknown')}</p>
+                                <p class="text-xs text-muted">@${escapeHtml(post.author?.username || 'unknown')}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="text-sm max-w-[320px] truncate">${escapeHtml(post.caption || 'Không có nội dung')}</p>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-muted">
+                                ${formatDateShort(post.created_at)} ${formatTimeShort(post.created_at)}
+                            </td>
+                            <td class="px-4 py-3">${getExportStatusBadge(post.status)}</td>
+                            <td class="px-4 py-3 text-sm font-semibold">${post.ai_confidence_score || 0}%</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-700 text-xs text-muted">
+            Đang xem ${rows.length} dòng đầu tiên trong tổng ${previewData.total || rows.length} bản ghi phù hợp.
+        </div>
+    `;
+}
+
+async function fetchExportPreviewData(filters = {}) {
+    const token = localStorage.getItem('token');
+    const status = (filters.status || '').trim();
+    const search = (filters.search || '').trim();
+
+    let url = `${API_BASE_URL}/moderation/posts?page=1&per_page=10`;
+    if (status) {
+        url += `&status=${encodeURIComponent(status)}`;
+    }
+    if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+    }
+
+    const response = await fetch(url, {
+        credentials: 'include',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+
+    if (!response.ok) {
+        throw new Error('Không thể tải dữ liệu xem trước');
+    }
+
+    const data = await response.json();
+    if (data.error) {
+        throw new Error(data.error);
+    }
+
+    return {
+        items: data.posts || [],
+        total: data.total || 0
+    };
+}
+
+function getExportStatusBadge(status) {
+    const map = {
+        pending: 'bg-warning/10 text-warning',
+        published: 'bg-success/10 text-success',
+        rejected: 'bg-danger/10 text-danger',
+        flagged: 'bg-amber-100 text-amber-700',
+        under_review: 'bg-sky-100 text-sky-700',
+        deleted: 'bg-slate-200 text-slate-600'
+    };
+
+    const labels = {
+        pending: 'Cho duyet',
+        published: 'Da duyet',
+        rejected: 'Tu choi',
+        flagged: 'Gan co',
+        under_review: 'Dang review',
+        deleted: 'Da xoa'
+    };
+
+    const cls = map[status] || 'bg-slate-200 text-slate-600';
+    const label = labels[status] || (status || 'Không rõ');
+    return `<span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold ${cls}">${label}</span>`;
+}
+
+async function exportPostsData(format = 'pdf') {
+    try {
+        const token = localStorage.getItem('token');
+        const statusEl = document.getElementById('post-status-filter');
+        const searchEl = document.getElementById('post-search') || document.getElementById('searchInput');
+        const status = statusEl ? (statusEl.value || '').trim() : '';
+        const search = searchEl ? (searchEl.value || '').trim() : '';
+
+        let url = `${API_BASE_URL}/moderation/posts/export?format=${encodeURIComponent(format)}&limit=1000`;
+        if (status) {
+            url += `&status=${encodeURIComponent(status)}`;
+        }
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+
+        if (!response.ok) {
+            let errorMessage = 'Không thể xuất dữ liệu';
+            try {
+                const err = await response.json();
+                errorMessage = err.error || errorMessage;
+            } catch (_) {
+                // Keep default error message
+            }
+            showError(errorMessage);
+            return;
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const filenameMatch = disposition.match(/filename=\"?([^\";]+)\"?/i);
+        const fallback = `moderation_export.${format === 'docx' ? 'docx' : 'pdf'}`;
+        link.download = filenameMatch ? filenameMatch[1] : fallback;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+        showSuccess(`Xuất dữ liệu ${format.toUpperCase()} thành công`);
+    } catch (error) {
+        console.error('Export data error:', error);
+        showError('Không thể xuất dữ liệu');
+    }
+}
+
 function confirmAction(message, onConfirm) {
     let overlay = document.getElementById('admin-confirm-overlay');
     if (overlay) {

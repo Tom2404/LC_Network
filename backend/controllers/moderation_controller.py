@@ -1,8 +1,11 @@
-from flask import Blueprint, request, jsonify, session
+import os
+from io import BytesIO
+from flask import Blueprint, request, jsonify, session, send_file, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from models import db
 from models.moderation_queue import ModerationQueue
 from models.post import Post
+from models.post_media import PostMedia
 from models.user import User
 from models.appeal import Appeal
 from models.violation_history import ViolationHistory
@@ -12,6 +15,7 @@ from models.report import Report
 from controllers.notification_controller import create_notification
 from datetime import datetime, timedelta
 from functools import wraps
+import requests
 
 moderation_bp = Blueprint('moderation', __name__)
 
@@ -332,6 +336,294 @@ def get_all_posts():
             'current_page': page
         }), 200
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@moderation_bp.route('/posts/export', methods=['GET'])
+@requires_moderator
+def export_posts_for_moderation():
+    """Xuất dữ liệu bài viết moderation ra PDF/DOCX."""
+    try:
+        export_format = (request.args.get('format', 'pdf') or 'pdf').strip().lower()
+        status = (request.args.get('status', '') or '').strip()
+        search = (request.args.get('search', '') or '').strip()
+        limit = request.args.get('limit', 1000, type=int)
+        limit = max(1, min(limit, 2000))
+
+        query = Post.query.filter_by(is_deleted=False)
+
+        if status:
+            query = query.filter_by(status=status)
+
+        if search:
+            query = query.join(User).filter(
+                db.or_(
+                    Post.caption.ilike(f'%{search}%'),
+                    User.username.ilike(f'%{search}%'),
+                    User.full_name.ilike(f'%{search}%')
+                )
+            )
+
+        posts = query.order_by(Post.created_at.desc()).limit(limit).all()
+
+        def fmt_dt(dt):
+            return dt.strftime('%d/%m/%Y %H:%M') if dt else '-'
+
+        def status_label(value):
+            labels = {
+                'pending': 'Cho duyet',
+                'published': 'Da duyet',
+                'rejected': 'Tu choi',
+                'flagged': 'Bi gan co',
+                'deleted': 'Da xoa',
+                'under_review': 'Dang review'
+            }
+            return labels.get(value, value or '-')
+
+        def get_first_image_media(post_id):
+            return PostMedia.query.filter_by(post_id=post_id, media_type='image')\
+                .order_by(PostMedia.display_order.asc(), PostMedia.created_at.asc())\
+                .first()
+
+        def get_image_bytes(media_url, max_size=(360, 360)):
+            if not media_url:
+                return None
+
+            raw_data = None
+            if media_url.startswith('http://') or media_url.startswith('https://'):
+                resp = requests.get(media_url, timeout=8)
+                if not resp.ok:
+                    return None
+                raw_data = resp.content
+            else:
+                relative_path = media_url.lstrip('/').replace('/', os.sep)
+                absolute_path = os.path.join(current_app.root_path, relative_path)
+                if not os.path.exists(absolute_path):
+                    return None
+                with open(absolute_path, 'rb') as fp:
+                    raw_data = fp.read()
+
+            if not raw_data:
+                return None
+
+            from PIL import Image
+
+            with Image.open(BytesIO(raw_data)) as img:
+                if img.mode not in ('RGB', 'L'):
+                    img = img.convert('RGB')
+                else:
+                    img = img.copy()
+
+                img.thumbnail(max_size)
+                output = BytesIO()
+                img.save(output, format='JPEG', quality=82, optimize=True)
+                return output.getvalue()
+
+        rows = []
+        for idx, post in enumerate(posts, start=1):
+            author = User.query.get(post.user_id)
+            moderator = User.query.get(post.moderator_id) if post.moderator_id else None
+            first_image = get_first_image_media(post.id)
+
+            image_bytes = None
+            image_url = first_image.media_url if first_image else None
+            if image_url:
+                try:
+                    image_bytes = get_image_bytes(image_url)
+                except Exception:
+                    image_bytes = None
+
+            ai_flags = ', '.join((post.ai_flag_reasons or [])[:3]) if post.ai_flag_reasons else '-'
+            caption = (post.caption or '').strip()
+            caption = ' '.join(caption.split())
+
+            rows.append({
+                'stt': idx,
+                'post_id': post.id,
+                'user': (author.full_name or author.username) if author else 'Unknown',
+                'username': author.username if author else '-',
+                'content': caption[:180] + ('...' if len(caption) > 180 else ''),
+                'created_at': fmt_dt(post.created_at),
+                'status': status_label(post.status),
+                'moderation_status': post.moderation_status or '-',
+                'ai_score': float(post.ai_confidence_score) if post.ai_confidence_score is not None else '-',
+                'ai_flags': ai_flags,
+                'like_count': post.like_count or 0,
+                'comment_count': post.comment_count or 0,
+                'share_count': post.share_count or 0,
+                'moderator': (moderator.full_name or moderator.username) if moderator else '-',
+                'moderated_at': fmt_dt(post.moderated_at),
+                'image_url': image_url,
+                'image_bytes': image_bytes
+            })
+
+        generated_at = datetime.utcnow()
+        status_token = status or 'all'
+        base_filename = f"moderation_posts_{status_token}_{generated_at.strftime('%Y%m%d_%H%M%S')}"
+
+        if export_format == 'docx':
+            import importlib
+            docx_module = importlib.import_module('docx')
+            docx_shared = importlib.import_module('docx.shared')
+            Document = docx_module.Document
+            Pt = docx_shared.Pt
+            Inches = docx_shared.Inches
+
+            doc = Document()
+            doc.add_heading('Bao cao Moderation - Danh sach bai viet', level=1)
+            doc.add_paragraph(
+                f"Ngay xuat: {generated_at.strftime('%d/%m/%Y %H:%M')} | So ban ghi: {len(rows)} | "
+                f"Trang thai loc: {status or 'Tat ca'} | Tu khoa: {search or 'Khong co'}"
+            )
+            doc.add_paragraph('Luu y: Bao cao kem anh dau tien cua bai viet neu co (chi media image, bo qua video).')
+
+            columns = [
+                'STT', 'Post ID', 'Nguoi dung', 'Username', 'Noi dung', 'Ngay dang',
+                'Trang thai', 'AI score', 'Tu khoa AI', 'Tuong tac', 'Nguoi duyet', 'Ngay duyet'
+            ]
+            table = doc.add_table(rows=1, cols=len(columns))
+            table.style = 'Table Grid'
+
+            for i, col in enumerate(columns):
+                run = table.rows[0].cells[i].paragraphs[0].add_run(col)
+                run.bold = True
+                run.font.size = Pt(10)
+
+            for row in rows:
+                tr = table.add_row().cells
+                tr[0].text = str(row['stt'])
+                tr[1].text = str(row['post_id'])
+                tr[2].text = row['user']
+                tr[3].text = row['username']
+                tr[4].text = row['content'] or '-'
+                tr[5].text = row['created_at']
+                tr[6].text = row['status']
+                tr[7].text = str(row['ai_score'])
+                tr[8].text = row['ai_flags']
+                tr[9].text = f"Like {row['like_count']} | Comment {row['comment_count']} | Share {row['share_count']}"
+                tr[10].text = row['moderator']
+                tr[11].text = row['moderated_at']
+
+            image_rows = [row for row in rows if row.get('image_bytes')]
+            if image_rows:
+                doc.add_paragraph()
+                doc.add_heading('Anh dinh kem bai viet (xem truoc)', level=2)
+                for row in image_rows:
+                    doc.add_paragraph(f"Post #{row['post_id']} - @{row['username']}")
+                    doc.add_picture(BytesIO(row['image_bytes']), width=Inches(2.0))
+
+            output = BytesIO()
+            doc.save(output)
+            output.seek(0)
+
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=f"{base_filename}.docx",
+                mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+
+        if export_format == 'pdf':
+            import importlib
+            colors = importlib.import_module('reportlab.lib.colors')
+            reportlab_pagesizes = importlib.import_module('reportlab.lib.pagesizes')
+            reportlab_styles = importlib.import_module('reportlab.lib.styles')
+            reportlab_units = importlib.import_module('reportlab.lib.units')
+            reportlab_platypus = importlib.import_module('reportlab.platypus')
+
+            A4 = reportlab_pagesizes.A4
+            landscape = reportlab_pagesizes.landscape
+            getSampleStyleSheet = reportlab_styles.getSampleStyleSheet
+            mm = reportlab_units.mm
+            SimpleDocTemplate = reportlab_platypus.SimpleDocTemplate
+            Paragraph = reportlab_platypus.Paragraph
+            Spacer = reportlab_platypus.Spacer
+            Table = reportlab_platypus.Table
+            TableStyle = reportlab_platypus.TableStyle
+            RLImage = reportlab_platypus.Image
+
+            output = BytesIO()
+            doc = SimpleDocTemplate(
+                output,
+                pagesize=landscape(A4),
+                rightMargin=12 * mm,
+                leftMargin=12 * mm,
+                topMargin=10 * mm,
+                bottomMargin=10 * mm
+            )
+            styles = getSampleStyleSheet()
+            story = [
+                Paragraph('Bao cao Moderation - Danh sach bai viet', styles['Heading2']),
+                Paragraph(
+                    f"Ngay xuat: {generated_at.strftime('%d/%m/%Y %H:%M')} | So ban ghi: {len(rows)} | "
+                    f"Trang thai loc: {status or 'Tat ca'} | Tu khoa: {search or 'Khong co'}",
+                    styles['BodyText']
+                ),
+                Paragraph('Luu y: Bao cao kem anh dau tien cua bai viet neu co (chi media image, bo qua video).', styles['BodyText']),
+                Spacer(1, 8)
+            ]
+
+            table_data = [[
+                'STT', 'Post', 'Anh', 'Nguoi dung', 'Noi dung', 'Ngay dang',
+                'Trang thai', 'AI', 'Tuong tac', 'Nguoi duyet', 'Ngay duyet'
+            ]]
+
+            for row in rows:
+                safe_content = (row['content'] or '-').encode('latin-1', 'replace').decode('latin-1')
+                safe_user = (row['user'] or '-').encode('latin-1', 'replace').decode('latin-1')
+                safe_status = (row['status'] or '-').encode('latin-1', 'replace').decode('latin-1')
+                safe_moderator = (row['moderator'] or '-').encode('latin-1', 'replace').decode('latin-1')
+
+                image_cell = '-'
+                if row.get('image_bytes'):
+                    image_cell = RLImage(BytesIO(row['image_bytes']), width=26, height=26)
+
+                table_data.append([
+                    row['stt'],
+                    row['post_id'],
+                    image_cell,
+                    safe_user,
+                    safe_content,
+                    row['created_at'],
+                    safe_status,
+                    str(row['ai_score']),
+                    f"L{row['like_count']} C{row['comment_count']} S{row['share_count']}",
+                    safe_moderator,
+                    row['moderated_at']
+                ])
+
+            table = Table(table_data, repeatRows=1, colWidths=[15, 32, 30, 72, 145, 64, 54, 28, 48, 66, 64])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 0.3, colors.HexColor('#CBD5E1')),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+                ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3)
+            ]))
+            story.append(table)
+            doc.build(story)
+            output.seek(0)
+
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=f"{base_filename}.pdf",
+                mimetype='application/pdf'
+            )
+
+        return jsonify({'error': 'Unsupported format. Use pdf or docx'}), 400
+
+    except ImportError:
+        return jsonify({
+            'error': 'Thieu thu vien xuat file. Vui long cai dat reportlab va python-docx trong backend/requirements.txt'
+        }), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
