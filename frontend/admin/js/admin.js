@@ -286,78 +286,147 @@ function showPostDetail(postId, options = {}) {
 
 function displayPostDetail(post) {
     const container = document.getElementById('post-detail-content');
+    const modalMeta = document.getElementById('modalPostMeta');
+    const queueItem = post.queue_item || null;
+    const aiScore = Number(post.ai_confidence_score || 0);
+    const risk = getReviewRiskMeta(aiScore);
+
+    if (modalMeta) {
+        const queueSource = queueItem ? getQueueSourceLabel(queueItem.source) : 'Kiểm duyệt tiêu chuẩn';
+        modalMeta.textContent = `Post #${post.id || 'N/A'} • ${queueSource} • ${formatDate(post.created_at)}`;
+    }
     
     container.innerHTML = `
-        <div class="space-y-6">
-            <!-- Author Info -->
-            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                <img src="${post.author?.avatar_url || '/user/images/default-avatar.png'}" 
-                     alt="Avatar" class="w-16 h-16 rounded-full">
-                <div class="flex-1">
-                    <h4 class="text-lg font-bold">${post.author?.username || 'Unknown'}</h4>
-                    <p class="text-sm text-muted">${post.author?.email || 'N/A'}</p>
-                    <div class="flex gap-2 mt-2">
-                        ${getStatusBadge(post.author?.account_status || 'active')}
-                        ${post.author?.warning_count > 0 ? 
-                            `<span class="text-xs bg-warning/10 text-warning px-2 py-1 rounded">⚠️ ${post.author.warning_count} vi phạm</span>` 
-                            : ''}
+        <div class="p-6 lg:p-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                <section class="xl:col-span-8 space-y-5">
+                    <div class="review-metric rounded-xl p-5">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <img src="${post.author?.avatar_url || '/user/images/default-avatar.png'}" 
+                                alt="Avatar" class="w-14 h-14 rounded-full border border-slate-200 dark:border-slate-700 object-cover">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-lg font-bold truncate">${post.author?.full_name || post.author?.username || 'Unknown'}</p>
+                                <p class="text-sm text-muted truncate">@${post.author?.username || 'unknown'} • ${post.author?.email || 'N/A'}</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                ${getStatusBadge(post.author?.account_status || 'active')}
+                                ${post.author?.warning_count > 0 ? `<span class="text-xs bg-warning/10 text-warning px-2 py-1 rounded-full">⚠ ${post.author.warning_count} vi phạm</span>` : ''}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Post Content -->
-            <div>
-                <h5 class="text-sm font-bold text-muted uppercase mb-2">Nội dung bài viết</h5>
-                <p class="text-base whitespace-pre-wrap">${escapeHtml(post.caption || 'Không có nội dung')}</p>
-                
-                ${post.media && post.media.length > 0 ? `
-                    <div class="mt-4 grid gap-3">
-                        ${post.media.map(media => 
-                            media.media_type === 'image' ? 
-                                `<img src="${media.media_url}" alt="Media" class="rounded-lg max-h-96 object-cover">` : 
-                                `<video src="${media.media_url}" controls class="rounded-lg max-h-96 w-full"></video>`
-                        ).join('')}
+
+                    <div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700">
+                            <h5 class="text-xs font-bold text-muted uppercase tracking-wider">Nội dung bài viết</h5>
+                        </div>
+                        <div class="p-5 space-y-4">
+                            <p class="text-base whitespace-pre-wrap">${escapeHtml(post.caption || 'Không có nội dung')}</p>
+                            ${post.media && post.media.length > 0 ? `
+                                <div class="grid gap-3">
+                                    ${post.media.map(media => 
+                                        media.media_type === 'image' ? 
+                                            `<img src="${media.media_url}" alt="Media" class="rounded-xl max-h-[420px] object-cover border border-slate-200 dark:border-slate-700">` : 
+                                            `<video src="${media.media_url}" controls class="rounded-xl max-h-[420px] w-full border border-slate-200 dark:border-slate-700"></video>`
+                                    ).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
-                ` : ''}
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="review-metric rounded-xl p-4">
+                            <p class="text-xs text-muted uppercase">Trạng thái</p>
+                            <div class="mt-2">${getStatusBadge(post.status)}</div>
+                        </div>
+                        <div class="review-metric rounded-xl p-4">
+                            <p class="text-xs text-muted uppercase">AI Confidence</p>
+                            <div class="mt-2">${getAIScoreBar(post.ai_confidence_score)}</div>
+                        </div>
+                        <div class="review-metric rounded-xl p-4">
+                            <p class="text-xs text-muted uppercase">Ngày tạo</p>
+                            <p class="text-sm font-semibold mt-2">${formatDate(post.created_at)}</p>
+                        </div>
+                        <div class="review-metric rounded-xl p-4">
+                            <p class="text-xs text-muted uppercase">Tương tác</p>
+                            <p class="text-sm font-semibold mt-2">👍 ${post.like_count || 0} • 💬 ${post.comment_count || 0}</p>
+                        </div>
+                    </div>
+
+                    ${post.ai_flag_reasons && post.ai_flag_reasons.length > 0 ? `
+                        <div class="rounded-xl border border-warning/30 bg-warning/5 p-4">
+                            <p class="text-sm font-bold text-warning mb-2">Tín hiệu AI cần lưu ý</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                ${post.ai_flag_reasons.map(flag => `<li class="text-sm">${escapeHtml(flag)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${post.moderator_reason ? `
+                        <div class="rounded-xl border border-danger/30 bg-danger/5 p-4">
+                            <p class="text-sm font-bold text-danger mb-1">Lịch sử từ chối gần nhất</p>
+                            <p class="text-sm">${escapeHtml(post.moderator_reason)}</p>
+                        </div>
+                    ` : ''}
+                </section>
+
+                <aside class="xl:col-span-4">
+                    <div class="sticky top-4 space-y-4">
+                        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                            <p class="text-xs font-bold uppercase tracking-wider text-muted">Decision Brief</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-sm text-muted">Mức rủi ro nội dung</span>
+                                <span class="text-xs font-bold px-2 py-1 rounded-full ${risk.badgeClass}">${risk.label}</span>
+                            </div>
+                            <div class="mt-2 text-sm">Điểm AI: <span class="font-bold">${aiScore.toFixed(0)}</span>/100</div>
+                            <div class="mt-2 text-sm">Nguồn queue: <span class="font-semibold">${queueItem ? getQueueSourceLabel(queueItem.source) : 'Không có'}</span></div>
+                            <div class="mt-2 text-sm">Độ ưu tiên: <span class="font-semibold">${queueItem ? (queueItem.priority || 0) : 0}</span></div>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                            <p class="text-xs font-bold uppercase tracking-wider text-muted">Checklist duyệt</p>
+                            <ul class="mt-3 space-y-2 text-sm">
+                                <li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary">check_circle</span><span>Xác minh ngữ cảnh nội dung và media đính kèm.</span></li>
+                                <li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary">check_circle</span><span>Đối chiếu với các tín hiệu AI hoặc báo cáo người dùng.</span></li>
+                                <li class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-primary">check_circle</span><span>Ghi rõ lý do nếu từ chối hoặc mute để audit sau này.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </aside>
             </div>
-            
-            <!-- Metadata -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p class="text-xs text-muted font-medium uppercase mb-1">Trạng thái</p>
-                    ${getStatusBadge(post.status)}
-                </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p class="text-xs text-muted font-medium uppercase mb-1">AI Confidence</p>
-                    ${getAIScoreBar(post.ai_confidence_score)}
-                </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p class="text-xs text-muted font-medium uppercase mb-1">Ngày tạo</p>
-                    <p class="text-sm">${formatDate(post.created_at)}</p>
-                </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p class="text-xs text-muted font-medium uppercase mb-1">Tương tác</p>
-                    <p class="text-sm">👍 ${post.like_count || 0} • 💬 ${post.comment_count || 0}</p>
-                </div>
-            </div>
-            
-            ${post.ai_flag_reasons && post.ai_flag_reasons.length > 0 ? `
-                <div class="p-4 bg-warning/5 border border-warning/20 rounded-lg">
-                    <p class="text-sm font-bold text-warning mb-2">⚠️ AI Phát hiện:</p>
-                    <ul class="list-disc list-inside space-y-1">
-                        ${post.ai_flag_reasons.map(flag => `<li class="text-sm">${flag}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            
-            ${post.moderator_reason ? `
-                <div class="p-4 bg-danger/5 border border-danger/20 rounded-lg">
-                    <p class="text-sm font-bold text-danger mb-1">Lý do từ chối:</p>
-                    <p class="text-sm">${escapeHtml(post.moderator_reason)}</p>
-                </div>
-            ` : ''}
         </div>
     `;
+}
+
+function getReviewRiskMeta(aiScore) {
+    if (aiScore >= 80) {
+        return {
+            label: 'Rủi ro cao',
+            badgeClass: 'bg-danger/10 text-danger'
+        };
+    }
+
+    if (aiScore >= 50) {
+        return {
+            label: 'Rủi ro trung bình',
+            badgeClass: 'bg-warning/10 text-warning'
+        };
+    }
+
+    return {
+        label: 'Rủi ro thấp',
+        badgeClass: 'bg-success/10 text-success'
+    };
+}
+
+function getQueueSourceLabel(source) {
+    const labels = {
+        ai_flagged: 'AI phát hiện',
+        user_report: 'Người dùng báo cáo',
+        manual_review: 'Review thủ công',
+        appeal: 'Kháng nghị'
+    };
+
+    return labels[source] || 'Không xác định';
 }
 
 function closePostModal() {

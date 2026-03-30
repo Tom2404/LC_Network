@@ -56,9 +56,9 @@ def get_moderation_queue():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
-        # Get pending items ordered by priority
+        # Get pending items ordered by priority, then newest first
         queue_items = ModerationQueue.query.filter_by(status='pending')\
-            .order_by(ModerationQueue.priority.desc(), ModerationQueue.created_at.asc())\
+            .order_by(ModerationQueue.priority.desc(), ModerationQueue.created_at.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
         
         items = []
@@ -347,6 +347,12 @@ def get_post_detail_for_moderation(post_id):
             return jsonify({'error': 'Post not found'}), 404
 
         post_dict = post.to_dict()
+        post_dict['moderation_status'] = post.moderation_status
+        post_dict['ai_confidence_score'] = float(post.ai_confidence_score) if post.ai_confidence_score is not None else None
+        post_dict['ai_flag_reasons'] = post.ai_flag_reasons or []
+        post_dict['moderator_decision'] = post.moderator_decision
+        post_dict['moderator_reason'] = post.moderator_reason
+        post_dict['moderated_at'] = post.moderated_at.isoformat() if post.moderated_at else None
 
         author = User.query.get(post.user_id)
         if author:
@@ -359,6 +365,15 @@ def get_post_detail_for_moderation(post_id):
                 'account_status': author.account_status,
                 'warning_count': author.warning_count
             }
+
+        pending_queue_item = ModerationQueue.query.filter_by(
+            target_type='post',
+            target_id=post.id,
+            status='pending'
+        ).order_by(ModerationQueue.priority.desc(), ModerationQueue.created_at.desc()).first()
+
+        if pending_queue_item:
+            post_dict['queue_item'] = pending_queue_item.to_dict()
 
         return jsonify({'post': post_dict}), 200
 
