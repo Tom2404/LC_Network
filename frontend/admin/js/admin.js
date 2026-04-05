@@ -935,61 +935,83 @@ async function loadQueue(page = 1) {
 }
 
 function displayQueue(queue) {
-    const container = document.getElementById('postsTable');
+    const container = document.getElementById('postsGrid');
     
     if (!queue || queue.length === 0) {
-        container.innerHTML = '<div class="text-center py-12"><p class="text-muted">Hàng đợi trống</p></div>';
+        container.innerHTML = '<div class="text-center py-12 col-span-full"><p class="text-muted">Hàng đợi trống</p></div>';
         return;
     }
     
-    const tableHTML = `
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Ưu tiên</th>
-                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Nội dung</th>
-                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Lý do</th>
-                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider">Ngày</th>
-                    <th class="px-6 py-4 text-xs font-bold text-muted uppercase tracking-wider text-right">Hành động</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                ${queue.map(item => `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td class="px-6 py-4">
-                            ${getPriorityBadge(item.priority)}
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-sm text-slate-700 dark:text-slate-300 max-w-xs truncate">
-                                ${escapeHtml(item.content?.caption || 'Không có nội dung')}
-                            </p>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-xs text-muted">${item.reason || 'Cần kiểm duyệt'}</p>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-xs text-muted">${formatDateShort(item.created_at)}</p>
-                            <p class="text-[10px] text-muted">${formatTimeShort(item.created_at)}</p>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center justify-end gap-2">
-                                <button onclick="showPostDetail(${item.target_id})" 
-                                    class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90">
-                                    Xem xét
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-            <p class="text-xs text-muted font-medium">Hiển thị ${queue.length} mục</p>
-            <div id="queue-pagination"></div>
+    const cardsHTML = queue.map(item => {
+        const post = item.content;
+        if (!post) return ''; // Skip if content is missing
+
+        const aiScore = Number(post.ai_confidence_score || 0);
+        const risk = getReviewRiskMeta(aiScore);
+
+        return `
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <img src="${post.author?.avatar_url || '/user/images/default-avatar.png'}" 
+                         alt="Avatar" class="w-10 h-10 rounded-full bg-slate-100 object-cover">
+                    <div>
+                        <p class="text-sm font-bold truncate">${post.author?.full_name || post.author?.username || 'Unknown'}</p>
+                        <p class="text-xs text-muted">@${post.author?.username || 'unknown'} · ${formatDateShort(post.created_at)}</p>
+                    </div>
+                </div>
+            </div>
+            
+            ${post.media && post.media.length > 0 && post.media[0].media_type === 'image' ? `
+                <div class="aspect-w-16 aspect-h-9 bg-slate-100 dark:bg-slate-800">
+                    <img src="${post.media[0].media_url}" alt="Post media" class="w-full h-full object-cover">
+                </div>
+            ` : ''}
+            ${post.media && post.media.length > 0 && post.media[0].media_type === 'video' ? `
+                <div class="aspect-w-16 aspect-h-9 bg-black">
+                    <video src="${post.media[0].media_url}" controls class="w-full h-full"></video>
+                </div>
+            ` : ''}
+
+            <div class="p-4 flex-grow">
+                <p class="text-sm text-slate-700 dark:text-slate-300 clamp-3">${escapeHtml(post.caption || 'Không có nội dung')}</p>
+            </div>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted">AI Score:</span>
+                    <span class="font-bold ${risk.badgeClass.replace('bg-', 'text-').replace('/10', '')}">${aiScore.toFixed(0)}/100</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="quickApprovePost(${post.id})" 
+                        class="flex-1 px-3 py-2 text-sm bg-success text-white rounded-lg hover:bg-success/90 font-semibold flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-base">check_circle</span>
+                        Duyệt
+                    </button>
+                    <button onclick="quickRejectPost(${post.id})" 
+                        class="flex-1 px-3 py-2 text-sm bg-warning text-white rounded-lg hover:bg-warning/90 font-semibold flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-base">cancel</span>
+                        Từ chối
+                    </button>
+                </div>
+                <div id="reject-form-${post.id}" class="hidden mt-2">
+                    <textarea id="reject-reason-${post.id}" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm" rows="2" placeholder="Lý do từ chối..."></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="submitQuickReject(${post.id})" class="px-3 py-1.5 text-xs bg-warning text-white rounded-lg">Xác nhận</button>
+                        <button onclick="hideRejectForm(${post.id})" class="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
+                    </div>
+                </div>
+            </div>
         </div>
-    `;
+        `;
+    }).join('');
     
-    container.innerHTML = tableHTML;
+    container.innerHTML = cardsHTML;
+
+    const paginationContainer = document.getElementById('queue-pagination-container');
+    if (paginationContainer) {
+        paginationContainer.innerHTML = `<div id="queue-pagination"></div>`;
+    }
 }
 
 function getPriorityBadge(priority) {
@@ -1536,7 +1558,6 @@ function confirmAction(message, onConfirm) {
 function quickApprovePost(postId) {
     confirmAction('Bạn có chắc muốn duyệt bài viết này?', () => {
         const token = localStorage.getItem('token');
-
         fetch(`${API_BASE_URL}/moderation/review/${postId}`, {
             method: 'POST',
             headers: {
@@ -1562,314 +1583,58 @@ function quickApprovePost(postId) {
 }
 
 function quickRejectPost(postId) {
-    showPostDetail(postId, { openReject: true });
-}
-
-function quickBanUser(userId) {
-    showUserDetail(userId, { openBan: true });
-}
-
-function quickUnbanUser(userId) {
-    confirmAction('Bạn có chắc muốn unban user này?', () => {
-        const token = localStorage.getItem('token');
-
-        fetch(`${API_BASE_URL}/moderation/users/${userId}/unban`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                showError(data.error);
-                return;
-            }
-            showSuccess('Đã unban user thành công');
-            loadUsers(currentUserPage);
-        })
-        .catch(error => {
-            console.error('Error unbanning user:', error);
-            showError('Không thể unban user');
-        });
-    });
-}
-
-// Dashboard functions
-function loadDashboard() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <p class="text-sm text-muted font-medium">Tổng bài viết</p>
-                    <h3 id="overviewTotalPosts" class="text-3xl font-bold mt-2">0</h3>
-                </div>
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <p class="text-sm text-muted font-medium">Bài chờ duyệt</p>
-                    <h3 id="overviewPendingPosts" class="text-3xl font-bold mt-2">0</h3>
-                </div>
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <p class="text-sm text-muted font-medium">Bài bị gắn cờ</p>
-                    <h3 id="overviewFlaggedPosts" class="text-3xl font-bold mt-2">0</h3>
-                </div>
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <p class="text-sm text-muted font-medium">Người dùng bị ban</p>
-                    <h3 id="overviewBannedUsers" class="text-3xl font-bold mt-2">0</h3>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="xl:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">Xu hướng xử lý bài viết</h3>
-                        <span class="text-xs text-muted">Tổng hợp toàn hệ thống</span>
-                    </div>
-                    <div id="moderationOverviewChart" class="h-72 flex items-end gap-4 md:gap-6"></div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                    <h3 class="text-lg font-bold mb-4">Tỷ lệ xử lý</h3>
-                    <div id="moderationOverviewSummary" class="space-y-3 text-sm">
-                        <p class="text-muted">Đang tải dữ liệu...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-bold">Hoạt động kiểm duyệt gần đây</h3>
-                    <button onclick="loadDashboard()" class="text-sm text-primary font-semibold hover:underline">Làm mới</button>
-                </div>
-                <div id="overviewRecentActivity" class="space-y-3">
-                    <p class="text-sm text-muted">Đang tải dữ liệu...</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    loadDashboardData();
-}
-
-async function loadDashboardData() {
-    const token = localStorage.getItem('token');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-    try {
-        const [postsRes, pendingRes, flaggedRes, usersRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/moderation/posts?per_page=1`, { headers, credentials: 'include' }),
-            fetch(`${API_BASE_URL}/moderation/posts?status=pending&per_page=1`, { headers, credentials: 'include' }),
-            fetch(`${API_BASE_URL}/moderation/posts?status=flagged&per_page=1`, { headers, credentials: 'include' }),
-            fetch(`${API_BASE_URL}/moderation/users?status=banned&per_page=1`, { headers, credentials: 'include' })
-        ]);
-
-        const [postsData, pendingData, flaggedData, usersData] = await Promise.all([
-            postsRes.json(),
-            pendingRes.json(),
-            flaggedRes.json(),
-            usersRes.json()
-        ]);
-
-        const totalPostsEl = document.getElementById('overviewTotalPosts');
-        const pendingPostsEl = document.getElementById('overviewPendingPosts');
-        const flaggedPostsEl = document.getElementById('overviewFlaggedPosts');
-        const bannedUsersEl = document.getElementById('overviewBannedUsers');
-
-        if (totalPostsEl) totalPostsEl.textContent = postsData.total || 0;
-        if (pendingPostsEl) pendingPostsEl.textContent = pendingData.total || 0;
-        if (flaggedPostsEl) flaggedPostsEl.textContent = flaggedData.total || 0;
-        if (bannedUsersEl) bannedUsersEl.textContent = usersData.total || 0;
-
-        const moderationStats = await getModerationOverviewStats(headers);
-        renderModerationOverviewChart(moderationStats);
-        renderModerationOverviewSummary(moderationStats);
-
-        renderRecentActivity(pendingData.posts || [], flaggedData.posts || []);
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        const activityEl = document.getElementById('overviewRecentActivity');
-        if (activityEl) {
-            activityEl.innerHTML = '<p class="text-sm text-danger">Không thể tải dữ liệu tổng quan.</p>';
-        }
+    // Hide all other forms
+    document.querySelectorAll('[id^="reject-form-"]').forEach(form => form.classList.add('hidden'));
+    // Show the specific form
+    const form = document.getElementById(`reject-form-${postId}`);
+    if (form) {
+        form.classList.remove('hidden');
     }
 }
 
-async function getModerationOverviewStats(headers) {
-    const perPage = 100;
-    const firstRes = await fetch(`${API_BASE_URL}/moderation/posts?page=1&per_page=${perPage}`, {
-        headers,
-        credentials: 'include'
-    });
-
-    if (!firstRes.ok) {
-        throw new Error('Không thể tải dữ liệu bài viết để thống kê');
+function hideRejectForm(postId) {
+    const form = document.getElementById(`reject-form-${postId}`);
+    if (form) {
+        form.classList.add('hidden');
     }
-
-    const firstData = await firstRes.json();
-    const pages = firstData.pages || 1;
-    const allPosts = [...(firstData.posts || [])];
-
-    if (pages > 1) {
-        const remainingRequests = [];
-        for (let page = 2; page <= pages; page += 1) {
-            remainingRequests.push(
-                fetch(`${API_BASE_URL}/moderation/posts?page=${page}&per_page=${perPage}`, {
-                    headers,
-                    credentials: 'include'
-                }).then(res => res.json())
-            );
-        }
-
-        const remainingPages = await Promise.all(remainingRequests);
-        remainingPages.forEach(pageData => {
-            if (Array.isArray(pageData.posts)) {
-                allPosts.push(...pageData.posts);
-            }
-        });
-    }
-
-    const stats = {
-        requested: 0,
-        approvedByAdmin: 0,
-        approvedByAI: 0,
-        rejected: 0
-    };
-
-    allPosts.forEach(post => {
-        if (post.status === 'pending' || post.status === 'under_review' || post.status === 'flagged') {
-            stats.requested += 1;
-        }
-
-        if (post.moderation_status === 'moderator_approved' || post.moderator_decision === 'approve') {
-            stats.approvedByAdmin += 1;
-        }
-
-        if (post.moderation_status === 'ai_approved') {
-            stats.approvedByAI += 1;
-        }
-
-        if (post.status === 'rejected' || post.moderation_status === 'moderator_rejected' || post.moderator_decision === 'reject') {
-            stats.rejected += 1;
-        }
-    });
-
-    return stats;
 }
 
-function renderModerationOverviewChart(stats) {
-    const chartEl = document.getElementById('moderationOverviewChart');
-    if (!chartEl) return;
-
-    const items = [
-        { key: 'requested', label: 'Yêu cầu đăng', value: stats.requested, color: 'bg-cyan-500', softColor: 'bg-cyan-200/40' },
-        { key: 'approvedByAdmin', label: 'Duyệt bởi Admin', value: stats.approvedByAdmin, color: 'bg-emerald-500', softColor: 'bg-emerald-200/40' },
-        { key: 'approvedByAI', label: 'Duyệt bởi AI', value: stats.approvedByAI, color: 'bg-indigo-500', softColor: 'bg-indigo-200/40' },
-        { key: 'rejected', label: 'Từ chối', value: stats.rejected, color: 'bg-rose-500', softColor: 'bg-rose-200/40' }
-    ];
-
-    const maxValue = Math.max(...items.map(item => item.value), 1);
-
-    chartEl.innerHTML = items
-        .map(item => {
-            const height = Math.max(12, Math.round((item.value / maxValue) * 220));
-            return `
-                <div class="flex-1 min-w-0 flex flex-col items-center justify-end">
-                    <p class="text-sm font-bold mb-2">${item.value}</p>
-                    <div class="w-full max-w-24 h-56 rounded-lg ${item.softColor} flex items-end overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <div class="w-full ${item.color}" style="height:${height}px"></div>
-                    </div>
-                    <p class="text-[11px] md:text-xs text-muted text-center mt-2 leading-tight">${item.label}</p>
-                </div>
-            `;
-        })
-        .join('');
-}
-
-function renderModerationOverviewSummary(stats) {
-    const summaryEl = document.getElementById('moderationOverviewSummary');
-    if (!summaryEl) return;
-
-    const totalHandled = stats.approvedByAdmin + stats.approvedByAI + stats.rejected;
-    const aiRate = totalHandled > 0 ? Math.round((stats.approvedByAI / totalHandled) * 100) : 0;
-    const adminRate = totalHandled > 0 ? Math.round((stats.approvedByAdmin / totalHandled) * 100) : 0;
-
-    summaryEl.innerHTML = `
-        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-            <span class="text-muted">Yêu cầu đang chờ</span>
-            <span class="font-bold text-cyan-600">${stats.requested}</span>
-        </div>
-        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-            <span class="text-muted">Duyệt bởi admin</span>
-            <span class="font-bold text-emerald-600">${stats.approvedByAdmin}</span>
-        </div>
-        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-            <span class="text-muted">Duyệt bởi AI</span>
-            <span class="font-bold text-indigo-600">${stats.approvedByAI}</span>
-        </div>
-        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-            <span class="text-muted">Bị từ chối</span>
-            <span class="font-bold text-rose-600">${stats.rejected}</span>
-        </div>
-        <div class="mt-2 pt-3 border-t border-slate-200 dark:border-slate-700 text-xs text-muted space-y-1">
-            <p>Tỉ lệ duyệt AI: <span class="font-semibold text-indigo-600">${aiRate}%</span></p>
-            <p>Tỉ lệ duyệt Admin: <span class="font-semibold text-emerald-600">${adminRate}%</span></p>
-        </div>
-    `;
-}
-
-function renderRecentActivity(pendingPosts, flaggedPosts) {
-    const activityEl = document.getElementById('overviewRecentActivity');
-    if (!activityEl) return;
-
-    const activityRows = [];
-
-    pendingPosts.slice(0, 3).forEach(post => {
-        activityRows.push({
-            type: 'pending',
-            postId: post.id,
-            title: `Bài viết chờ duyệt #${post.id}`,
-            subtitle: `@${post.author?.username || 'unknown'} • ${formatDateShort(post.created_at)}`
-        });
-    });
-
-    flaggedPosts.slice(0, 3).forEach(post => {
-        activityRows.push({
-            type: 'flagged',
-            postId: post.id,
-            title: `Bài viết bị gắn cờ #${post.id}`,
-            subtitle: `@${post.author?.username || 'unknown'} • AI: ${post.ai_confidence_score || 0}%`
-        });
-    });
-
-    if (activityRows.length === 0) {
-        activityEl.innerHTML = '<p class="text-sm text-muted">Hiện chưa có hoạt động đáng chú ý.</p>';
+function submitQuickReject(postId) {
+    const reason = document.getElementById(`reject-reason-${postId}`).value.trim();
+    if (!reason) {
+        showError('Vui lòng nhập lý do từ chối');
         return;
     }
-
-    activityEl.innerHTML = activityRows
-        .slice(0, 6)
-        .map(item => `
-            <div class="flex items-start justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40">
-                <div class="flex-1">
-                    <p class="text-sm font-semibold">${item.title}</p>
-                    <p class="text-xs text-muted mt-1">${item.subtitle}</p>
-                </div>
-                <div class="flex items-center gap-2 ml-4">
-                    <span class="text-[10px] px-2 py-1 rounded-full ${item.type === 'flagged' ? 'bg-warning/15 text-warning' : 'bg-primary/15 text-primary'}">
-                        ${item.type === 'flagged' ? 'Flagged' : 'Pending'}
-                    </span>
-                    <button onclick="showPostDetail(${item.postId})" class="text-xs px-2 py-1 rounded bg-primary text-white hover:bg-primary/90">Xem bài</button>
-                </div>
-            </div>
-        `)
-        .join('');
+    
+    const token = localStorage.getItem('token');
+    fetch(`${API_BASE_URL}/moderation/review/${postId}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            decision: 'reject',
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showError(data.error);
+            return;
+        }
+        showSuccess('Đã từ chối bài viết thành công');
+        refreshAfterModerationAction();
+    })
+    .catch(error => {
+        console.error('Error rejecting post:', error);
+        showError('Không thể từ chối bài viết');
+    });
 }
 
-function loadReports(page = 1) {
-    return loadReportItems(page);
-}
-
-async function loadReportItems(page = 1) {
+// ============= REPORTS MANAGEMENT =============
+async function loadReports(page = 1) {
     currentReportPage = page;
 
     const statusFilter = document.getElementById('post-status-filter');

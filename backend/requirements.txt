@@ -4,7 +4,7 @@ Flask-CORS==4.0.0
 Flask-JWT-Extended==4.6.0
 Flask-Bcrypt==1.0.1
 Flask-Mail==0.9.1
-Flask-Session==0.5.0
+Flask-Session==0.6.0
 
 # Database - MySQL
 SQLAlchemy==2.0.23
