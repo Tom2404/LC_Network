@@ -172,46 +172,38 @@
 
                 <!-- Post Content (will be filled by JS) -->
                 <div id="postContent" class="hidden">
-                    <!-- Post Header -->
-                    <div class="p-4 flex items-center justify-between border-b border-[#dae7e6] dark:border-[#2a3d3b]">
-                        <div class="flex items-center gap-3">
-                            <img id="postAuthorAvatar" src="/user/images/default-avatar.png" class="size-12 rounded-full border-2 border-[#dae7e6] object-cover" onerror="this.src='/user/images/default-avatar.png'" />
-                            <div>
-                                <h3 id="postAuthorName" class="text-[#101818] dark:text-white font-bold text-base">Đang tải...</h3>
-                                <p id="postTime" class="text-[#5e8d89] dark:text-[#8faeaa] text-sm">Vừa xong</p>
+                    <div class="p-5">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div id="postAuthorAvatar" class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
+                                style='background-image: url("/user/images/default-avatar.png");'></div>
+                            <div class="flex-1">
+                                <h4 id="postAuthorName" class="font-bold text-sm dark:text-white">Đang tải...</h4>
+                                <p id="postTime" class="text-xs text-[#5e8d89]">Vừa xong</p>
                             </div>
+                            <button id="reportPostButton" onclick="openReportPostModal()" class="report-btn relative hidden p-2 rounded-full bg-red-50 dark:bg-red-500/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/30 transition-colors" aria-label="Báo cáo bài viết">
+                                <span class="material-symbols-outlined text-xl">report</span>
+                                <span class="report-tooltip absolute -bottom-8 right-0 text-xs font-semibold px-2 py-1 rounded-md bg-yellow-200 text-red-600 whitespace-nowrap">Báo cáo</span>
+                            </button>
                         </div>
-                        <button id="reportPostButton" onclick="openReportPostModal()" class="report-btn relative hidden p-2 rounded-full bg-red-50 dark:bg-red-500/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/30 transition-colors" aria-label="Báo cáo bài viết">
-                            <span class="material-symbols-outlined text-xl">report</span>
-                            <span class="report-tooltip absolute -bottom-8 right-0 text-xs font-semibold px-2 py-1 rounded-md bg-yellow-200 text-red-600 whitespace-nowrap">Báo cáo</span>
+                        <p id="postTextContent" class="text-sm mb-3 dark:text-white whitespace-pre-wrap"></p>
+                    </div>
+
+                    <!-- Post Media Container (Dynamically rendered in JS) -->
+                    <div id="postMediaContainer" class="hidden"></div>
+                    
+                    <div class="px-5 py-3 border-t border-[#f0f5f4] dark:border-[#2a3d3b] flex items-center justify-between text-sm">
+                        <button id="likeButton" class="like-btn flex items-center gap-2 hover:text-red-500 transition-colors text-[#5e8d89]" onclick="toggleLike()">
+                            <span class="material-symbols-outlined text-xl">favorite</span>
+                            <span id="likeCount" class="like-count">0</span>
                         </button>
-                    </div>
-
-                    <!-- Post Text Content -->
-                    <div id="postTextContent" class="p-4 text-[#101818] dark:text-white text-base leading-relaxed whitespace-pre-wrap"></div>
-
-                    <!-- Post Media -->
-                    <div id="postMediaContainer" class="hidden">
-                        <img id="postImage" class="w-full object-cover max-h-[600px] hidden cursor-pointer" onclick="openImageModal(this.src)" />
-                        <video id="postVideo" class="w-full object-cover max-h-[600px] hidden" controls></video>
-                    </div>
-
-                    <!-- Post Stats and Actions -->
-                    <div class="px-4 py-3 border-t border-[#dae7e6] dark:border-[#2a3d3b]">
-                        <div class="flex items-center justify-between text-sm text-[#5e8d89] dark:text-[#8faeaa] mb-3">
-                            <span id="likeCount">0 lượt thích</span>
-                            <span id="commentCount">0 bình luận</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button id="likeButton" onclick="toggleLike()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[#e8f1f0] dark:hover:bg-[#2a3d3b] transition-colors text-[#5e8d89] dark:text-[#8faeaa]">
-                                <span class="material-symbols-outlined">favorite_border</span>
-                                <span class="font-medium">Thích</span>
-                            </button>
-                            <button onclick="document.getElementById('commentInput').focus()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-[#e8f1f0] dark:hover:bg-[#2a3d3b] transition-colors text-[#5e8d89] dark:text-[#8faeaa]">
-                                <span class="material-symbols-outlined">chat_bubble_outline</span>
-                                <span class="font-medium">Bình luận</span>
-                            </button>
-                        </div>
+                        <button class="comment-btn flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]" onclick="document.getElementById('commentInput').focus()">
+                            <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                            <span id="commentCount" class="comment-count">0</span>
+                        </button>
+                        <button class="flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]">
+                            <span class="material-symbols-outlined text-xl">share</span>
+                            <span id="shareCount">0</span>
+                        </button>
                     </div>
 
                     <!-- Comments Section -->
@@ -421,7 +413,7 @@
             console.log('Author avatar:', authorAvatar);
             
             document.getElementById('postAuthorName').textContent = authorName;
-            document.getElementById('postAuthorAvatar').src = authorAvatar;
+            document.getElementById('postAuthorAvatar').style.backgroundImage = `url("${authorAvatar}")`;
 
             const reportButton = document.getElementById('reportPostButton');
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -448,61 +440,53 @@
 
             // Media
             const mediaContainer = document.getElementById('postMediaContainer');
-            const mediaImage = document.getElementById('postImage');
-            const mediaVideo = document.getElementById('postVideo');
             
             if (post.media && post.media.length > 0) {
-                const firstMedia = post.media[0];
-                const mediaPath = firstMedia.media_url;
-                const mediaUrl = buildAssetUrl(mediaPath);
+                const mediaClass = post.media.length === 1 ? 'grid-cols-1' : post.media.length === 2 ? 'grid-cols-2' : post.media.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
                 
-                console.log('Media path:', mediaPath);
-                console.log('Media URL:', mediaUrl);
-                console.log('Media type:', firstMedia.media_type);
+                let mediaHTML = `<div class="grid ${mediaClass} gap-1 bg-gray-50 dark:bg-gray-900">`;
                 
+                post.media.forEach((m, idx) => {
+                    const mediaUrl = buildAssetUrl(m.media_url);
+                    if (m.media_type === 'video') {
+                        mediaHTML += `
+                            <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden bg-black">
+                                <video src="${mediaUrl}" controls class="max-w-full max-h-full object-contain"></video>
+                            </div>
+                        `;
+                    } else {
+                        mediaHTML += `
+                            <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity" onclick='openImageModal("${mediaUrl}")'>
+                                <img src="${mediaUrl}" class="max-w-full max-h-full object-contain" loading="lazy">
+                            </div>
+                        `;
+                    }
+                });
+                
+                mediaHTML += `</div>`;
+                mediaContainer.innerHTML = mediaHTML;
                 mediaContainer.classList.remove('hidden');
-                
-                if (firstMedia.media_type === 'video') {
-                    mediaVideo.src = mediaUrl;
-                    mediaVideo.classList.remove('hidden');
-                    mediaImage.classList.add('hidden');
-                } else {
-                    mediaImage.src = mediaUrl;
-                    mediaImage.classList.remove('hidden');
-                    mediaVideo.classList.add('hidden');
-                    
-                    // Error handler for images
-                    mediaImage.onerror = () => {
-                        console.error('Failed to load image:', mediaUrl);
-                        console.error('Tried to load from:', mediaImage.src);
-                        mediaImage.classList.add('hidden');
-                        mediaContainer.classList.add('hidden');
-                    };
-                }
             } else {
-                console.log('No media in post');
+                mediaContainer.innerHTML = '';
                 mediaContainer.classList.add('hidden');
             }
 
             // Stats
-            document.getElementById('likeCount').textContent = `${post.like_count || 0} lượt thích`;
-            document.getElementById('commentCount').textContent = `${post.comment_count || 0} bình luận`;
+            document.getElementById('likeCount').textContent = post.like_count || 0;
+            document.getElementById('commentCount').textContent = post.comment_count || 0;
+            document.getElementById('shareCount').textContent = post.share_count || 0;
 
             // Like button
             const likeButton = document.getElementById('likeButton');
-            const likeIcon = likeButton.querySelector('.material-symbols-outlined');
+            const likeIcon = likeButton.querySelector('span:first-child');
             if (post.is_liked) {
-                likeIcon.textContent = 'favorite';
-                likeIcon.classList.add('material-symbols-outlined-filled');
-                likeIcon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                likeIcon.className = 'material-symbols-outlined-filled text-xl';
+                likeButton.classList.remove('text-[#5e8d89]');
                 likeButton.classList.add('text-red-500');
-                likeButton.classList.remove('text-[#5e8d89]', 'dark:text-[#8faeaa]');
             } else {
-                likeIcon.textContent = 'favorite_border';
-                likeIcon.classList.remove('material-symbols-outlined-filled');
-                likeIcon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                likeIcon.className = 'material-symbols-outlined text-xl';
                 likeButton.classList.remove('text-red-500');
-                likeButton.classList.add('text-[#5e8d89]', 'dark:text-[#8faeaa]');
+                likeButton.classList.add('text-[#5e8d89]');
             }
         }
 
@@ -517,7 +501,22 @@
                 });
                 
                 if (response.ok) {
-                    await loadPost(currentPostId);
+                    const data = await response.json();
+                    const likeButton = document.getElementById('likeButton');
+                    const likeIcon = likeButton.querySelector('span:first-child');
+                    const likeCount = document.getElementById('likeCount');
+                    
+                    if (data.is_liked) {
+                        likeIcon.className = 'material-symbols-outlined-filled text-xl';
+                        likeButton.classList.remove('text-[#5e8d89]');
+                        likeButton.classList.add('text-red-500');
+                    } else {
+                        likeIcon.className = 'material-symbols-outlined text-xl';
+                        likeButton.classList.remove('text-red-500');
+                        likeButton.classList.add('text-[#5e8d89]');
+                    }
+                    
+                    likeCount.textContent = data.like_count > 0 ? data.like_count : 0;
                 }
             } catch (error) {
                 console.error('Error toggling like:', error);

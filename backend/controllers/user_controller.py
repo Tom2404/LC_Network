@@ -47,6 +47,13 @@ def update_profile():
         
         if 'phone_number' in data:
             user.phone_number = data['phone_number']
+
+        if 'email' in data:
+            new_email = data['email']
+            existing_user = User.query.filter(User.email == new_email, User.id != current_user_id).first()
+            if existing_user:
+                return jsonify({'error': 'Email is already taken'}), 409
+            user.email = new_email
         
         if 'avatar_url' in data:
             # TODO: AI moderation for avatar (Phase 5)
@@ -235,6 +242,104 @@ def change_password():
         )
         db.session.add(log)
         db.session.commit()
+        
+        return jsonify({'message': 'Password changed successfully'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/request-password-otp', methods=['POST'])
+@jwt_required()
+def request_password_otp():
+    """Yêu cầu mã OTP để đổi mật khẩu"""
+    import random
+    from utils.email_service import send_otp_email
+    
+    try:
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        # Sinh mã OTP 6 số
+        otp_code = str(random.randint(100000, 999999))
+        user.otp_code = otp_code
+        user.otp_created_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Gửi email
+        try:
+            success = send_otp_email(user.email, user.full_name, otp_code)
+            if not success:
+                # Revert OTP in DB if email failed
+                user.otp_code = None
+                user.otp_created_at = None
+                db.session.commit()
+                return jsonify({'error': 'Không thể gửi email OTP (Lỗi SMTP từ Google). Vui lòng thử lại sau.'}), 500
+        except Exception as e:
+            print(f"Failed to send OTP email: {e}")
+            user.otp_code = None
+            user.otp_created_at = None
+            db.session.commit()
+            return jsonify({'error': 'Failed to send OTP email'}), 500
+        
+        return jsonify({'message': 'Mã OTP đã được gửi đến email của bạn.'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/change-password-otp', methods=['POST'])
+@jwt_required()
+def change_password_otp():
+    """Đổi mật khẩu với OTP"""
+    from flask import current_app, session
+    from flask_bcrypt import Bcrypt
+    from datetime import timedelta
+    bcrypt = Bcrypt(current_app)
+    
+    try:
+        current_user_id = int(get_jwt_identity())
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        data = request.get_json()
+        
+        if not data.get('otp_code') or not data.get('new_password'):
+            return jsonify({'error': 'Mã OTP và mật khẩu mới là bắt buộc'}), 400
+            
+        # Kiểm tra hiệu lực OTP
+        if not user.otp_code or user.otp_code != data['otp_code']:
+            return jsonify({'error': 'Mã OTP không hợp lệ'}), 400
+            
+        if not user.otp_created_at or datetime.utcnow() - user.otp_created_at > timedelta(minutes=10):
+            return jsonify({'error': 'Mã OTP đã hết hạn'}), 400
+            
+        # Cập nhật mật khẩu
+        new_password_hash = bcrypt.generate_password_hash(data['new_password']).decode('utf-8')
+        user.password_hash = new_password_hash
+        user.otp_code = None  # Xóa mã OTP sau khi sử dụng
+        user.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        # Log activity
+        log = UserActivityLog(
+            user_id=current_user_id,
+            activity_type='password_change',
+            ip_address=request.remote_addr
+        )
+        db.session.add(log)
+        db.session.commit()
+
+        # Clear current session
+        session.pop('active_user_id', None)
+        session.pop('user_last_activity_ts', None)
         
         return jsonify({'message': 'Password changed successfully'}), 200
         

@@ -111,6 +111,11 @@
             background: #152a28;
             color: #38a89d;
         }
+
+        .material-symbols-outlined-filled {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
     </style>
 </head>
 
@@ -435,6 +440,67 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="fixed inset-0 z-[100] hidden" id="settings-modal">
+        <div class="absolute inset-0 bg-background-dark/80 backdrop-blur-sm" onclick="closeSettingsModal()"></div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl">settings</span>
+                    Cài đặt tài khoản
+                </h3>
+                <button class="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-colors" onclick="closeSettingsModal()">close</button>
+            </div>
+            
+            <div class="flex border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                <button id="settingsTabBasic" onclick="switchSettingsTab('basic')" class="flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary transition-colors">Thông tin</button>
+                <button id="settingsTabSecurity" onclick="switchSettingsTab('security')" class="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-primary border-b-2 border-transparent transition-colors">Bảo mật</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <!-- Content Basic Info -->
+                <div id="settingsContentBasic" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Email</label>
+                        <input id="settingsEmail" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary font-semibold text-sm" type="email" placeholder="example@gmail.com" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Số điện thoại</label>
+                        <input id="settingsPhone" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary font-semibold text-sm" type="text" placeholder="Số điện thoại" />
+                    </div>
+                    <button id="btnSaveSettingsInfo" onclick="saveSettingsInfo()" class="w-full mt-4 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm transition-all hover:opacity-90 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">save</span>
+                        Lưu Thay Đổi
+                    </button>
+                </div>
+                
+                <!-- Content Security/Password -->
+                <div id="settingsContentSecurity" class="space-y-4 hidden">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Mật khẩu mới</label>
+                        <input id="settingsNewPassword" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary font-semibold text-sm" type="password" placeholder="Nhập mật khẩu mới" />
+                    </div>
+                    <div class="space-y-1.5 pt-2">
+                        <button id="btnRequestOtp" onclick="requestSettingsOTP()" class="w-full py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg hover:opacity-90 transition-all text-sm mb-2">
+                            Lấy mã OTP qua Email
+                        </button>
+                    </div>
+                    
+                    <div id="otpSection" class="hidden border-t border-slate-100 dark:border-slate-800 pt-4 mt-2 space-y-4">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-500 uppercase text-primary">Nhập mã OTP</label>
+                            <input id="settingsOtpCode" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary font-semibold text-sm tracking-widest text-center" type="text" placeholder="------" maxlength="6" />
+                        </div>
+                        <button id="btnChangePassword" onclick="verifyAndChangePassword()" class="w-full py-2.5 bg-red-500 text-white font-bold rounded-lg shadow-sm transition-all hover:bg-red-600 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">lock_reset</span>
+                            Xác nhận đổi mật khẩu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="/user/js/config.js"></script>
     <script src="/user/js/auth.js"></script>
@@ -563,6 +629,163 @@
             const modal = document.getElementById('edit-modal');
             modal.classList.add('hidden');
             document.body.style.overflow = '';
+        }
+
+        function openSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            // Filled Data
+            document.getElementById('settingsEmail').value = user.email || '';
+            document.getElementById('settingsPhone').value = user.phone_number || '';
+            
+            // Reset state
+            document.getElementById('settingsNewPassword').value = '';
+            document.getElementById('settingsOtpCode').value = '';
+            document.getElementById('otpSection').classList.add('hidden');
+            switchSettingsTab('basic');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-enter');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function switchSettingsTab(tab) {
+            const tabBasic = document.getElementById('settingsTabBasic');
+            const tabSecurity = document.getElementById('settingsTabSecurity');
+            const contentBasic = document.getElementById('settingsContentBasic');
+            const contentSecurity = document.getElementById('settingsContentSecurity');
+            
+            if (tab === 'basic') {
+                tabBasic.className = "flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary transition-colors";
+                tabSecurity.className = "flex-1 py-3 text-sm font-bold text-slate-400 hover:text-primary border-b-2 border-transparent transition-colors";
+                contentBasic.classList.remove('hidden');
+                contentSecurity.classList.add('hidden');
+            } else {
+                tabSecurity.className = "flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary transition-colors";
+                tabBasic.className = "flex-1 py-3 text-sm font-bold text-slate-400 hover:text-primary border-b-2 border-transparent transition-colors";
+                contentSecurity.classList.remove('hidden');
+                contentBasic.classList.add('hidden');
+            }
+        }
+
+        async function saveSettingsInfo() {
+            const email = document.getElementById('settingsEmail').value.trim();
+            const phone = document.getElementById('settingsPhone').value.trim();
+            const btn = document.getElementById('btnSaveSettingsInfo');
+            
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Đang lưu...';
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/users/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, phone_number: phone })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    if(data.user) {
+                        user.email = data.user.email;
+                        user.phone_number = data.user.phone_number;
+                        localStorage.setItem('user', JSON.stringify(user));
+                    }
+                    
+                    showNotification('Cập nhật thông tin thành công', 'success');
+                    closeSettingsModal();
+                    loadUserProfile();
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Cập nhật thất bại', 'error');
+                }
+            } catch (error) {
+                showNotification('Lỗi kết nối', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        async function requestSettingsOTP() {
+            const btn = document.getElementById('btnRequestOtp');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin inline-block align-middle">progress_activity</span> Đang gửi...';
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/users/request-password-otp`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    showNotification('Đã gửi mã OTP về email của bạn', 'success');
+                    document.getElementById('otpSection').classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Không thể yêu cầu OTP', 'error');
+                }
+            } catch (error) {
+                showNotification('Lỗi khi gửi yêu cầu OTP', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        async function verifyAndChangePassword() {
+            const newPassword = document.getElementById('settingsNewPassword').value.trim();
+            const otpCode = document.getElementById('settingsOtpCode').value.trim();
+            
+            if(!newPassword || !otpCode) {
+                showNotification('Vui lòng nhập mật khẩu mới và mã OTP', 'warning');
+                return;
+            }
+            
+            if(newPassword.length < 6) {
+                showNotification('Mật khẩu mới phải dài ít nhất 6 ký tự', 'warning');
+                return;
+            }
+            
+            const btn = document.getElementById('btnChangePassword');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Đang đổi mật khẩu...';
+            
+            try {
+                const response = await fetchWithAuth(`${API_URL}/users/change-password-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_password: newPassword, otp_code: otpCode })
+                });
+                
+                if (response.ok) {
+                    showNotification('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.', 'success');
+                    closeSettingsModal();
+                    
+                    // Proceed to logout
+                    setTimeout(() => {
+                        logout();
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Đổi mật khẩu thất bại', 'error');
+                }
+            } catch (error) {
+                showNotification('Lỗi khi xác nhận đổi mật khẩu', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         // Handle avatar preview
@@ -734,6 +957,9 @@
                     <button onclick="openEditModal()" class="px-6 py-2.5 bg-primary text-background-dark font-bold rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">edit</span>
                         Chỉnh sửa trang cá nhân
+                    </button>
+                    <button onclick="openSettingsModal()" class="px-3 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">settings</span>
                     </button>
                 `;
             } else if (friendshipStatus === null) {
@@ -1180,109 +1406,147 @@
         // Render Post Card
         function renderPostCard(post) {
             const div = document.createElement('div');
-            div.className = 'bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden';
+            div.className = 'bg-white dark:bg-[#152a28] rounded-xl shadow-sm border border-[#dae7e6] dark:border-[#2a3d3b] overflow-hidden';
+            div.dataset.postId = post.id;
             
             const timeAgo = getTimeAgo(post.created_at);
             
-            // Get current user info from localStorage (since these are my posts)
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const isOwnPost = Number(currentUser.id) === Number(post.user_id);
+            
             const userFullName = post.author?.full_name || currentUser.full_name || 'Người dùng';
             const userAvatar = post.author?.avatar_url || currentUser.avatar_url || '/user/images/default-avatar.png';
             const avatarUrl = userAvatar.startsWith('http') ? userAvatar : `http://127.0.0.1:5000${userAvatar}`;
             
             // Status badge
             let statusBadge = '';
-            if (post.status === 'pending') {
-                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">schedule</span>Đang chờ duyệt</span>';
-            } else if (post.status === 'rejected') {
-                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">block</span>Bị từ chối</span>';
-            } else if (post.status === 'flagged') {
-                statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-bold rounded-full"><span class="material-symbols-outlined text-xs">flag</span>Đã được đánh dấu</span>';
+            if (isOwnPost) {
+                if (post.status === 'pending') {
+                    statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-bold rounded-full ml-2"><span class="material-symbols-outlined text-xs">schedule</span>Đang chờ duyệt</span>';
+                } else if (post.status === 'rejected') {
+                    statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full ml-2"><span class="material-symbols-outlined text-xs">block</span>Bị từ chối</span>';
+                } else if (post.status === 'flagged') {
+                    statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-bold rounded-full ml-2"><span class="material-symbols-outlined text-xs">flag</span>Đã được đánh dấu</span>';
+                }
             }
             
+            let mediaHTML = '';
+            if (post.media && post.media.length > 0) {
+                const mediaClass = post.media.length === 1 ? 'grid-cols-1' : post.media.length === 2 ? 'grid-cols-2' : post.media.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+                mediaHTML = `
+                    <div class="grid ${mediaClass} gap-1 bg-gray-50 dark:bg-gray-900">
+                        ${post.media.map((m, idx) => {
+                            const imgUrl = m.media_url.startsWith('http') ? m.media_url : `http://127.0.0.1:5000${m.media_url}`;
+                            return `
+                                <div class="${post.media.length === 1 ? 'max-h-[500px]' : 'h-64'} flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-95 transition-opacity" onclick='window.location.href="post.html?id=${post.id}"'>
+                                    <img src="${imgUrl}" class="max-w-full max-h-full object-contain" loading="lazy">
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            const likeIconClass = post.is_liked ? 'material-symbols-outlined-filled' : 'material-symbols-outlined';
+            const likeTextColor = post.is_liked ? 'text-red-500' : 'text-[#5e8d89]';
+            
             div.innerHTML = `
-                <!-- Post Header -->
-                <div class="p-4 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-cover bg-center" style="background-image: url('${avatarUrl}')"></div>
-                        <div>
-                            <p class="font-bold text-sm">${userFullName}</p>
-                            <p class="text-xs text-slate-500">${timeAgo}</p>
+                <div class="p-5">
+                    <div class="flex items-start gap-3 mb-3">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 shrink-0"
+                            style='background-image: url("${avatarUrl}");'></div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm dark:text-white flex items-center">${userFullName} ${statusBadge}</h4>
+                            <p class="text-xs text-[#5e8d89]">${timeAgo}</p>
                         </div>
+                        ${isOwnPost ? `
+                            <button onclick="openPostMenu(${post.id})" class="p-2 hover:bg-[#f0f5f4] dark:hover:bg-[#1a3330] text-[#5e8d89] rounded-full transition-colors">
+                                <span class="material-symbols-outlined text-xl">more_horiz</span>
+                            </button>
+                        ` : ''}
                     </div>
-                    <div class="flex items-center gap-2">
-                        ${statusBadge}
-                        <button onclick="openPostMenu(${post.id})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                            <span class="material-symbols-outlined text-slate-500">more_horiz</span>
-                        </button>
-                    </div>
+                    ${post.caption ? `<p class="text-sm mb-3 dark:text-white whitespace-pre-wrap">${escapeHtml(post.caption)}</p>` : ''}
                 </div>
-                
-                <!-- Post Caption -->
-                ${post.caption ? `<div class="px-4 pb-3"><p class="text-sm whitespace-pre-wrap">${escapeHtml(post.caption)}</p></div>` : ''}
-                
-                <!-- Post Media -->
-                ${renderPostMedia(post)}
-                
-                <!-- Post Stats & Actions -->
-                <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center justify-between text-sm text-slate-500 mb-3">
-                        <span>${post.like_count || 0} lượt thích</span>
-                        <span>${post.comment_count || 0} bình luận • ${post.share_count || 0} chia sẻ</span>
-                    </div>
-                    <div class="flex items-center justify-around border-t border-slate-100 dark:border-slate-800 pt-2">
-                        <button class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
-                            <span class="material-symbols-outlined text-lg">thumb_up</span>
-                            Thích
-                        </button>
-                        <button onclick="window.location.href='post.html?id=${post.id}'" class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
-                            <span class="material-symbols-outlined text-lg">chat_bubble</span>
-                            Bình luận
-                        </button>
-                        <button class="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold">
-                            <span class="material-symbols-outlined text-lg">share</span>
-                            Chia sẻ
-                        </button>
-                    </div>
+                ${mediaHTML}
+                <div class="px-5 py-3 border-t border-[#f0f5f4] dark:border-[#2a3d3b] flex items-center justify-between text-sm">
+                    <button class="like-btn flex items-center gap-2 hover:text-red-500 transition-colors ${likeTextColor}" onclick="toggleLike(${post.id})">
+                        <span class="${likeIconClass} text-xl">favorite</span>
+                        <span class="like-count">${post.like_count || 0}</span>
+                    </button>
+                    ${typeof openCommentModal === 'function' ? `
+                    <button class="comment-btn flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]" onclick="openCommentModal(${post.id})">
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span class="comment-count">${post.comment_count || 0}</span>
+                    </button>
+                    ` : `
+                    <button class="comment-btn flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]" onclick="window.location.href='post.html?id=${post.id}'">
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span class="comment-count">${post.comment_count || 0}</span>
+                    </button>
+                    `}
+                    <button class="flex items-center gap-2 hover:text-primary transition-colors text-[#5e8d89]">
+                        <span class="material-symbols-outlined text-xl">share</span>
+                        <span>${post.share_count || 0}</span>
+                    </button>
                 </div>
             `;
             
             return div;
         }
-        
-        function renderPostMedia(post) {
-            if (!post.media || post.media.length === 0) {
-                return '';
-            }
+
+        // Toggle like on post
+        async function toggleLike(postId) {
+            console.log('[LIKE] Toggling like for post:', postId);
             
-            let mediaHtml = '<div class="relative bg-slate-100 dark:bg-slate-800">';
-            
-            if (post.media.length === 1) {
-                const media = post.media[0];
-                const mediaUrl = media.media_url.startsWith('http') ? media.media_url : `http://127.0.0.1:5000${media.media_url}`;
+            try {
+                const token = localStorage.getItem('accessToken');
                 
-                if (media.media_type === 'image') {
-                    mediaHtml += `<img src="${mediaUrl}" alt="Post image" class="w-full max-h-[600px] object-contain">`;
-                } else if (media.media_type === 'video') {
-                    mediaHtml += `<video controls class="w-full max-h-[600px]"><source src="${mediaUrl}" type="video/mp4"></video>`;
+                if (!token) {
+                    showNotification('Vui lòng đăng nhập lại', 'warning');
+                    window.location.href = 'login.html';
+                    return;
                 }
-            } else {
-                // Multiple media - grid layout
-                mediaHtml += '<div class="grid grid-cols-2 gap-1">';
-                post.media.slice(0, 4).forEach((media, idx) => {
-                    const mediaUrl = media.media_url.startsWith('http') ? media.media_url : `http://127.0.0.1:5000${media.media_url}`;
-                    if (media.media_type === 'image') {
-                        mediaHtml += `<img src="${mediaUrl}" alt="Post image ${idx+1}" class="w-full h-48 object-cover">`;
+                
+                const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
-                if (post.media.length > 4) {
-                    mediaHtml += `<div class="absolute bottom-2 right-2 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">+${post.media.length - 4}</div>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update UI
+                    const postEl = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postEl) {
+                        const likeBtn = postEl.querySelector('.like-btn');
+                        const likeIcon = likeBtn.querySelector('span:first-child');
+                        const likeCount = likeBtn.querySelector('.like-count');
+                        
+                        // Update icon
+                        if (data.is_liked) {
+                            likeIcon.className = 'material-symbols-outlined-filled text-xl';
+                            likeBtn.classList.remove('text-[#5e8d89]');
+                            likeBtn.classList.add('text-red-500');
+                        } else {
+                            likeIcon.className = 'material-symbols-outlined text-xl';
+                            likeBtn.classList.remove('text-red-500');
+                            likeBtn.classList.add('text-[#5e8d89]');
+                        }
+                        
+                        // Update count
+                        likeCount.textContent = data.like_count > 0 ? data.like_count : 0;
+                    }
+                } else {
+                    const error = await response.json();
+                    showNotification('Không thể thực hiện: ' + (error.error || 'Lỗi không xác định'), 'error');
                 }
-                mediaHtml += '</div>';
+            } catch (error) {
+                console.error('[LIKE] Exception:', error);
+                showNotification('Không thể kết nối máy chủ', 'error');
             }
-            
-            mediaHtml += '</div>';
-            return mediaHtml;
         }
         
         function getTimeAgo(dateString) {
