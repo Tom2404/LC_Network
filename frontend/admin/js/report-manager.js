@@ -136,22 +136,39 @@ async function updateStats() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    if (typeof currentTab !== 'undefined') {
+    // Set the current tab for this page
+    if (typeof window.setCurrentTab === 'function') {
+        window.setCurrentTab('reports');
+    } else if (typeof currentTab !== 'undefined') {
         currentTab = 'reports';
     }
+
+    // Set default filter value
     const filter = document.getElementById('post-status-filter');
-    if (filter) filter.value = 'all';
-    
-    if (typeof checkAuth === 'function') {
-        await checkAuth();
+    if (filter) {
+        filter.value = 'all';
     }
-    
-    if (typeof loadAdminData === 'function') {
+
+    // Authenticate and then load data
+    if (typeof checkAuth === 'function') {
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) {
+            console.error("Authentication failed. Halting further execution.");
+            return; // Stop if not authenticated
+        }
+    }
+
+    // Directly load reports for this page
+    if (typeof loadReports === 'function') {
+        loadReports(1);
+    } else if (typeof loadAdminData === 'function') {
+        // Fallback for older structure
         loadAdminData();
     }
-    
+
     updateStats();
     setupEventListeners();
-    
+
+    // Periodically update stats
     setInterval(updateStats, 30000);
 });

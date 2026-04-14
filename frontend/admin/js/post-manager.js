@@ -125,21 +125,33 @@ async function updateStats() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    if (typeof checkAuth === 'function') {
-        await checkAuth();
-    }
-    
-    if (typeof currentTab !== 'undefined') {
+    // Set the current tab for this page
+    if (typeof window.setCurrentTab === 'function') {
+        window.setCurrentTab('posts');
+    } else if (typeof currentTab !== 'undefined') {
         currentTab = 'posts';
     }
-    
-    if (typeof loadAdminData === 'function') {
+
+    // Authenticate and then load data
+    if (typeof checkAuth === 'function') {
+        const isAuthenticated = await checkAuth();
+        if (!isAuthenticated) {
+            console.error("Authentication failed. Halting further execution.");
+            return; // Stop if not authenticated
+        }
+    }
+
+    // Directly load posts for this page
+    if (typeof loadPosts === 'function') {
+        loadPosts(1);
+    } else if (typeof loadAdminData === 'function') {
+        // Fallback for older structure
         loadAdminData();
     }
-    
+
     updateStats();
     setupEventListeners();
-    
+
     // Refresh stats every 30 seconds
     setInterval(updateStats, 30000);
 });
